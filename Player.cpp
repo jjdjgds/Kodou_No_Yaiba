@@ -10,8 +10,6 @@ Player::Player()
 	// スプライトシート上の1フレームの大きさ
 	const Vec2 frameSize(64, 64);
 
-	// AnimatedObject クラスのインスタンスを生成
-	AnimatedObject animatedObject(spriteSheetPath, frameSize);
 
 }
 
