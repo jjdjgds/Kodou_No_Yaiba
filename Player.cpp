@@ -5,6 +5,9 @@ Player player;
 Player::Player()
 	
 {
+
+
+
 }
 
 
@@ -16,7 +19,10 @@ Player::~Player()
 
 void Player::update()
 {
-	
+
+
+
+
 }
 
 void Player::draw() const
@@ -24,5 +30,6 @@ void Player::draw() const
 
 
 	Print << U"a" << m_HP;
-	TextureAsset(U"Akkarin").draw(m_Position);
+	TextureAsset(U"Player").draw(m_Position);
+	
 }
