@@ -33,7 +33,6 @@ void Player::draw() const
 		.scaled(2.0)
 		.draw(m_Position);
 
-	Print << U"a" << m_HP;
-	//TextureAsset(U"Player").draw(m_Position);
+
 	
 }
