@@ -21,8 +21,11 @@ private:
 	bool m_Jump;			  //ジャンプ状態
 	bool m_FaceRight;		  //向き
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
-
-
+	
+	Array<int32> m_patterns;
+	
+	double m_scale = 4.0;
+	size_t m_frameIndex = 0;
 
 public:
 	Player();
@@ -41,6 +44,7 @@ public:
 		bool jump,
 		bool faceRight,
 		bool invincible
+
 	)
 		: m_Position(position)
 		, m_Scale(scale)
@@ -54,6 +58,8 @@ public:
 		, m_Jump(jump)
 		, m_FaceRight(faceRight)
 		, m_Invincible(invincible)
+		, m_patterns{ 0,1,2,3,4,5,6,7 }
+		
 		{
 		}
 

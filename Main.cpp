@@ -2,7 +2,7 @@
 #include "Title.hpp"
 #include "Game.hpp"
 #include "Player.hpp"
-#include "Animated.hpp"
+
 void Main()
 {
 	// ウィンドウサイズの設定
@@ -13,8 +13,11 @@ void Main()
 	//第2引数　画像ファイルのパス
 	TextureAsset::Register(U"Windmill", U"example/texture/haikei.jpg");
 	TextureAsset::Register(U"Akkarin",U"example/windmill.png");
+	TextureAsset::Register(U"Player", U"example/spritesheet/samurai_sheet.png");
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
+
 	
+
 	//玉ねぎ楷書_激_無料版v7
 	FontAsset::Register(U"TitleFont", FontMethod::MSDF, 48, U"example/font/玉ねぎ楷書「激」無料版v7/玉ねぎ楷書激無料版v7改.ttf");
 
@@ -33,13 +36,11 @@ void Main()
 	manager.add<Title>(State::Title);
 	manager.add<Game>(State::Game);
 
-	Player player;
-	player = player.GetPlayer();
-	player.setHP(10);
+	
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え
 	while (System::Update())
 	{
-		Print << U"aa" << player.getHP();
+		
 		if (not manager.update())
 		{
 			break;
