@@ -13,6 +13,7 @@ private:
 	int m_HP;				  //体力
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
+	bool m_AttackFlag;		  //攻撃フラグ
 	int m_Weapon[MAX_WEAPON]; //武器種別
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
@@ -21,11 +22,16 @@ private:
 	bool m_Jump;			  //ジャンプ状態
 	bool m_FaceRight;		  //向き
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
+	double animTime = 0.0;    //アニメーション時間管理用
+
+
+	// 各アニメーションのフレーム番号
+	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	
-	Array<int32> m_patterns;
-	
-	double m_scale = 4.0;
-	size_t m_frameIndex = 0;
+	double m_scale = 4.0;     //描画スケール
+	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
+
 
 public:
 	Player();
@@ -58,7 +64,7 @@ public:
 		, m_Jump(jump)
 		, m_FaceRight(faceRight)
 		, m_Invincible(invincible)
-		, m_patterns{ 0,1,2,3,4,5,6,7 }
+		, m_AttackFlag(false)
 		
 		{
 		}
