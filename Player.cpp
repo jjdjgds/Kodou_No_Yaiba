@@ -1,6 +1,6 @@
 ﻿#include "Player.hpp"
 #include "Game.hpp"
-#include "Animated.hpp"
+
 Player player;
 Player::Player()
 	
