@@ -11,6 +11,6 @@ public:
 	void draw() const override;
 
 private:
-	Player player;
+	Player player;  // ← これがないと Game.cpp 内で player が使えない！
 	//Enemy enemy;
 };

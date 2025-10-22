@@ -1,7 +1,7 @@
 ﻿#include "Common.hpp"
 #include "Title.hpp"
 #include "Game.hpp"
-
+#include "Player.hpp"
 
 void Main()
 {
@@ -32,10 +32,14 @@ void Main()
 	App manager;
 	manager.add<Title>(State::Title);
 	manager.add<Game>(State::Game);
-	
+
+	Player player;
+	player = player.GetPlayer();
+	player.setHP(10);
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え
 	while (System::Update())
 	{
+		Print << U"aa" << player.getHP();
 		if (not manager.update())
 		{
 			break;
