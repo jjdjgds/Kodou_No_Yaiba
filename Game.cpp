@@ -36,7 +36,7 @@ void Game::draw() const
 	
 	// テクスチャアセットを使用する
 	// 登録した名前で呼び出せる
-	TextureAsset(U"Windmill").draw(player.getPosition());
+	TextureAsset(U"Windmill").scaled(player.getScale()).draw(player.getPosition());
 	player.draw();
 }
 
