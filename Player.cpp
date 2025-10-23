@@ -62,19 +62,20 @@ void Player::draw() const
 	if (m_AttackFlag)
 	{
 		n = m_attackPatterns[m_frameIndex];
-		y = attackY;
+		y = attackY-75;
 	}
 	else
 	{
 		n = m_idlePatterns[m_frameIndex];
 	}
-
+	RectF{player.getPosition().x ,player.getPosition().y, frameHeight}.draw();
 	// 位置を固定して描画（Yは変えない）
 	Tex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
 		.draw(m_Position);
+	
 
 
-	
-	
+
+
 }
