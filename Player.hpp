@@ -71,7 +71,7 @@ public:
 		, m_AttackFlag(false)
 		
 		{
-		RectF m_srcRect{ m_Position.x ,m_Position.y, 141, 131 };
+		RectF m_srcRect{ m_Position.x+150 ,m_Position.y, 300, 131 };
 		}
 
 	~Player();

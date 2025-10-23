@@ -1,11 +1,12 @@
 ﻿#include "Player.hpp"
 #include "Game.hpp"
-
+#include "Collision.hpp"
 Player player;
 
 Player::Player() {}
 Player::~Player() {}
- 
+RectF enemyRect{ 600, 100, 64, 64 }; // 仮の敵の当たり判定
+using namespace Collision;
 void Player::update()
 {
 	animTime += Scene::DeltaTime();
@@ -39,6 +40,12 @@ void Player::update()
 		{
 			animTime -= attackFrameDuration;
 			m_frameIndex++;
+
+			//ここで当たり判定を行って当たっていたらダメージを与える
+			if (RectToRect(m_srcRect, enemyRect))
+			{
+				Print << U"当たった！";
+			}
 
 			if (m_frameIndex >= m_attackPatterns.size())
 			{
@@ -77,7 +84,7 @@ void Player::draw() const
 
 	int32 n = 0;
 	int32 y = idleY;
-	RectF{ getPosition().x ,getPosition().y, 100 }.draw();
+	//RectF{ getPosition().x ,getPosition().y, 100 }.draw();
 	if (m_AttackFlag)
 	{
 		n = m_attackPatterns[m_frameIndex];
@@ -100,14 +107,11 @@ void Player::draw() const
 	
 	//RectF{player.getPosition().x ,player.getPosition().y, frameHeight}.draw();
 	// 位置を固定して描画（Yは変えない）
-	RectF{ getPosition().x ,getPosition().y, 100 }.draw();
+	RectF HitBox{ m_Position.x , m_Position.y-30 , 200,190 };
+	HitBox.draw();
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
 		.drawAt(m_Position);
-	
 
-	
-
-
-
+	enemyRect.draw(ColorF{ 1.0, 0.0, 0.0, 0.5 });//仮の敵の当たり判定表示
 }
