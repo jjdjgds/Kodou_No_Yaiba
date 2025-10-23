@@ -44,7 +44,7 @@ void Game::draw() const
 	
 	// テクスチャアセットを使用する
 	// 登録した名前で呼び出せる
-	TextureAsset(U"Windmill").scaled(player.getScale()).draw(player.getPosition());
+	TextureAsset(U"Windmill").scaled(player.getScale()).draw(0,0);
 	player.draw();
 	for (const auto& e : m_enemies) e.draw();// 敵キャラクターを描画
 }
