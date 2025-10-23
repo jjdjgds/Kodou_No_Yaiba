@@ -1,6 +1,8 @@
 ﻿# include "Game.hpp"
 #include "Player.hpp"
 #include "Enemy.hpp"
+#include "Collision.hpp"
+using namespace Collision;
 
 
 Game::Game(const InitData& init)
@@ -32,9 +34,23 @@ Game::Game(const InitData& init)
 
 void Game::update()
 {
+	RectF pBox(player.getPosition(), player.getScale());
+	pBox.setPos(player.getPosition()).setSize(player.getAttackRengeBox());
+
 	
+
+
 	player.update();
-	for (auto& e : m_enemies) e.update();// 敵キャラクターを更新
+
+	for (auto& e : m_enemies) {
+
+		RectF eBox(e.getPosition(), e.getScale());
+		eBox.setPos(e.getPosition()).setSize(e.getHitbox());
+
+		if (RectToRect(pBox,eBox)) e.takeDamage(0);// ダメージを与える
+
+		e.update();
+	}
 }
 
 void Game::draw() const
