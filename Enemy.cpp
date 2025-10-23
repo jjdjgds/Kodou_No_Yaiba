@@ -5,7 +5,7 @@
 using namespace Collision;
 
 
-void Enemy::update()
+void Enemy::update(const Player& player)
 {
 	m_Speed = KeyS.pressed() ? 0.0 : m_speedBase;// テスト用　Sキーで停止
 
@@ -13,19 +13,20 @@ void Enemy::update()
 	RectF eBox(getPosition(), getScale());// 敵の当たり判定用長方形
 	eBox.setPos(getPosition()).setSize(m_hitBox);
 
-	RectF pBox = RectF{ , getScale()};// プレイヤーの当たり判定用長方形
-
+	// プレイヤーの当たり判定用長方形
+	RectF pBox(player.GetPlayerPosition(), player.GetPlayerScale());
+	pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
 	
 
 	float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
-	m_Position.x += vx * Scene::DeltaTime();// 位置更新
+	//m_Position.x += vx * Scene::DeltaTime();// 位置更新
 
 	// 巡回範囲チェック
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	if (RectToRect(eBox, pBox))setState(AnimState::Hurt);// ダメージを受けたらHurt
-	else if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
+	if (RectToRect(pBox,eBox))setState(AnimState::Hurt);// ダメージを受けたらHurt
+	//else if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
 	else setState(AnimState::Idle);// 停止中はIdle
 
 	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得

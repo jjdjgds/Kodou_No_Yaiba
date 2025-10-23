@@ -5,7 +5,7 @@
 
 Player::Player() {}
 Player::~Player() {}
-RectF enemyRect{ 600, 100, 64, 64 }; // 仮の敵の当たり判定
+RectF enemyRect{ 1600, 100, 64, 64 }; // 仮の敵の当たり判定
 using namespace Collision;
 void Player::update()
 {
@@ -127,5 +127,5 @@ void Player::draw() const
 		.scaled(1.0)
 		.drawAt(GetPlayerPosition());
 
-	enemyRect.draw(ColorF{ 1.0, 0.0, 0.0, 0.5 });//仮の敵の当たり判定表示
+	//enemyRect.draw(ColorF{ 1.0, 0.0, 0.0, 0.5 });//仮の敵の当たり判定表示
 }

@@ -89,7 +89,7 @@ public:
 
 
 	Enemy& GetEnemy() { return *this; }
-	void update();
+	void update(const Player& player);
 	void draw() const;
 };
 

@@ -13,6 +13,7 @@ private:
 	Vec2 m_Velocity;		  //速度
 	Vec2 m_Acceleration;	  //加速度
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
+	Vec2 m_HitBox;          //当たり判定矩形
 	int m_HP;				  //体力
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
@@ -78,22 +79,22 @@ public:
 
 	//getter 
 	//
-	Vec2 GetPlayerPosition() const { return m_Position; }
-	Vec2 GetPlayerScale() const { return m_Scale; }
-	Vec2 GetPlayerVelocity() const { return m_Velocity; }
-	Vec2 GetPlayerAcceleration() const { return m_Acceleration; }
-	Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
-	int   GetPlayerHP() const { return m_HP; }
-	int   GetPlayerBPM() const { return m_BPM; }
-	int   GetPlayerAttack() const { return m_Attack; }
-	float GetPlayerAttackRange() const { return m_AttackRange; }
-	float GetPlayerAttackSpeed() const { return m_AttackSpeed; }
-	float GetPlayerSpeed() const { return m_Speed; }
-	float GetPlayerDamageTimeOut() const { return m_DamageTimeOut; }
-	bool  IsPlayerJumping() const { return m_Jump; }
-	bool  IsPlayerFacingRight() const { return m_FaceRight; }
-	bool  IsPlayerInvincible() const { return m_Invincible; }
-	bool  IsPlayerAttacking() const { return m_AttackFlag; }
+	 Vec2 GetPlayerPosition() const { return m_Position; }
+	 Vec2 GetPlayerScale() const { return m_Scale; }
+	 Vec2 GetPlayerVelocity() const { return m_Velocity; }
+	 Vec2 GetPlayerAcceleration() const { return m_Acceleration; }
+	 Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
+	 int   GetPlayerHP() const { return m_HP; }
+	 int   GetPlayerBPM() const { return m_BPM; }
+	 int   GetPlayerAttack() const { return m_Attack; }
+	 float GetPlayerAttackRange() const { return m_AttackRange; }
+	 float GetPlayerAttackSpeed() const { return m_AttackSpeed; }
+	 float GetPlayerSpeed() const { return m_Speed; }
+	 float GetPlayerDamageTimeOut() const { return m_DamageTimeOut; }
+	 bool  IsPlayerJumping() const { return m_Jump; }
+	 bool  IsPlayerFacingRight() const { return m_FaceRight; }
+	 bool  IsPlayerInvincible() const { return m_Invincible; }
+	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
 
 
 	//setter

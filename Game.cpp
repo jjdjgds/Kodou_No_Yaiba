@@ -37,7 +37,7 @@ void Game::update()
 	
 	
 	// 全ての敵キャラクターの状態を1フレーム分進める
-	for (auto& e : m_enemies) e.update();// 敵キャラクターを更新
+	for (auto& e : m_enemies) e.update(player);// 敵キャラクターを更新
 }
 
 void Game::draw() const
