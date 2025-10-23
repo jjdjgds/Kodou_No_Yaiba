@@ -17,7 +17,6 @@ private:
 	int m_Weapon[MAX_WEAPON]; //武器種別
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
-	float m_AttackTimer;	  //攻撃タイマー
 	float m_Speed;			  //移動速度
 	float m_DamageTimeOut;	  //ダメージ受けた後の無敵時間
 	bool m_Jump;			  //ジャンプ状態
@@ -66,7 +65,6 @@ public:
 		, m_FaceRight(faceRight)
 		, m_Invincible(invincible)
 		, m_AttackFlag(false)
-		, m_AttackTimer(0.0f)
 		
 		{
 		}
@@ -80,7 +78,6 @@ public:
 	int getHP() const { return m_HP; }
 	int getBPM() const { return m_BPM; }
 	int getAttack() const { return m_Attack; }
-	bool getAttackFlag() const { return m_AttackFlag; }
 	float getAttackRange() const { return m_AttackRange; }
 	float getAttackSpeed() const { return m_AttackSpeed; }
 	float getSpeed() const { return m_Speed; }
@@ -96,7 +93,6 @@ public:
 	void setHP(int hp) { m_HP = hp; }
 	void setBPM(int bpm) { m_BPM = bpm; }
 	void setAttack(int attack) { m_Attack = attack; }
-	void setAttackFlag(bool flag) { m_AttackFlag = flag; }
 	void setAttackRange(float range) { m_AttackRange = range; }
 	void setAttackSpeed(float speed) { m_AttackSpeed = speed; }
 	void setSpeed(float speed) { m_Speed = speed; }

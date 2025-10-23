@@ -32,7 +32,7 @@ void Game::update()
 void Game::draw() const
 {
 	
-	Scene::SetBackground(ColorF(0,0.2,0.2,1.0));
+	Scene::SetBackground(ColorF(1.0,0.2,0.2,1.0));
 	
 	// テクスチャアセットを使用する
 	// 登録した名前で呼び出せる
