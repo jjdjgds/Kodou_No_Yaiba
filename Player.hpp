@@ -10,6 +10,9 @@ class Player
 private:
 	Vec2 m_Position;		  //位置
 	Vec2 m_Scale;			  //大きさ
+	Vec2 m_Velocity;		  //速度
+	Vec2 m_Acceleration;	  //加速度
+	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	int m_HP;				  //体力
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
@@ -23,11 +26,12 @@ private:
 	bool m_FaceRight;		  //向き
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
+	RectF m_srcRect;		  //描画元矩形
 
 
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
-	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6 };
 	
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
@@ -67,6 +71,7 @@ public:
 		, m_AttackFlag(false)
 		
 		{
+		RectF m_srcRect{ m_Position.x ,m_Position.y, 141, 131 };
 		}
 
 	~Player();
