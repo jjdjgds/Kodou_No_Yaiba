@@ -78,43 +78,42 @@ public:
 
 	//getter 
 	//
-	Vec2 getPosition() const { return m_Position; }
-	Vec2 getScale() const { return m_Scale; }
-	Vec2 getVelocity() const { return m_Velocity; }
-	Vec2 getAcceleration() const { return m_Acceleration; }
-	Vec2 getAttackRengeBox() const { return m_AttackRengeBox; }
-	int getHP() const { return m_HP; }
-	int getBPM() const { return m_BPM; }
-	int getAttack() const { return m_Attack; }
-	float getAttackRange() const { return m_AttackRange; }
-	float getAttackSpeed() const { return m_AttackSpeed; }
-	float getSpeed() const { return m_Speed; }
-	float getDamageTimeOut() const { return m_DamageTimeOut; }
-	bool isJumping() const { return m_Jump; }
-	bool isFacingRight() const { return m_FaceRight; }
-	bool isInvincible() const { return m_Invincible; }
-	bool isAttacking() const { return m_AttackFlag; }
+	Vec2 GetPlayerPosition() const { return m_Position; }
+	Vec2 GetPlayerScale() const { return m_Scale; }
+	Vec2 GetPlayerVelocity() const { return m_Velocity; }
+	Vec2 GetPlayerAcceleration() const { return m_Acceleration; }
+	Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
+	int   GetPlayerHP() const { return m_HP; }
+	int   GetPlayerBPM() const { return m_BPM; }
+	int   GetPlayerAttack() const { return m_Attack; }
+	float GetPlayerAttackRange() const { return m_AttackRange; }
+	float GetPlayerAttackSpeed() const { return m_AttackSpeed; }
+	float GetPlayerSpeed() const { return m_Speed; }
+	float GetPlayerDamageTimeOut() const { return m_DamageTimeOut; }
+	bool  IsPlayerJumping() const { return m_Jump; }
+	bool  IsPlayerFacingRight() const { return m_FaceRight; }
+	bool  IsPlayerInvincible() const { return m_Invincible; }
+	bool  IsPlayerAttacking() const { return m_AttackFlag; }
 
 
 	//setter
-	Vec2 setPosition(const Vec2 pos) { return m_Position = pos; }
-	Vec2 setScale(const Vec2 scale) { return m_Scale = scale; }
-	Vec2 setVelocity(const Vec2 vel) { return m_Velocity = vel; }
-	Vec2 setAcceleration(const Vec2 acc) { return m_Acceleration = acc; }
-	Vec2 setAttackRengeBox(const Vec2 box) { return m_AttackRengeBox = box; }
-	void setHP(int hp) { m_HP = hp; }
-	void setBPM(int bpm) { m_BPM = bpm; }
-	void setAttack(int attack) { m_Attack = attack; }
-	void setAttackRange(float range) { m_AttackRange = range; }
-	void setAttackSpeed(float speed) { m_AttackSpeed = speed; }
-	void setSpeed(float speed) { m_Speed = speed; }
-	void setDamageTimeOut(float timeout) { m_DamageTimeOut = timeout; }
-	void setJump(bool jump) { m_Jump = jump; }
-	void setFaceRight(bool faceRight) { m_FaceRight = faceRight; }
-	void setInvincible(bool invincible) { m_Invincible = invincible; }
-	bool setjumpFlag(bool flag) { return m_Jump = flag; }
-
-	bool setAttackFlag(bool flag) { return m_AttackFlag = flag; }
+	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
+	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
+	Vec2 SetPlayerVelocity(const Vec2 vel) { return m_Velocity = vel; }
+	Vec2 SetPlayerAcceleration(const Vec2 acc) { return m_Acceleration = acc; }
+	Vec2 SetPlayerAttackRengeBox(const Vec2 box) { return m_AttackRengeBox = box; }
+	void SetPlayerHP(int hp) { m_HP = hp; }
+	void SetPlayerBPM(int bpm) { m_BPM = bpm; }
+	void SetPlayerAttack(int attack) { m_Attack = attack; }
+	void SetPlayerAttackRange(float range) { m_AttackRange = range; }
+	void SetPlayerAttackSpeed(float speed) { m_AttackSpeed = speed; }
+	void SetPlayerSpeed(float speed) { m_Speed = speed; }
+	void SetPlayerDamageTimeOut(float timeout) { m_DamageTimeOut = timeout; }
+	void SetPlayerJump(bool jump) { m_Jump = jump; }
+	void SetPlayerFaceRight(bool faceRight) { m_FaceRight = faceRight; }
+	void SetPlayerInvincible(bool invincible) { m_Invincible = invincible; }
+	bool SetPlayerjumpFlag(bool flag) { return m_Jump = flag; }
+	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 
 	
 	

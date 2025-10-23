@@ -34,6 +34,9 @@ void Game::update()
 {
 	
 	player.update();
+	
+	
+	// 全ての敵キャラクターの状態を1フレーム分進める
 	for (auto& e : m_enemies) e.update();// 敵キャラクターを更新
 }
 
@@ -44,7 +47,7 @@ void Game::draw() const
 	
 	// テクスチャアセットを使用する
 	// 登録した名前で呼び出せる
-	TextureAsset(U"Windmill").scaled(player.getScale()).draw(0,0);
+	TextureAsset(U"Windmill").scaled(player.GetPlayerScale()).draw(0,0);
 	player.draw();
 	for (const auto& e : m_enemies) e.draw();// 敵キャラクターを描画
 }

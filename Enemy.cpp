@@ -1,6 +1,7 @@
 ﻿#include "Game.hpp"
 #include "Enemy.hpp"
 #include "Collision.hpp"
+#include "Player.hpp"
 using namespace Collision;
 
 
@@ -9,10 +10,12 @@ void Enemy::update()
 	m_Speed = KeyS.pressed() ? 0.0 : m_speedBase;// テスト用　Sキーで停止
 
 	setHitbox(Vec2(100, 150));//テスト用 当たり判定サイズ設定
-	RectF pBox(getPosition(), getScale());// 敵の当たり判定用長方形
-	pBox.setPos(getPosition()).setSize(m_hitBox);
+	RectF eBox(getPosition(), getScale());// 敵の当たり判定用長方形
+	eBox.setPos(getPosition()).setSize(m_hitBox);
 
-	const Circle c{ Cursor::Pos(), 30 };//テスト用 マウスの当たり判定
+	RectF pBox = RectF{ , getScale()};// プレイヤーの当たり判定用長方形
+
+	
 
 	float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
 	m_Position.x += vx * Scene::DeltaTime();// 位置更新
@@ -21,7 +24,7 @@ void Enemy::update()
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	if (RectToCircle(pBox, c))setState(AnimState::Hurt);// ダメージを受けたらHurt
+	if (RectToRect(eBox, pBox))setState(AnimState::Hurt);// ダメージを受けたらHurt
 	else if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
 	else setState(AnimState::Idle);// 停止中はIdle
 
