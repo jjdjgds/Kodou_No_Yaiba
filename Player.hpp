@@ -23,7 +23,7 @@ private:
 	float m_Speed;			  //移動速度
 	float m_DamageTimeOut;	  //ダメージ受けた後の無敵時間
 	bool m_Jump;			  //ジャンプ状態
-	bool m_FaceRight;		  //向き
+	bool m_FaceRight;		  //向き true:右 false:左
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
@@ -69,9 +69,9 @@ public:
 		, m_FaceRight(faceRight)
 		, m_Invincible(invincible)
 		, m_AttackFlag(false)
-		
+		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		{
-		RectF m_srcRect{ m_Position.x+150 ,m_Position.y, 300, 131 };
+		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
 		}
 
 	~Player();
@@ -80,6 +80,9 @@ public:
 	//
 	Vec2 getPosition() const { return m_Position; }
 	Vec2 getScale() const { return m_Scale; }
+	Vec2 getVelocity() const { return m_Velocity; }
+	Vec2 getAcceleration() const { return m_Acceleration; }
+	Vec2 getAttackRengeBox() const { return m_AttackRengeBox; }
 	int getHP() const { return m_HP; }
 	int getBPM() const { return m_BPM; }
 	int getAttack() const { return m_Attack; }
@@ -90,11 +93,15 @@ public:
 	bool isJumping() const { return m_Jump; }
 	bool isFacingRight() const { return m_FaceRight; }
 	bool isInvincible() const { return m_Invincible; }
+	bool isAttacking() const { return m_AttackFlag; }
 
 
 	//setter
 	Vec2 setPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 setScale(const Vec2 scale) { return m_Scale = scale; }
+	Vec2 setVelocity(const Vec2 vel) { return m_Velocity = vel; }
+	Vec2 setAcceleration(const Vec2 acc) { return m_Acceleration = acc; }
+	Vec2 setAttackRengeBox(const Vec2 box) { return m_AttackRengeBox = box; }
 	void setHP(int hp) { m_HP = hp; }
 	void setBPM(int bpm) { m_BPM = bpm; }
 	void setAttack(int attack) { m_Attack = attack; }
@@ -105,6 +112,9 @@ public:
 	void setJump(bool jump) { m_Jump = jump; }
 	void setFaceRight(bool faceRight) { m_FaceRight = faceRight; }
 	void setInvincible(bool invincible) { m_Invincible = invincible; }
+	bool setjumpFlag(bool flag) { return m_Jump = flag; }
+
+	bool setAttackFlag(bool flag) { return m_AttackFlag = flag; }
 
 	
 	

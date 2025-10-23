@@ -1,7 +1,7 @@
 ﻿#include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
-Player player;
+//Player player;
 
 Player::Player() {}
 Player::~Player() {}
@@ -14,21 +14,27 @@ void Player::update()
 	
 
 	// スペースで攻撃モードへ
-	if (KeySpace.down()&& (!m_AttackFlag))
+	if (KeySpace.down()&& (!isAttacking()))
 	{
-
-		m_AttackFlag = true;
+		setAttackFlag(true);
+		//m_AttackFlag = true;
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
 	if (KeyA.pressed())
 	{
-		m_FaceRight = false;
+		//true:右 false : 左
+		setFaceRight(false);
+		//m_FaceRight = false;
 		m_Position.x -= m_Speed;
+
+
 	}
 	if (KeyD.pressed())
 	{
-		m_FaceRight = true;
+		//true:右 false : 左
+		setFaceRight(true);
+		//m_FaceRight = true;
 		m_Position.x += m_Speed;
 	}
 
@@ -41,8 +47,12 @@ void Player::update()
 			animTime -= attackFrameDuration;
 			m_frameIndex++;
 
+			RectF pBox(getPosition(),getScale());
+
+
 			//ここで当たり判定を行って当たっていたらダメージを与える
-			if (RectToRect(m_srcRect, enemyRect))
+			pBox.setPos(getPosition()).setSize(getAttackRengeBox());
+ 			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"当たった！";
 			}
@@ -50,7 +60,8 @@ void Player::update()
 			if (m_frameIndex >= m_attackPatterns.size())
 			{
 				m_frameIndex = 0;
-				m_AttackFlag = false;
+				setAttackFlag(false);
+				//m_AttackFlag = false;
 			}
 		}
 	}
@@ -107,11 +118,14 @@ void Player::draw() const
 	
 	//RectF{player.getPosition().x ,player.getPosition().y, frameHeight}.draw();
 	// 位置を固定して描画（Yは変えない）
-	RectF HitBox{ m_Position.x , m_Position.y-30 , 200,190 };
-	HitBox.draw();
+	//debug用当たり判定表示
+	RectF HitBox{getPosition (), 200, 131};
+	HitBox.drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });//仮の当たり判定表示
+
+	// サイズと位置を別々に設定
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
-		.drawAt(m_Position);
+		.drawAt(getPosition());
 
 	enemyRect.draw(ColorF{ 1.0, 0.0, 0.0, 0.5 });//仮の敵の当たり判定表示
 }
