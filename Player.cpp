@@ -10,9 +10,12 @@ void Player::update()
 {
 	animTime += Scene::DeltaTime();
 
+	
+
 	// スペースで攻撃モードへ
-	if (KeySpace.down())
+	if (KeySpace.down()&& (!m_AttackFlag))
 	{
+
 		m_AttackFlag = true;
 		m_frameIndex = 0;
 		animTime = 0.0;
@@ -68,14 +71,16 @@ void Player::draw() const
 	{
 		n = m_idlePatterns[m_frameIndex];
 	}
-	RectF{player.getPosition().x ,player.getPosition().y, frameHeight}.draw();
+
+	
+	//RectF{player.getPosition().x ,player.getPosition().y, frameHeight}.draw();
 	// 位置を固定して描画（Yは変えない）
 	Tex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
 		.draw(m_Position);
 	
 
-
+	
 
 
 }
