@@ -80,6 +80,7 @@ public:
 	int getHP() const { return m_HP; }
 	int getBPM() const { return m_BPM; }
 	int getAttack() const { return m_Attack; }
+	bool getAttackFlag() const { return m_AttackFlag; }
 	float getAttackRange() const { return m_AttackRange; }
 	float getAttackSpeed() const { return m_AttackSpeed; }
 	float getSpeed() const { return m_Speed; }
@@ -95,6 +96,7 @@ public:
 	void setHP(int hp) { m_HP = hp; }
 	void setBPM(int bpm) { m_BPM = bpm; }
 	void setAttack(int attack) { m_Attack = attack; }
+	void setAttackFlag(bool flag) { m_AttackFlag = flag; }
 	void setAttackRange(float range) { m_AttackRange = range; }
 	void setAttackSpeed(float speed) { m_AttackSpeed = speed; }
 	void setSpeed(float speed) { m_Speed = speed; }
