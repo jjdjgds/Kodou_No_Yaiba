@@ -3,7 +3,8 @@
 
 enum class AnimState {// アニメーション状態列挙型
 	Idle,
-	Run
+	Run,
+	Hurt
 };
 
 struct AnimDesc {// アニメーションの説明構造体
@@ -22,6 +23,7 @@ private:
 	float m_Speed;			  //移動速度
 
 	float m_speedBase = m_Speed;// 元の移動速度
+	Vec2 m_hitBox = { 0.0 ,0.0 };// 当たり判定サイズ
 
 	int m_HP;				  //体力
 	int m_Attack;			  //攻撃力
@@ -33,7 +35,9 @@ private:
 	AnimState m_state{ AnimState::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState, AnimDesc> m_anims{	// アニメーションの説明
 		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
-		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } }
+		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, true } }
+
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
 	double m_time{ 0.0 };		// アニメーション時間管理用
@@ -42,6 +46,9 @@ private:
 		if (m_state == s) return;
 		m_state = s; m_frameIndex = 0; m_time = 0.0;
 	}
+
+
+	bool m_debugDraw = true; //デバッグ描画フラグ
 
 
 public:
@@ -77,7 +84,8 @@ public:
 	void setAttack(int attack) { m_Attack = attack; }
 	void setAttackRange(float range) { m_AttackRange = range; }
 	void setAttackSpeed(float speed) { m_AttackSpeed = speed; }
-	
+
+	void setHitbox(const Vec2 hitbox) { m_hitBox = hitbox; }
 
 
 	Enemy& GetEnemy() { return *this; }

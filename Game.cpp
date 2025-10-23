@@ -13,7 +13,7 @@ Game::Game(const InitData& init)
 		3,                 // Attack
 		1.0f,              // AttackRange
 		1.0f,              // AttackSpeed
-		100.0f,              // Speed
+		10.0f,              // Speed
 		3.0f,              // DamageTimeOut
 		false,             // Jump
 		true,              // FaceRight
