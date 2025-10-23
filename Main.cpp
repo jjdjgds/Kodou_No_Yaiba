@@ -14,6 +14,8 @@ void Main()
 	TextureAsset::Register(U"Windmill", U"example/texture/haikei.jpg");
 	TextureAsset::Register(U"Akkarin",U"example/windmill.png");
 	TextureAsset::Register(U"Player", U"example/spritesheet/samurai_sheet.png");
+	TextureAsset::Register(U"EnemyIdle", U"example/spritesheet/Enemy_IDLE.png");
+	TextureAsset::Register(U"EnemyRun", U"example/spritesheet/Enemy_RUN.png");
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
 
 	
@@ -33,8 +35,8 @@ void Main()
 	// シーンマネージャの作成
 	//ここに追加していく
 	App manager;
-	manager.add<Title>(State::Title);
 	manager.add<Game>(State::Game);
+	manager.add<Title>(State::Title);
 
 	
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え
