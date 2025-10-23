@@ -1,17 +1,15 @@
 ﻿#include "stdafx.h"
 #include "Block.hpp"
 
-Texture Block::m_texGrass;
-Texture Block::m_texWall;
-Texture Block::m_texDirt;
-Texture Block::m_texWater;
+//Texture Block::m_texGrass;
+//Texture Block::m_texWall;
+//Texture Block::m_texDirt;
+//Texture Block::m_texWater;
 
 void Block::LoadTextures()
 {
-	m_texGrass = Texture(U"assets/grass.png");
-	m_texWall = Texture(U"assets/wall.png");
-	m_texDirt = Texture(U"assets/dirt.png");
-	m_texWater = Texture(U"assets/water.png");
+	//m_texGrass = Texture(U"assets/grass.png");
+	//m_texWall = Texture(U"assets/wall.png");
 }
 
 void Block::SetBlock(const Vec2& pos, const Vec2& size, int type)
@@ -31,22 +29,14 @@ void Block::DrawBlock(void) const
 
 	switch (m_type)
 	{
-	case 0: // grass
-		m_texGrass.resized(m_size).draw(m_pos);
+	case BLOCK_EMPTY:// emty
 		break;
 
-	case 1: // wall
-		m_texWall.resized(m_size).draw(m_pos);
+	case BLOCK_SOLID: // wall
+		//m_texWall.resized(m_size).draw(m_pos);
+		TextureAsset(U"Windmill").resized(m_size).draw(m_pos);
+		//RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
 		break;
-
-	case 2: // dirt
-		m_texDirt.resized(m_size).draw(m_pos);
-		break;
-
-	case 3: // water
-		m_texWater.resized(m_size).draw(m_pos);
-		break;
-
 	default:
 		RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
 		break;

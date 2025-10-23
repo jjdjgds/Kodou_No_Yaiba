@@ -1,60 +1,51 @@
 ﻿#include "stdafx.h"
 #include "Game_Map.h"
+#include "MapLoader.hpp"
 
-const int Stage1_Map[MAP_CHIP_NUM_Y][MAP_CHIP_NUM_X]
-{
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-	{ 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-
-};
-
-static const int* getStageMap(int stageNumber)
-{
-	switch (stageNumber)
-	{
-	case 1: return &Stage1_Map[0][0];
-	//case 2: return &Stage2_Map[0][0];
-	default: return &Stage1_Map[0][0];
-	}
-}
 
 Game_Map::Game_Map()
 {
 	Block::LoadTextures(); // load all textures once
-	loadStage(1); // Load stage 1 initially
-
 }
 
-void Game_Map::loadStage(int stageNumber)
+bool Game_Map::loadStageFromFile(const FilePath& path)
 {
-	currentStage = stageNumber;
+	Array<int> mapData;
+	int width, height;
+
+	if (!MapLoader::LoadMap(path, mapData, width, height))
+		return false;
+
+	m_width = width;
+	m_height = height;
+
+	//const Size screenSize = Scene::Size();
+	//m_chipWidth = static_cast<double>(screenSize.x) / m_width;
+	//m_chipHeight = static_cast<double>(screenSize.y) / m_height;
+
+
+	// map height to screen and let width scroll
+	//m_chipHeight = static_cast<double>(screenSize.y) / m_height;
+	//m_chipWidth  = m_chipHeight;
+
+
 	m_blocks.clear();
-	m_blocks.reserve(BLOCK_MAX);
+	m_blocks.reserve(width * height);
 
-	// Pointer to selected map data
-	const int* mapData = getStageMap(stageNumber);
-
-	for (int y = 0; y < MAP_CHIP_NUM_Y; y++)
+	for (int y = 0; y < m_height; y++)
 	{
-		for (int x = 0; x < MAP_CHIP_NUM_X; x++)
+		for (int x = 0; x < m_width; x++)
 		{
-			int type = *(mapData + y * MAP_CHIP_NUM_X + x);
+			int type = mapData[y * m_width + x];
+
 			Block block;
-			block.SetBlock(Vec2(x * MAP_CHIP_WIDTH, y * MAP_CHIP_HEIGHT),
-				  Vec2(MAP_CHIP_WIDTH, MAP_CHIP_HEIGHT),
+			block.SetBlock(Vec2(x * m_chipWidth, y * m_chipHeight),
+				  Vec2(m_chipWidth, m_chipHeight),
 				  type);
 			m_blocks << block;
 		}
 	}
+	return true;
 }
 
 void Game_Map::update()
@@ -78,16 +69,21 @@ void Game_Map::draw() const
 /*
 利用方法
 Game_Map map;
+if (!map.loadStageFromFile(FileSystem::CurrentDirectory() +U"Map/stage1.txt"))
+	{
+		Print << U"Failed to load stage1";
+		return;
+	}
 
 	while (System::Update())
 	{
 		if (Key1.down())
 		{
-			map.loadStage(1);
+			map.loadStageFromFile(U"Map/stage1.txt");
 		}
 		if (Key2.down())
 		{
-			map.loadStage(2);
+			 map.loadStageFromFile(U"Map/stage2.txt");
 		}
 
 		map.update();

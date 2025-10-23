@@ -1,23 +1,22 @@
 ﻿#pragma once
 #include "Siv3D.hpp"
 
+enum BLOCK_TYPE
+{
+	BLOCK_EMPTY = 0,
+	BLOCK_SOLID = 1,
+};
+
 class Block
 {
 private:
 	Vec2 m_pos;
 	Vec2 m_size;
-	int	 m_type = 0;
+	int	 m_type = BLOCK_EMPTY;
 	bool m_use = false;
-
-	// Shared textures (declared only once globally)
-	static Texture m_texGrass;
-	static Texture m_texWall;
-	static Texture m_texDirt;
-	static Texture m_texWater;
 
 public:
 	Block() = default;
-	~Block() = default;
 	void UpdateBlock(void);
 	void DrawBlock (void) const;
 	void SetBlock(const Vec2& pos, const Vec2& size, int type);
