@@ -9,13 +9,16 @@ RectF enemyRect{ 1600, 100, 64, 64 }; // 仮の敵の当たり判定
 using namespace Collision;
 void Player::update()
 {
-	animTime += Scene::DeltaTime();
-
+	
+	
 	
 
 	// スペースで攻撃モードへ
 	if (KeySpace.down()&& (!IsPlayerAttacking()))
 	{
+		m_state = StateMode::Attack;
+
+		//true:攻撃 false : 通常
 		SetPlayerAttackFlag(true);
 		//m_AttackFlag = true;
 		m_frameIndex = 0;
@@ -37,11 +40,16 @@ void Player::update()
 		//m_FaceRight = true;
 		m_Position.x += m_Speed;
 	}
-
+	// 攻撃が終わったらIdleに戻す
+	if (m_state == StateMode::Attack && !m_AttackFlag)
+	{
+		m_state = StateMode::Idle;
+	}
+	animTime += Scene::DeltaTime();
 	// 攻撃アニメーション中
 	if (m_AttackFlag)
 	{
-		const double attackFrameDuration = 0.1;
+		const double attackFrameDuration = 0.08;
 		if (animTime >= attackFrameDuration)
 		{
 			animTime -= attackFrameDuration;
@@ -56,17 +64,19 @@ void Player::update()
 			{
 				Print << U"当たった！";
 			}
-
+			// 攻撃アニメーション終了後の処理
 			if (m_frameIndex >= m_attackPatterns.size())
 			{
 				m_frameIndex = 0;
 				SetPlayerAttackFlag(false);
+				m_state = StateMode::Idle;
 				//m_AttackFlag = false;
 			}
 		}
 	}
 	else
 	{
+		// アイドルアニメーション中
 		const double idleFrameDuration = 0.15;
 		if (animTime >= idleFrameDuration)
 		{

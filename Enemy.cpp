@@ -25,12 +25,20 @@ void Enemy::update(const Player& player)
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	if (RectToRect(pBox,eBox))setState(AnimState::Hurt);// ダメージを受けたらHurt
-	//else if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
-	else setState(AnimState::Idle);// 停止中はIdle
+	if (RectToRect(pBox, eBox) && (player.m_state == StateMode::Attack)) {
+		if (m_state != AnimState::Hurt) {
+			setState(AnimState::Hurt); // 状態変化時のみリセット
+		}
+	}
+	else {
+		if (m_state != AnimState::Idle) {
+			setState(AnimState::Idle);
+		}
+	}
 
-	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
 	m_time += Scene::DeltaTime();
+	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
+	
 	while (m_time >= A.frameTime) {
 		m_time -= A.frameTime;
 		m_frameIndex = (m_frameIndex + 1) % A.frames;// フレーム更新

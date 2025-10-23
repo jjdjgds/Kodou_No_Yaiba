@@ -12,7 +12,7 @@ Game::Game(const InitData& init)
 		100,               // BPM
 		3,                 // Attack
 		1.0f,              // AttackRange
-		1.0f,              // AttackSpeed
+		0.5f,              // AttackSpeed
 		10.0f,              // Speed
 		3.0f,              // DamageTimeOut
 		false,             // Jump

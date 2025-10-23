@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
-
+#include "StateMode.hpp"
 #define MAX_WEAPON (3)
 class Player
 {
@@ -39,6 +39,7 @@ private:
 
 
 public:
+	StateMode m_state = StateMode::Idle;
 	Player();
 
 
