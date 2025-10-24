@@ -40,13 +40,13 @@ Game::Game(const InitData& init)
 
 void Game::update()
 {
-	RectF pBox(player.getPosition(), player.getScale());
-	pBox.setPos(player.getPosition()).setSize(player.getAttackRengeBox());
+	RectF pBox(player.GetPlayerPosition(), player.GetPlayerHitBox());
+	pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
 
 	
 
 
-	player.update();
+	player.update( map);
 
 	for (auto& e : m_enemies) {
 
@@ -55,7 +55,7 @@ void Game::update()
 
 		if (RectToRect(pBox,eBox)) e.takeDamage(0);// ダメージを与える
 
-		e.update();
+		e.update(player);
 	}
 }
 

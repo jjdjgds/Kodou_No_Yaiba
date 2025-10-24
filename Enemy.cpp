@@ -13,10 +13,10 @@ void Enemy::update(const Player& player)
 	RectF pBox(getPosition(), getScale());// 敵の当たり判定用長方形
 	pBox.setPos(getPosition()).setSize(m_hitBox);
 
-	// プレイヤーの当たり判定用長方形
-	RectF pBox(player.GetPlayerPosition(), player.GetPlayerScale());
-	pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
-	
+	//// プレイヤーの当たり判定用長方形
+	//RectF pBox(player.GetPlayerPosition(), player.GetPlayerScale());
+	//pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
+	//
 
 	float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
 	//m_Position.x += vx * Scene::DeltaTime();// 位置更新
