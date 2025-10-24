@@ -177,10 +177,11 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	if (m_onGround && (KeyW.down() || KeyUp.down()))
 	{
-		velocity.y = -GetPlayerJumpSpeed();
+		constexpr double JumpPowerScale = 100.0;
+		constexpr double GravityScale = 45.0;
+		velocity.y = -GetPlayerJumpSpeed() * JumpPowerScale;
 		m_onGround = false;
 	}
-
 	// ------------------------------
 	// 縦移動処理（Y方向）
 	// ------------------------------
