@@ -43,7 +43,7 @@ private:
 	int m_Attack;			  //攻撃力
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
-
+	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
 	float m_patrolL{ 0.0 }, m_patrolR{ 0.0 }; // 巡回範囲
 
 	AnimState m_state{ AnimState::Idle };	// 現在のアニメーション状態
@@ -78,7 +78,9 @@ public:
 		, m_patrolL(patrolL)
 		, m_patrolR(patrolR)
 		, m_FaceRight(faceRight)
-		, m_Scale(scale) {
+		, m_Scale(scale)
+		, m_hasHitPlayer(false)
+	{
 	}// コンストラクタ
 
 	//getter 
