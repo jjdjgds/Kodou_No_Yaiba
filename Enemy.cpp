@@ -59,7 +59,7 @@ void Enemy::update(const Player& player, Game_Map& map)
 	if (eBox.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
 
 
-	const bool gotHit = (RectToRect(pBox, eBox) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+	const bool gotHit = (RectToRect(pBox, eBox) && (player.GetPlayerState() == StateMode::Attack)) || m_takeDamage;
 	
 	if (gotHit) {
 		if (m_state != AnimState::Hurt)
