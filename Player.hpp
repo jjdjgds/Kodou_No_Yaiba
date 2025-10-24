@@ -16,6 +16,7 @@ private:
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	Vec2 m_HitBox;          //当たり判定矩形
 	int m_HP;				  //体力
+	int m_MaxHP;
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
 	bool m_AttackFlag;		  //攻撃フラグ
@@ -55,6 +56,7 @@ public:
 		Vec2 velocity,
 		Vec2 HitBox,
 		int hp,
+		int maxHP,
 		int bpm,
 		int attack,
 		float attackRange,
@@ -71,6 +73,7 @@ public:
 		, m_Velocity(velocity)
 		, m_HitBox(HitBox)
 		, m_HP(hp)
+		, m_MaxHP(maxHP)
 		, m_BPM(bpm)
 		, m_Attack(attack)
 		, m_AttackRange(attackRange)
@@ -100,6 +103,7 @@ public:
 	 Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
 	 Vec2 GetPlayerHitBox() const { return m_HitBox; }
 	 int   GetPlayerHP() const { return m_HP; }
+	 int   GetPlayerMaxHP() const { return m_MaxHP; }
 	 int   GetPlayerBPM() const { return m_BPM; }
 	 int   GetPlayerAttack() const { return m_Attack; }
 	 float GetPlayerAttackRange() const { return m_AttackRange; }
@@ -122,6 +126,7 @@ public:
 	Vec2 SetPlayerAttackRengeBox(const Vec2 box) { return m_AttackRengeBox = box; }
 	Vec2 SetPlayerHitBox(const Vec2 box) { return m_HitBox = box; }
 	void SetPlayerHP(int hp) { m_HP = hp; }
+	void SetPlayerMaxHP(int maxHp) { m_MaxHP = maxHp; }
 	void SetPlayerBPM(int bpm) { m_BPM = bpm; }
 	void SetPlayerAttack(int attack) { m_Attack = attack; }
 	void SetPlayerAttackRange(float range) { m_AttackRange = range; }

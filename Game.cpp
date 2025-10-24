@@ -3,17 +3,17 @@
 #include "Enemy.hpp"
 #include "Collision.hpp"
 using namespace Collision;
-#include "Game_Map.hpp"
 
 
 Game::Game(const InitData& init)
 	: IScene{ init }
 	, player( // ← 初期化リストで player を作成
-		Vec2(150.0, 200.0), // position
+		Vec2(700, 600), // position
 		Vec2(0.5, 0.5),     // scale
 		Vec2(0.0, 0.0),     // velocity
 		Vec2(50.0, 60.0),  // HitBox
 		3,                 // HP
+		3,                 // Max Hp
 		100,               // BPM
 		3,                 // Attack
 		1.0f,              // AttackRange
@@ -45,9 +45,6 @@ void Game::update()
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 
-
-
-
 	for (auto& e : m_enemies) e.update(player,map);
 
 }
@@ -60,4 +57,7 @@ void Game::draw() const
 	player.draw(map);             // ← プレイヤーを描画
 
 	for (const auto& e : m_enemies) e.draw(); //敵描画
+
+	Ui.draw(player);
+
 }

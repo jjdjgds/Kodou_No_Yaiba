@@ -25,8 +25,8 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 
 
 	//map height to screen and let width scroll
-	m_chipHeight = 100.0f;
-	m_chipWidth  = 100.0f;
+	m_chipHeight = 50.0f;
+	m_chipWidth  = 50.0f;
 
 
 	m_blocks.clear();
