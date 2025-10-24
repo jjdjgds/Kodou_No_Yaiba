@@ -9,6 +9,7 @@ enum class AnimState {// アニメーション状態列挙型
 	Hurt,
 	Attack,
 
+
 };
 
 struct AnimDesc {// アニメーションの説明構造体
