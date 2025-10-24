@@ -27,7 +27,7 @@ Line Enemy::makeGroundProbeLine() const {// 地面探査用の線分を作成
 	return Line{ m_Position, m_Position + dir };
 }
 
-void Enemy::update(const Player& player, Game_Map& map)
+void Enemy::update( Player& player, Game_Map& map)
 {
 	const double dt = Scene::DeltaTime();
 
@@ -61,9 +61,9 @@ void Enemy::update(const Player& player, Game_Map& map)
 
 	const Line probe = makeGroundProbeLine();
 
-	if (!map.CheckCollision_Line(probe)) {
+	/*if (!map.CheckCollision_Line(probe)) {
 		m_FaceRight = !m_FaceRight;
-	}
+	}*/
 
 
 
@@ -77,7 +77,7 @@ void Enemy::update(const Player& player, Game_Map& map)
 	if (eBoxHurt.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
 
 
-	const bool gotHit = (RectToRect(pBox, eBoxHurt) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+	const bool gotHit = (RectToRect(pBox, eBoxHurt) && (player.GetPlayerState()== StateMode::Attack)) || m_takeDamage;
 
 
 	if (gotHit) {
@@ -87,7 +87,20 @@ void Enemy::update(const Player& player, Game_Map& map)
 			m_Speed = 0.0f;      // ダメージ中は停止
 		}
 	}
-	else if (m_state == AnimState::Attack) {}
+	// 敵攻撃 → プレイヤーダメージ
+	if (m_state == AnimState::Attack)
+	{
+		const bool hitNow = RectToRect(eBoxAttack, pBox);
+
+		if (hitNow && !m_hasHitPlayer) // ★初ヒットのみ実行
+		{
+			player.takeDamage(1);
+			m_hasHitPlayer = true;
+		}
+
+		// 攻撃モーション終了でリセット（下のアニメ処理部で）
+	}
+
 	else if (KeySpace.down() && !AttackFlag)
 	{
 		setState(AnimState::Attack);
@@ -131,9 +144,13 @@ void Enemy::update(const Player& player, Game_Map& map)
 					m_takeDamage = false;
 					break;
 				}
-				else if (m_state == AnimState::Attack) {
+				else if (m_state == AnimState::Attack)
+				{
 					AttackFlag = false;
+					m_hasHitPlayer = false;  // ★攻撃終了で再びヒット可能に
+					setState(AnimState::Idle);
 				}
+
 
 				const float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;
 				setState((std::abs(vx) > 1.0f) ? AnimState::Run : AnimState::Idle);

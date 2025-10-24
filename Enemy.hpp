@@ -43,6 +43,8 @@ private:
 	int m_Attack;			  //攻撃力
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
+	// Enemy.hpp に追加
+	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
 
 	float m_patrolL{ 0.0 }, m_patrolR{ 0.0 }; // 巡回範囲
 
@@ -111,7 +113,7 @@ public:
 
 
 	Enemy& GetEnemy() { return *this; }
-	void update(const Player& player, Game_Map& map);
+	void update( Player& player, Game_Map& map);
 	void draw() const;
 	void takeDamage(int damage);
 
