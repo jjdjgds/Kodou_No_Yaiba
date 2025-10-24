@@ -282,7 +282,7 @@ void Player::draw(const Game_Map& CameraPos) const
 		.drawAt(drawPos);
 
 	// デバッグ表示
-	RectF attackBox = getAttackRect();
+	 attackBox = getAttackRect();
 	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
 
 	RectF hitBox(Arg::center = GetPlayerPosition(), GetPlayerHitBox());
