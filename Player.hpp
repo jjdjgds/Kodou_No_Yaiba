@@ -16,6 +16,7 @@ private:
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	Vec2 m_HitBox;          //当たり判定矩形
 	int m_HP;				  //体力
+	int m_MaxHP;
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
 	bool m_AttackFlag;		  //攻撃フラグ
@@ -33,17 +34,19 @@ private:
 	RectF m_HitRect;          //当たり判定矩形
 	float m_gravity = 0.98f;  //重力
 	bool m_onGround = false;
-
+	StateMode m_PlayerState; //プレイヤーの状態管理用
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6 };
-	
+	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
+	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
+
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 
 
 public:
-	StateMode m_state = StateMode::Idle;
+	
 	Player();
 
 
@@ -53,6 +56,7 @@ public:
 		Vec2 velocity,
 		Vec2 HitBox,
 		int hp,
+		int maxHP,
 		int bpm,
 		int attack,
 		float attackRange,
@@ -69,6 +73,7 @@ public:
 		, m_Velocity(velocity)
 		, m_HitBox(HitBox)
 		, m_HP(hp)
+		, m_MaxHP(maxHP)
 		, m_BPM(bpm)
 		, m_Attack(attack)
 		, m_AttackRange(attackRange)
@@ -82,6 +87,7 @@ public:
 		, m_AttackFlag(false)
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		,m_gravity(9.8)
+		, m_PlayerState(StateMode::Idle)
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
 		}
@@ -97,6 +103,7 @@ public:
 	 Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
 	 Vec2 GetPlayerHitBox() const { return m_HitBox; }
 	 int   GetPlayerHP() const { return m_HP; }
+	 int   GetPlayerMaxHP() const { return m_MaxHP; }
 	 int   GetPlayerBPM() const { return m_BPM; }
 	 int   GetPlayerAttack() const { return m_Attack; }
 	 float GetPlayerAttackRange() const { return m_AttackRange; }
@@ -110,7 +117,7 @@ public:
 	 bool  IsPlayerInvincible() const { return m_Invincible; }
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
 	 RectF GetPlayerHitRect() const { return m_HitRect; }
-
+	 StateMode GetPlayerState() const { return m_PlayerState; }
 	//setter
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
@@ -119,6 +126,7 @@ public:
 	Vec2 SetPlayerAttackRengeBox(const Vec2 box) { return m_AttackRengeBox = box; }
 	Vec2 SetPlayerHitBox(const Vec2 box) { return m_HitBox = box; }
 	void SetPlayerHP(int hp) { m_HP = hp; }
+	void SetPlayerMaxHP(int maxHp) { m_MaxHP = maxHp; }
 	void SetPlayerBPM(int bpm) { m_BPM = bpm; }
 	void SetPlayerAttack(int attack) { m_Attack = attack; }
 	void SetPlayerAttackRange(float range) { m_AttackRange = range; }
@@ -133,8 +141,21 @@ public:
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
-	
+	// 変更後（推奨）
+	void SetPlayerState(const StateMode state) {
+		m_PlayerState = state;
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
 	Player& GetPlayer() { return *this; }
+
+
+	void takeDamage(int dmg);
+	RectF getAttackRect() const;
+	void PlayerAttack();
+	void PlayerIdle();
+	void PlaeyrAvoidance();
+	void PlayerHurt();
 	void update(Game_Map& map);
-	void draw() const;
+	void draw(Game_Map CameraPos) const;
 };

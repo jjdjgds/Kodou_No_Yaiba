@@ -25,8 +25,8 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 
 
 	//map height to screen and let width scroll
-	m_chipHeight = static_cast<double>(screenSize.y) / m_height;
-	m_chipWidth  = 100.0f;
+	m_chipHeight = 50.0f;
+	m_chipWidth  = 50.0f;
 
 
 	m_blocks.clear();
@@ -89,21 +89,6 @@ bool Game_Map::CheckCollision(const RectF& rect) const
 		if (block.getType() == BLOCK_SOLID)
 		{
 			if (rect.intersects(block.GetRect()))
-			{
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-bool Game_Map::CheckCollision_Line(const Line& line) const
-{
-	for (const auto& block : m_blocks)
-	{
-		if (block.getType() == BLOCK_SOLID)
-		{
-			if (line.intersects(block.GetRect()))
 			{
 				return true;
 			}
