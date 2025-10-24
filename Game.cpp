@@ -9,10 +9,10 @@ using namespace Collision;
 Game::Game(const InitData& init)
 	: IScene{ init }
 	, player( // ← 初期化リストで player を作成
-		Vec2(100.0, 100.0), // position
+		Vec2(100.0, 200.0), // position
 		Vec2(0.5, 0.5),     // scale
 		Vec2(0.0, 0.0),     // velocity
-		Vec2(50.0, 70.0),  // HitBox
+		Vec2(50.0, 60.0),  // HitBox
 		3,                 // HP
 		100,               // BPM
 		3,                 // Attack
