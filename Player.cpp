@@ -111,6 +111,8 @@ void Player::update(Game_Map& map)
 
 	if (!map.CheckCollision(rectX))
 		pos.x = nextPosX.x;
+	else
+		velocity.x = 0; // 壁に当たったら横速度をリセット
 
 	if (input.x != 0)
 		SetPlayerFaceRight(input.x > 0);
@@ -118,12 +120,7 @@ void Player::update(Game_Map& map)
 	// 重力
 	velocity.y += m_gravity * Scene::DeltaTime() * 90;
 
-	// 接地チェック
-	RectF playerRect(Arg::center = pos.movedBy(0, size.y / 2 + 2),
-		SizeF{ size.x * 0.8, 5 });
-	bool nowOnGround = map.CheckCollision(playerRect);
-
-	// ジャンプ
+	// ジャンプ（接地判定の前に入力をチェック）
 	if (m_onGround && (KeyW.down() || KeyUp.down()))
 	{
 		constexpr double JumpPowerScale = 100.0;
@@ -135,6 +132,9 @@ void Player::update(Game_Map& map)
 	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
 	RectF rectY(Arg::center = nextPosY, SizeF{ size.x, size.y * 1.1 });
 
+	bool hitCeiling = false;
+	bool hitGround = false;
+
 	if (!map.CheckCollision(rectY))
 	{
 		pos.y = nextPosY.y;
@@ -144,31 +144,37 @@ void Player::update(Game_Map& map)
 		if (velocity.y > 0)
 		{
 			// 地面衝突
+			hitGround = true;
 			velocity.y = 0;
-			nowOnGround = true;
+
+			// 1ピクセルずつ戻す（細かく補正）
 			while (map.CheckCollision(rectY))
 			{
-				nextPosY.y -= 1;
+				nextPosY.y -= 0.5;
 				rectY.setCenter(nextPosY);
 			}
 			pos.y = nextPosY.y;
 		}
 		else if (velocity.y < 0)
 		{
-			// 天井衝突 → 強制落下
-			velocity.y = 10; // 少し下向きの力を与える
-			nowOnGround = false;
+			// 天井衝突 → 速度を0にして落下開始
+			hitCeiling = true;
+			velocity.y = 0;
 
+			// 1ピクセルずつ戻す（細かく補正）
 			while (map.CheckCollision(rectY))
 			{
-				nextPosY.y += 10;
+				nextPosY.y += 0.1;
 				rectY.setCenter(nextPosY);
 			}
 			pos.y = nextPosY.y;
 		}
 	}
 
-	m_onGround = nowOnGround;
+	// 接地判定（位置更新後にチェック）
+	RectF groundCheckRect(Arg::center = pos.movedBy(0, size.y / 2 + 2),
+		SizeF{ size.x * 0.8, 5 });
+	m_onGround = map.CheckCollision(groundCheckRect) || hitGround;
 
 	// 攻撃入力
 	if (KeySpace.down() && !IsPlayerAttacking())
@@ -251,4 +257,3 @@ void Player::draw(const Game_Map& CameraPos) const
 	RectF hitBox(Arg::center = GetPlayerPosition(), GetPlayerHitBox());
 	hitBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 1, 1, 0, 0.8 });
 }
-
