@@ -3,6 +3,8 @@
 #include "Enemy.hpp"
 #include "Collision.hpp"
 using namespace Collision;
+#include "Game_Map.hpp"
+
 
 Game::Game(const InitData& init)
 	: IScene{ init }
@@ -34,29 +36,20 @@ Game::Game(const InitData& init)
 	m_enemies.clear();
 	m_enemies.reserve(8);
 
-	m_enemies.emplace_back(Vec2{ 700,600 }, 80.0, 600.0, 900.0, false, Vec2{ 3,3 });
-	m_enemies.emplace_back(Vec2{ 700,100 }, 200.0, 600.0, 900.0, true, Vec2{ 5,5 });
+	m_enemies.emplace_back(Vec2{ 700,100 }, 200.0, 600.0, 900.0, true, Vec2{ 3,3 });
 }
 
 void Game::update()
 {
-	RectF pBox(player.GetPlayerPosition(), player.GetPlayerHitBox());
-	pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
+	player.update(map);
+	map.updateCamera(player.GetPlayerPosition());
+	map.update();
 
-	
 
 
-	player.update( map);
 
-	for (auto& e : m_enemies) {
+	for (auto& e : m_enemies) e.update(player,map);
 
-		RectF eBox(e.getPosition(), e.getScale());
-		eBox.setPos(e.getPosition()).setSize(e.getHitbox());
-
-		if (RectToRect(pBox,eBox)) e.takeDamage(0);// ダメージを与える
-
-		e.update(player);
-	}
 }
 
 void Game::draw() const
@@ -66,6 +59,5 @@ void Game::draw() const
 	map.draw();                // ← マップを描画
 	player.draw();             // ← プレイヤーを描画
 
-	for (const auto& e : m_enemies)
-		e.draw();
+	for (const auto& e : m_enemies) e.draw(); //敵描画
 }

@@ -2,47 +2,94 @@
 #include "Enemy.hpp"
 #include "Collision.hpp"
 #include "Player.hpp"
+
 using namespace Collision;
 
+RectF Enemy::hurtRect() const {// ダメージ判定矩形を取得
+	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
+	return RectF{ Arg::center = m_Position.movedBy(0, m_hitOffsetY * m_Scale.y), sz };
+}
 
-void Enemy::update(const Player& player)
+RectF Enemy::hurtRectAt(const Vec2& pos) const {// 指定位置での当たり判定矩形取得
+	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
+	return RectF{ Arg::center = pos.movedBy(0, m_hitOffsetY * m_Scale.y), sz };
+}
+
+void Enemy::update(const Player& player, Game_Map& map)
 {
-	m_Speed = KeyS.pressed() ? 0.0 : m_speedBase;// テスト用　Sキーで停止
+	const double dt = Scene::DeltaTime();
 
-	//setHitbox(Vec2(100, 150));//テスト用 当たり判定サイズ設定
-	RectF pBox(getPosition(), getScale());// 敵の当たり判定用長方形
-	pBox.setPos(getPosition()).setSize(m_hitBox);
 
-	//// プレイヤーの当たり判定用長方形
-	//RectF pBox(player.GetPlayerPosition(), player.GetPlayerScale());
-	//pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
-	//
+	m_velY += m_gravity * dt;
+	Vec2 tryPos = m_Position;// 仮の位置
+	tryPos.y += m_velY * dt;
 
-	float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
-	//m_Position.x += vx * Scene::DeltaTime();// 位置更新
+	RectF testY = hurtRectAt(tryPos);// 仮の位置での当たり判定矩形
+	if (map.CheckCollision(testY)) {
+		const double step = 2.0;// 微小移動量
+		int guard = 0;
+		while (map.CheckCollision(testY) && guard++ < 200) {
+			tryPos.y -= Math::Sign(m_velY) * step;
+			testY = hurtRectAt(tryPos);
+		}
+
+		m_Position.y = tryPos.y;
+		m_velY = 0.0;
+
+		m_onGround = true;
+	}
+	else {
+		m_Position.y = tryPos.y;
+		m_onGround = false;
+	}
 
 	// 巡回範囲チェック
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
-	else setState(AnimState::Idle);// 停止中はIdle
 
 
-	const bool hitNow = RectToCircle(pBox, c) || m_takeDamage; // ダメージを受けたらHurt
-	if (m_state == AnimState::Hurt) {}
-	else if (hitNow)
-	{
-		setState(AnimState::Hurt);
+
+
+	const RectF eBox = hurtRect();
+	// プレイヤーの当たり判定用長方形
+	const RectF pBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerAttackRengeBox());
+
+
+	if (eBox.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
+
+
+	const bool gotHit = (RectToRect(pBox, eBox) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+	
+	if (gotHit) {
+		if (m_state != AnimState::Hurt)
+		{
+			setState(AnimState::Hurt); // 状態変化時のみリセット
+			m_Speed = 0.0f;      // ダメージ中は停止
+		}
 	}
+	else {
+		m_Speed = 0.0; // 通常移動速度に戻す
 
-	if (m_state != AnimState::Hurt) {
-		if (!hitNow) {
-			if (std::abs(vx) > 1.0f) setState(AnimState::Run);
-			else                     setState(AnimState::Idle);
+
+		m_Speed = (KeyS.pressed()) ? m_speedBase : 0.0;// テスト用　Sキーで停止
+
+
+
+		float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
+		m_Position.x += vx * Scene::DeltaTime();// 位置更新
+
+		
+		if (std::abs(vx) > 1.0f) { // 在移动 → Run
+			if (m_state != AnimState::Run) setState(AnimState::Run);
+		}
+		else {                    // 静止 → Idle
+			if (m_state != AnimState::Idle) setState(AnimState::Idle);
 		}
 	}
 
+
+	m_time += Scene::DeltaTime();
 	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
 	
 	while (m_time >= A.frameTime) {
@@ -56,13 +103,16 @@ void Enemy::update(const Player& player)
 				++m_frameIndex;
 			else {
 				m_takeDamage = false;
-				if (std::abs(vx) > 1.0f) setState(AnimState::Run);
-				else setState(AnimState::Idle);
 				break;
 			}
 		}
 	}
 
+
+	if (m_debugDraw)// デバッグ用
+	{
+		eBox.drawFrame(2.0, Palette::Red);
+	}
 
 }
 
@@ -79,12 +129,6 @@ void Enemy::draw() const
 	(m_FaceRight ? reg : reg.mirrored())
 		.scaled(m_Scale.x, m_Scale.y)
 		.drawAt(m_Position);
-
-	if (!m_debugDraw) return;// デバッグ用
-
-	RectF(getPosition(), getScale())
-		.setPos(getPosition()).setSize(m_hitBox)
-		.drawFrame(2.0, Palette::Red);
 }
 
 void Enemy::takeDamage(int damage)

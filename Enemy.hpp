@@ -1,10 +1,13 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
+#include "Player.hpp"
+#include "Game_Map.hpp"
 
 enum class AnimState {// アニメーション状態列挙型
-	Hurt,
 	Idle,
-	Run
+	Run,
+	Hurt,
+
 };
 
 struct AnimDesc {// アニメーションの説明構造体
@@ -22,9 +25,17 @@ private:
 	bool m_FaceRight;		  //向き
 	float m_Speed;			  //移動速度
 
+	double m_hitOffsetY = 16.0;// 当たり判定Y
+
+
+	float m_gravity = 1800.0;// 重力
+	float m_velY = 0.0;// Y方向速度
+	bool   m_onGround = false; 
+
+
 	float m_speedBase = m_Speed;// 元の移動速度
 	bool m_takeDamage = false; // ダメージを受けたかどうか
-	Vec2 m_hitBox = { 100.0 ,150.0 };// 当たり判定サイズ
+	Vec2 m_hitBox = { 22.0 ,35.0 };// 当たり判定サイズ
 
 	int m_HP;				  //体力
 	int m_Attack;			  //攻撃力
@@ -35,9 +46,9 @@ private:
 
 	AnimState m_state{ AnimState::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState, AnimDesc> m_anims{	// アニメーションの説明
-		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
 		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
 		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } }
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
@@ -91,12 +102,15 @@ public:
 	void setAttackRange(float range) { m_AttackRange = range; }
 	void setAttackSpeed(float speed) { m_AttackSpeed = speed; }
 
-	void setHitbox(const Vec2 hitbox) { m_hitBox = hitbox; }
+	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
 
 
 	Enemy& GetEnemy() { return *this; }
-	void update(const Player& player);
+	void update(const Player& player, Game_Map& map);
 	void draw() const;
 	void takeDamage(int damage);
+
+	RectF hurtRect() const; // ダメージ判定矩形を取得
+	RectF  hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 };
 
