@@ -9,6 +9,13 @@ RectF enemyRect{ 1600, 100, 64, 64 };
 
 Player::Player() {}
 Player::~Player() {}
+RectF Player::getAttackRect() const
+{
+	return RectF{
+		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
+		SizeF{ 200, 160 }
+	};
+}
 
 void Player::takeDamage(int dmg)
 
@@ -37,11 +44,13 @@ void Player::PlayerAttack()
 			m_frameIndex++;
 
 			// 攻撃判定
-			RectF pBox(GetPlayerPosition(), GetPlayerAttackRengeBox());
+			const RectF pBox = getAttackRect();
 			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"当たった！";
 			}
+
+			
 
 			// 攻撃終了
 			if (m_frameIndex >= m_attackPatterns.size())
@@ -208,7 +217,7 @@ void Player::update(Game_Map& map)
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
-
+	
 	// ------------------------------
 	// アニメーション処理
 	// ------------------------------
@@ -260,6 +269,7 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	SetPlayerVelocity(velocity);
 	SetPlayerPosition(pos);
+
 }
 
 // ================================================================
@@ -317,26 +327,40 @@ void Player::draw(Game_Map CameraPos) const
 	// ------------------------------
 	// デバッグ用当たり判定表示
 	// ------------------------------
+	// ------------------------------
+// デバッグ用当たり判定表示
+// ------------------------------
 	RectF attackBox{
-	Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
-	SizeF{ 200, 160 }
+		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
+		SizeF{ 200, 160 }
 	};
 
-	attackBox.drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
+	// カメラ補正して描画
+	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
 
-	// 中心基準は維持しつつ、上方向に伸ばす
 	RectF playerBox{
 		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.25),
 		SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.5 }
 	};
 
-	playerBox.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+	// カメラ補正して描画
+	playerBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+
 
 	// ------------------------------
 	// デバッグ用　プレイヤー情報表示
 	// ------------------------------
 
-	//Print << U"Velo: " << GetPlayerVelocity();
+	Print << U"Player: " << GetPlayerPosition();
+	Print << U"Box: " << playerBox.x;
+
+
+	// ------------------------------
+	// デバッグ用　プレイヤー情報表示
+	// ------------------------------
+
+	Print << U"Player: " << GetPlayerPosition();
+	Print << U"Box: " << playerBox.x;
 
 	// ------------------------------
 	// プレイヤー描画

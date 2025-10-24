@@ -36,14 +36,16 @@ Game::Game(const InitData& init)
 	m_enemies.clear();
 	m_enemies.reserve(8);
 
-	m_enemies.emplace_back(Vec2{ 700,100 }, 200.0, 600.0, 900.0, true, Vec2{ 3,3 });
+	m_enemies.emplace_back(Vec2{ 1000,600 }, 200.0, 600.0, 900.0, true, Vec2{ 3,3 });
 }
 
 void Game::update()
 {
-	player.update(map);
+	
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
+	player.update(map);
+	
 
 	for (auto& e : m_enemies) e.update(player,map);
 
@@ -61,3 +63,10 @@ void Game::draw() const
 	Ui.draw(player);
 
 }
+
+
+
+
+
+
+
