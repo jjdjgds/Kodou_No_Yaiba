@@ -1,189 +1,157 @@
-﻿
-#include "Game.hpp"
+﻿#include "Game.hpp"
 #include "Enemy.hpp"
 #include "Collision.hpp"
 #include "Player.hpp"
 
 using namespace Collision;
 
-RectF Enemy::hurtRect() const // 被弾判定用
-{
+RectF Enemy::hurtRect() const {// ダメージ判定矩形を取得
 	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
 	return RectF{ Arg::center = m_Position.movedBy(0, m_hitOffsetY * m_Scale.y), sz };
 }
-
-RectF Enemy::hurtRectAt(const Vec2& pos) const
-{
+RectF Enemy::hurtRectAt(const Vec2& pos) const {
 	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
 	return RectF{ Arg::center = pos.movedBy(0, m_hitOffsetY * m_Scale.y), sz };
 }
 
-RectF Enemy::attackRect() const // 攻撃判定用
-{
-	const double xOffset = (m_FaceRight ? 17.0 : -17.0);
+RectF Enemy::attackRect() const {// ダメージ判定矩形を取得
+	const double xOffset = (m_FaceRight ? 17.0 : -17.0);// 攻撃判定のXオフセット（可調）
 	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
 	return RectF{ Arg::center = m_Position.movedBy(xOffset * m_Scale.x, m_hitOffsetY * m_Scale.y), sz };
 }
 
-Line Enemy::makeGroundProbeLine() const // 地面チェック
-{
-	const double fwd = 17 * m_Scale.x;
-	const double down = 40.0 * m_Scale.y;
-	const Vec2 dir = (m_FaceRight ? Vec2{ +fwd, +down } : Vec2{ -fwd, +down });
+Line Enemy::makeGroundProbeLine() const {// 地面探査用の線分を作成
+	const double fwd = 17 * m_Scale.x;// 前方距離（可調）
+	const double down = 40.0 * m_Scale.y;// 下方向距離（可調）
+	const Vec2  dir = (m_FaceRight ? Vec2{ +fwd, +down } : Vec2{ -fwd, +down });
 	return Line{ m_Position, m_Position + dir };
 }
 
-//----------------------------------------------
-// ここから update()
-//----------------------------------------------
-void Enemy::update(Player& player, Game_Map& map)
+void Enemy::update(const Player& player, Game_Map& map)
 {
 	const double dt = Scene::DeltaTime();
 
-	//=== 落下処理 ===//
+
 	m_velY += m_gravity * dt;
-	Vec2 tryPos = m_Position;
+	Vec2 tryPos = m_Position;// 仮の位置
 	tryPos.y += m_velY * dt;
 
-	RectF testY = hurtRectAt(tryPos);
-	if (map.CheckCollision(testY))
-	{
-		const double step = 2.0;
+	RectF testY = hurtRectAt(tryPos);// 仮の位置での当たり判定矩形
+	if (map.CheckCollision(testY)) {
+		const double step = 2.0;// 微小移動量
 		int guard = 0;
-		while (map.CheckCollision(testY) && guard++ < 200)
-		{
+		while (map.CheckCollision(testY) && guard++ < 200) {
 			tryPos.y -= Math::Sign(m_velY) * step;
 			testY = hurtRectAt(tryPos);
 		}
 		m_Position.y = tryPos.y;
 		m_velY = 0.0;
+
 		m_onGround = true;
 	}
-	else
-	{
+	else {
 		m_Position.y = tryPos.y;
 		m_onGround = false;
 	}
 
-	//=== 巡回範囲制御 ===//
+	// 巡回範囲チェック
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
+
 	const Line probe = makeGroundProbeLine();
-	if (!map.CheckCollision_Line(probe))
-	{
+
+	if (!map.CheckCollision_Line(probe)) {
 		m_FaceRight = !m_FaceRight;
 	}
 
-	//=== 矩形生成 ===//
+
+
 	const RectF eBoxHurt = hurtRect();
-	const RectF eAttack = attackRect();
-	const RectF pHitBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox());
-	const RectF pAttackBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerAttackRengeBox());
+	const RectF eBoxAttack = attackRect();
 
-	//------------------------------------------
-	// テストクリックで敵ダメージ
-	//------------------------------------------
-	if (eBoxHurt.leftClicked())
-	{
-		takeDamage(1);
-	}
+	// プレイヤーの当たり判定用長方形
+	const RectF pBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerAttackRengeBox());
 
-	//------------------------------------------
-	// 敵攻撃 → プレイヤーダメージ
-	//------------------------------------------
-	if (RectToRect(eAttack, pHitBox) && (m_state == AnimState::Attack))
-	{
-		// 回避中や被弾中は無視（Player側が判断）
-		player.takeDamage(1);
-	}
 
-	//------------------------------------------
-	// プレイヤー攻撃 → 敵ダメージ
-	//------------------------------------------
-	bool gotHit = (RectToRect(pAttackBox, eBoxHurt) && (player.GetPlayerState() == StateMode::Attack)) || m_takeDamage;
+	if (eBoxHurt.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
 
-	if (gotHit)
-	{
+
+	const bool gotHit = (RectToRect(pBox, eBoxHurt) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+
+
+	if (gotHit) {
 		if (m_state != AnimState::Hurt)
 		{
-			setState(AnimState::Hurt);
-			m_Speed = 0.0f;
+			setState(AnimState::Hurt); // 状態変化時のみリセット
+			m_Speed = 0.0f;      // ダメージ中は停止
 		}
 	}
-	else if (m_state == AnimState::Attack)
-	{
-		// 攻撃中は行動固定
-	}
+	else if (m_state == AnimState::Attack) {}
 	else if (KeySpace.down() && !AttackFlag)
 	{
 		setState(AnimState::Attack);
-		m_Speed = 0.0f;
+		m_Speed = 0.0f;      // ダメージ中は停止
 	}
-	else
-	{
-		m_Speed = (KeyS.pressed()) ? m_speedBase : 0.0;
+	else {
+		m_Speed = 0.0; // 通常移動速度に戻す
 
-		float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;
-		m_Position.x += vx * dt;
 
-		if (std::abs(vx) > 1.0f)
-			setState(AnimState::Run);
-		else
-			setState(AnimState::Idle);
+		m_Speed = (KeyS.pressed()) ? m_speedBase : 0.0;// テスト用　Sキーで停止
+
+
+
+		float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
+		m_Position.x += vx * Scene::DeltaTime();// 位置更新
+
+
+		if (std::abs(vx) > 1.0f) { // 在移动 → Run
+			if (m_state != AnimState::Run) setState(AnimState::Run);
+		}
+		else {                    // 静止 → Idle
+			if (m_state != AnimState::Idle) setState(AnimState::Idle);
+		}
 	}
 
-	//------------------------------------------
-	// アニメーション更新
-	//------------------------------------------
+
 	m_time += Scene::DeltaTime();
-	const auto& A = m_anims[m_state];
+	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
 
-	while (m_time >= A.frameTime)
-	{
+	while (m_time >= A.frameTime) {
 		m_time -= A.frameTime;
 
-		if (A.loop)
-		{
-			m_frameIndex = (m_frameIndex + 1) % A.frames;
+		if (A.loop) {
+			m_frameIndex = (m_frameIndex + 1) % A.frames;// フレーム更新
 		}
-		else
-		{
-			if (m_frameIndex < (A.frames - 1))
-			{
-				++m_frameIndex;
-			}
-			else
-			{
-				if (m_state == AnimState::Hurt)
-				{
+		else {
+			if (m_frameIndex < (A.frames - 1)) ++m_frameIndex;
+			else {
+
+				if (m_state == AnimState::Hurt) {
 					m_takeDamage = false;
-					setState(AnimState::Idle);
+					break;
 				}
-				else if (m_state == AnimState::Attack)
-				{
+				else if (m_state == AnimState::Attack) {
 					AttackFlag = false;
-					setState(AnimState::Idle);
 				}
+
+				const float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;
+				setState((std::abs(vx) > 1.0f) ? AnimState::Run : AnimState::Idle);
 				break;
 			}
 		}
 	}
 
-	//------------------------------------------
-	// デバッグ描画
-	//------------------------------------------
-	if (m_debugDraw)
+
+	if (m_debugDraw)// デバッグ用
 	{
 		eBoxHurt.drawFrame(2.0, Palette::Red);
-		eAttack.drawFrame(2.0, Palette::Yellow);
-		probe.draw(2, Palette::Aqua);
+		eBoxAttack.drawFrame(2.0, Palette::Blue);
+		probe.draw(2, Palette::Yellow);
 	}
+
 }
 
-//----------------------------------------------
-// draw()
-//----------------------------------------------
 void Enemy::draw() const
 {
 	const auto& A = m_anims.at(m_state);
@@ -199,13 +167,9 @@ void Enemy::draw() const
 		.drawAt(m_Position);
 }
 
-//----------------------------------------------
-// takeDamage()
-//----------------------------------------------
 void Enemy::takeDamage(int damage)
 {
-	if (!m_takeDamage)
-	{
+	if (!m_takeDamage) {
 		m_takeDamage = true;
 		m_frameIndex = 0;
 		m_time = 0.0;

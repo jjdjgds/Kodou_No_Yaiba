@@ -63,3 +63,10 @@ void Game::draw() const
 	Ui.draw(player);
 
 }
+
+
+
+
+
+
+
