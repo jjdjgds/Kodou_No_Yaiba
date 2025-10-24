@@ -355,6 +355,12 @@ void Player::draw(Game_Map CameraPos) const
 	Print << U"Box: " << playerBox.x;
 
 	// ------------------------------
+	// デバッグ用　プレイヤー情報表示
+	// ------------------------------
+
+	//Print << U"Velo: " << GetPlayerVelocity();
+
+	// ------------------------------
 	// プレイヤー描画
 	// ------------------------------
 	PlayerTex(n * frameWidth, y+90, frameWidth, frameHeight)
