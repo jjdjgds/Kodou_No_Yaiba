@@ -41,6 +41,8 @@ private:
 	int m_Attack;			  //攻撃力
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
+	// Enemy.hpp に追加
+	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
 
 	float m_patrolL{ 0.0 }, m_patrolR{ 0.0 }; // 巡回範囲
 
@@ -89,7 +91,7 @@ public:
 	float getAttackRange() const { return m_AttackRange; }
 	float getAttackSpeed() const { return m_AttackSpeed; }
 	Vec2 getHitbox() const { return m_hitBox; }
-	
+
 
 	//setter
 	Vec2 setPosition(const Vec2 pos) { return m_Position = pos; }
@@ -112,6 +114,9 @@ public:
 
 	RectF hurtRect() const; // ダメージ判定矩形を取得
 	RectF  hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
-	RectF  attackRect() const;
+
+	RectF attackRect() const; // 攻撃判定矩形を取得
+	Line makeGroundProbeLine() const;
+
 };
 
