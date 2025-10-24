@@ -35,7 +35,7 @@ void Player::PlayerAttack()
 			{
 				m_frameIndex = 0;
 				SetPlayerAttackFlag(false);
-				m_state = StateMode::Idle;
+				SetPlayerState(StateMode::Idle);
 			}
 		}
 	}
@@ -56,7 +56,8 @@ void Player::PlayerIdle()
 void Player::PlaeyrAvoidance()
 {
 
-
+	// 回避アニメーション
+	// 当たり判定の無効化
 
 
 }
@@ -64,7 +65,7 @@ void Player::PlaeyrAvoidance()
 void Player::PlayerHurt()
 {
 
-	if (m_state != StateMode::Pareise)
+	if (GetPlayerState() != StateMode::Pareise)
 	{
 		// ダメージアニメーション
 		const double hurtFrameDuration = 0.15;
@@ -76,7 +77,7 @@ void Player::PlayerHurt()
 			if (m_frameIndex >= m_hurtPatterns.size())
 			{
 				m_frameIndex = 0;
-				m_state = StateMode::Idle;
+				SetPlayerState(StateMode::Idle);
 			}
 		}
 	}
@@ -104,7 +105,8 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	if (KeyO.down())
 	{
-		m_state = StateMode::Hurt;
+		SetPlayerState(StateMode::Hurt);
+		
 		m_frameIndex = 0; // ★これも追加
 	}
 
@@ -143,7 +145,8 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	// 接地判定
 	// ------------------------------
-	RectF playerRect(pos.movedBy(0, -10), size); // 判定を少し下にずらす
+	RectF playerRect(pos.movedBy(-30, -20), GetPlayerHitBox().x+30, GetPlayerHitBox().y+30); // 判定を少し下にずらす
+	playerRect.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
 	bool nowOnGround = map.CheckCollision(playerRect);
 
 	// ------------------------------
@@ -183,7 +186,8 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
-		m_state = StateMode::Attack;
+		SetPlayerState(StateMode::Attack);
+		//m_state = StateMode::Attack;
 		SetPlayerAttackFlag(true);
 		m_frameIndex = 0;
 		animTime = 0.0;
@@ -195,7 +199,7 @@ void Player::update(Game_Map& map)
 
 
 
-	switch (m_state)
+	switch (GetPlayerState())
 	{
 	case StateMode::Idle:
 		// アイドルアニメーション
@@ -231,30 +235,7 @@ void Player::update(Game_Map& map)
 		break;
 	}
 
-	//if (m_AttackFlag && (m_state ==  StateMode::Attack))
-	//{
-	//	// 攻撃アニメーション
-	//	const double attackFrameDuration = 0.08;
-	//	if (animTime >= attackFrameDuration)
-	//	{
-	//		animTime -= attackFrameDuration;
-	//		m_frameIndex++;
-	//		// 攻撃判定
-	//		RectF pBox(GetPlayerPosition(), GetPlayerAttackRengeBox());
-	//		if (RectToRect(pBox, enemyRect))
-	//		{
-	//			Print << U"当たった！";
-	//		}
-	//		// 攻撃終了
-	//		if (m_frameIndex >= m_attackPatterns.size())
-	//		{
-	//			m_frameIndex = 0;
-	//			SetPlayerAttackFlag(false);
-	//			m_state = StateMode::Idle;
-	//		}
-	//	}
-	//}
-
+	
 
 
 
@@ -289,7 +270,7 @@ void Player::draw() const
 
 
 
-	switch (m_state)
+	switch (GetPlayerState())
 	{
 	case StateMode::Idle:
 		n = m_idlePatterns[m_frameIndex];
@@ -324,7 +305,7 @@ void Player::draw() const
 	attackBox.drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
 
 	RectF playerBox{ GetPlayerPosition(), GetPlayerHitBox() };
-	playerBox.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+	//playerBox.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
 	// ------------------------------
 	// デバッグ用　プレイヤー情報表示
 	// ------------------------------

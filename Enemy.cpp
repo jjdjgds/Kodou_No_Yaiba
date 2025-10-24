@@ -25,7 +25,7 @@ void Enemy::update(const Player& player)
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	if (RectToRect(pBox, eBox) && (player.m_state == StateMode::Attack)) {
+	if (RectToRect(pBox, eBox) && (player.GetPlayerState() == StateMode::Attack)) {
 		if (m_state != AnimState::Hurt) {
 			setState(AnimState::Hurt); // 状態変化時のみリセット
 		}

@@ -33,7 +33,7 @@ private:
 	RectF m_HitRect;          //当たり判定矩形
 	float m_gravity = 0.98f;  //重力
 	bool m_onGround = false;
-
+	StateMode m_PlayerState; //プレイヤーの状態管理用
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6 };
@@ -45,7 +45,7 @@ private:
 
 
 public:
-	StateMode m_state = StateMode::Idle;
+	
 	Player();
 
 
@@ -84,6 +84,7 @@ public:
 		, m_AttackFlag(false)
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		,m_gravity(9.8)
+		, m_PlayerState(StateMode::Idle)
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
 		}
@@ -112,7 +113,7 @@ public:
 	 bool  IsPlayerInvincible() const { return m_Invincible; }
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
 	 RectF GetPlayerHitRect() const { return m_HitRect; }
-
+	 StateMode GetPlayerState() const { return m_PlayerState; }
 	//setter
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
@@ -135,8 +136,10 @@ public:
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
-	
+	StateMode SetPlayerState(const StateMode state) { return m_PlayerState = state; }
 	Player& GetPlayer() { return *this; }
+
+
 
 	void PlayerAttack();
 	void PlayerIdle();

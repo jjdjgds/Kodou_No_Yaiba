@@ -4,7 +4,8 @@
 enum class AnimState {// アニメーション状態列挙型
 	Idle,
 	Run,
-	Hurt
+	Hurt,
+	Attack
 };
 
 struct AnimDesc {// アニメーションの説明構造体
@@ -36,7 +37,8 @@ private:
 	HashTable<AnimState, AnimDesc> m_anims{	// アニメーションの説明
 		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
 		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
-		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.5, false } }
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.5, false } },
+		{AnimState::Attack ,{ U"EnemyHurt", 4, 0.5, false }}
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
