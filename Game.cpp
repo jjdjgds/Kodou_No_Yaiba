@@ -11,7 +11,7 @@ Game::Game(const InitData& init)
 		Vec2(700, 800), // position
 		Vec2(0.5, 0.5),     // scale
 		Vec2(0.0, 0.0),     // velocity
-		Vec2(50.0, 60.0),  // HitBox
+		Vec2(50.0, 90.0),  // HitBox
 		3,                 // HP
 		3,                 // Max Hp
 		100,               // BPM

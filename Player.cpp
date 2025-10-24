@@ -339,11 +339,20 @@ void Player::draw(Game_Map CameraPos) const
 	// カメラ補正して描画
 	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
 
-	RectF playerBox{
-		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.25),
-		SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.5 }
-	};
+	//RectF playerBox{
+	//	Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.25),
+	//	SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.5 }
+	//};
 
+	//NOT COLLISION BOX
+	Vec2 hitSize = GetPlayerHitBox();
+	Vec2 pos = GetPlayerPosition();
+	Vec2 offset = Vec2(0, 10); // same as collision box shift
+
+	RectF playerBox{
+		Arg::center = pos,   // shift down
+		SizeF{ hitSize.x, hitSize.y}
+	};
 	// カメラ補正して描画
 	playerBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
 
@@ -352,21 +361,22 @@ void Player::draw(Game_Map CameraPos) const
 	// デバッグ用　プレイヤー情報表示
 	// ------------------------------
 
-	Print << U"Player: " << GetPlayerPosition();
-	Print << U"Box: " << playerBox.x;
+	//int << U"Player: " << GetPlayerPosition();
+	//int << U"Box: " << playerBox.x;
 
 
 	// ------------------------------
 	// デバッグ用　プレイヤー情報表示
 	// ------------------------------
 
-	Print << U"Player: " << GetPlayerPosition();
-	Print << U"Box: " << playerBox.x;
+	//int << U"Player: " << GetPlayerPosition();
+	//int << U"Box: " << playerBox.x;
 
 	// ------------------------------
 	// プレイヤー描画
 	// ------------------------------
-	PlayerTex(n * frameWidth, y+90, frameWidth, frameHeight)
+	const double spriteOffsetY = 20.0; // adjust this value
+	PlayerTex(n * frameWidth, y + 90, frameWidth, frameHeight)
 		.scaled(GetPlayerScale())
-		.drawAt(GetPlayerPosition() - CameraPos.getCameraPos());
+		.drawAt(GetPlayerPosition() + Vec2(0, spriteOffsetY) - CameraPos.getCameraPos());
 }
