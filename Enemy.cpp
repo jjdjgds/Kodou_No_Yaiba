@@ -9,10 +9,22 @@ RectF Enemy::hurtRect() const {// ダメージ判定矩形を取得
 	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
 	return RectF{ Arg::center = m_Position.movedBy(0, m_hitOffsetY * m_Scale.y), sz };
 }
-
-RectF Enemy::hurtRectAt(const Vec2& pos) const {// 指定位置での当たり判定矩形取得
+RectF Enemy::hurtRectAt(const Vec2& pos) const {
 	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
 	return RectF{ Arg::center = pos.movedBy(0, m_hitOffsetY * m_Scale.y), sz };
+}
+
+RectF Enemy::attackRect() const {// ダメージ判定矩形を取得
+	const double xOffset = (m_FaceRight ? 17.0 : -17.0);// 攻撃判定のXオフセット（可調）
+	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
+	return RectF{ Arg::center = m_Position.movedBy(xOffset * m_Scale.x, m_hitOffsetY * m_Scale.y), sz };
+}
+
+Line Enemy::makeGroundProbeLine() const {// 地面探査用の線分を作成
+	const double fwd = 17 * m_Scale.x;// 前方距離（可調）
+	const double down = 40.0 * m_Scale.y;// 下方向距離（可調）
+	const Vec2  dir = (m_FaceRight ? Vec2{ +fwd, +down } : Vec2{ -fwd, +down });
+	return Line{ m_Position, m_Position + dir };
 }
 
 void Enemy::update(const Player& player, Game_Map& map)
@@ -32,7 +44,6 @@ void Enemy::update(const Player& player, Game_Map& map)
 			tryPos.y -= Math::Sign(m_velY) * step;
 			testY = hurtRectAt(tryPos);
 		}
-
 		m_Position.y = tryPos.y;
 		m_velY = 0.0;
 
@@ -48,18 +59,26 @@ void Enemy::update(const Player& player, Game_Map& map)
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
 
+	const Line probe = makeGroundProbeLine();
+
+	if (!map.CheckCollision_Line(probe)) {
+		m_FaceRight = !m_FaceRight;
+	}
 
 
 
-	const RectF eBox = hurtRect();
+	const RectF eBoxHurt = hurtRect();
+	const RectF eBoxAttack = attackRect();
+
 	// プレイヤーの当たり判定用長方形
 	const RectF pBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerAttackRengeBox());
 
 
-	if (eBox.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
+	if (eBoxHurt.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
 
 
-	const bool gotHit = (RectToRect(pBox, eBox) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+	const bool gotHit = (RectToRect(pBox, eBoxHurt) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+
 	
 	if (gotHit) {
 		if (m_state != AnimState::Hurt)
@@ -67,6 +86,12 @@ void Enemy::update(const Player& player, Game_Map& map)
 			setState(AnimState::Hurt); // 状態変化時のみリセット
 			m_Speed = 0.0f;      // ダメージ中は停止
 		}
+	}
+	else if (m_state == AnimState::Attack) {}
+	else if (KeySpace.down() && !AttackFlag)
+	{
+		setState(AnimState::Attack);
+		m_Speed = 0.0f;      // ダメージ中は停止
 	}
 	else {
 		m_Speed = 0.0; // 通常移動速度に戻す
@@ -99,10 +124,19 @@ void Enemy::update(const Player& player, Game_Map& map)
 			m_frameIndex = (m_frameIndex + 1) % A.frames;// フレーム更新
 		}
 		else {
-			if (m_frameIndex < (A.frames - 1)) 
-				++m_frameIndex;
+			if (m_frameIndex < (A.frames - 1)) ++m_frameIndex;
 			else {
-				m_takeDamage = false;
+				
+				if (m_state == AnimState::Hurt){
+					m_takeDamage = false;
+					break;
+				}
+				else if (m_state == AnimState::Attack){
+					AttackFlag = false;
+				}
+
+				const float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;
+				setState((std::abs(vx) > 1.0f) ? AnimState::Run : AnimState::Idle);
 				break;
 			}
 		}
@@ -111,7 +145,9 @@ void Enemy::update(const Player& player, Game_Map& map)
 
 	if (m_debugDraw)// デバッグ用
 	{
-		eBox.drawFrame(2.0, Palette::Red);
+		eBoxHurt.drawFrame(2.0, Palette::Red);
+		eBoxAttack.drawFrame(2.0, Palette::Blue);
+		probe.draw(2, Palette::Yellow);
 	}
 
 }

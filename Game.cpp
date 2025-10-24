@@ -37,6 +37,7 @@ Game::Game(const InitData& init)
 	m_enemies.reserve(8);
 
 	m_enemies.emplace_back(Vec2{ 700,100 }, 200.0, 600.0, 900.0, true, Vec2{ 3,3 });
+	m_enemies.emplace_back(Vec2{ 300,100 }, 200.0, 400.0, 900.0, true, Vec2{ 3,3 });
 }
 
 void Game::update()
