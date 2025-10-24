@@ -8,7 +8,7 @@ using namespace Collision;
 Game::Game(const InitData& init)
 	: IScene{ init }
 	, player( // ← 初期化リストで player を作成
-		Vec2(700, 700), // position
+		Vec2(700, 750), // position
 		Vec2(0.5, 0.5),     // scale
 		Vec2(0.0, 0.0),     // velocity
 		Vec2(50.0, 60.0),  // HitBox

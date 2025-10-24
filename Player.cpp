@@ -13,7 +13,7 @@ RectF Player::getAttackRect() const
 {
 	return RectF{
 		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
-		SizeF{ 200, 160 }
+		SizeF{ 200, 200 }
 	};
 }
 
@@ -32,37 +32,33 @@ void Player::takeDamage(int dmg)
 
 void Player::PlayerAttack()
 {
-
-	// 攻撃アニメーション
 	const double attackFrameDuration = 0.08;
-	if (m_AttackFlag)
+
+	if (!m_AttackFlag) return; // 攻撃中でなければ終了
+
+	if (animTime >= attackFrameDuration)
 	{
+		animTime -= attackFrameDuration;
+		m_frameIndex++;
 
-		if (animTime >= attackFrameDuration)
+		// 攻撃中の判定
+		const RectF pBox = getAttackRect();
+		if (RectToRect(pBox, enemyRect))
 		{
-			animTime -= attackFrameDuration;
-			m_frameIndex++;
+			Print << U"当たった！";
+			// ★必要ならここで敵のtakeDamage()呼び出しなど
+		}
 
-			// 攻撃判定
-			const RectF pBox = getAttackRect();
-			if (RectToRect(pBox, enemyRect))
-			{
-				Print << U"当たった！";
-			}
-
-			
-
-			// 攻撃終了
-			if (m_frameIndex >= m_attackPatterns.size())
-			{
-				m_frameIndex = 0;
-				SetPlayerAttackFlag(false);
-				SetPlayerState(StateMode::Idle);
-			}
+		// 攻撃アニメーションが終わったらIdleへ
+		if (m_frameIndex >= m_attackPatterns.size())
+		{
+			m_frameIndex = 0;
+			SetPlayerAttackFlag(false);
+			SetPlayerState(StateMode::Idle);
 		}
 	}
-
 }
+
 
 void Player::PlayerIdle()
 {
@@ -138,6 +134,7 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
+
 	Vec2 velocity = GetPlayerVelocity();
 
 	// ------------------------------
@@ -186,23 +183,50 @@ void Player::update(Game_Map& map)
 	// 縦移動処理（Y方向）
 	// ------------------------------
 	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
-	// 中心を基準にHitBoxを作る
-	RectF rectY(Arg::center = nextPosY, size);
+	RectF rectY(Arg::center = nextPosY, size.x,size.y);
 
-
+	// 縦方向の当たり判定
 	if (!map.CheckCollision(rectY))
 	{
 		pos.y = nextPosY.y;
 	}
 	else
 	{
-		// 地面に衝突したら着地
 		if (velocity.y > 0)
 		{
+			// 地面に衝突
 			velocity.y = 0;
 			nowOnGround = true;
+
+			// めり込み防止：地面の上に押し戻す
+			while (map.CheckCollision(rectY))
+			{
+				nextPosY.y -= 1;
+				rectY.setCenter(nextPosY);
+			}
+			pos.y = nextPosY.y;
+		}
+		else if (velocity.y < 0)
+		{
+			// 天井に衝突
+			velocity.y = 0;
+
+			// めり込み防止：天井の下に押し戻す
+			while (map.CheckCollision(rectY))
+			{
+				nextPosY.y += 1;
+				rectY.setCenter(nextPosY);
+			}
+			pos.y = nextPosY.y;
+
+			// ★重要：次のフレームで落下を始めるようにする
+			velocity.y += m_gravity * Scene::DeltaTime() * 90;
+
+			// 状態を「空中」に維持
+			nowOnGround = false;
 		}
 	}
+
 
 	// 接地状態を更新
 	m_onGround = nowOnGround;
@@ -331,17 +355,13 @@ void Player::draw(Game_Map CameraPos) const
 	// ------------------------------
 // デバッグ用当たり判定表示
 // ------------------------------
-	RectF attackBox{
-		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
-		SizeF{ 200, 160 }
-	};
-
-	// カメラ補正して描画
+	// 攻撃範囲のデバッグ描画
+	RectF attackBox = getAttackRect();
 	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
 
 	RectF playerBox{
-		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.25),
-		SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.5 }
+		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.5),
+		SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.7}
 	};
 
 	// カメラ補正して描画
