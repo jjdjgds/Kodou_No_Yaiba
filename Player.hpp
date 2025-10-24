@@ -37,7 +37,9 @@ private:
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6 };
-	
+	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
+	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
+
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 
@@ -135,6 +137,11 @@ public:
 	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
 	
 	Player& GetPlayer() { return *this; }
+
+	void PlayerAttack();
+	void PlayerIdle();
+	void PlaeyrAvoidance();
+	void PlayerHurt();
 	void update(Game_Map& map);
 	void draw() const;
 };
