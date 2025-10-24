@@ -234,6 +234,37 @@ void Player::draw(const Game_Map& CameraPos) const
 		n = m_idlePatterns[m_frameIndex];
 		break;
 	}
+	// ------------------------------
+	// デバッグ用当たり判定表示
+	// ------------------------------
+	// ------------------------------
+// デバッグ用当たり判定表示
+// ------------------------------
+	RectF attackBox{
+		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
+		SizeF{ 200, 160 }
+	};
+
+	// カメラ補正して描画
+	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
+
+	//RectF playerBox{
+	//	Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.25),
+	//	SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.5 }
+	//};
+
+	//NOT COLLISION BOX
+	Vec2 hitSize = GetPlayerHitBox();
+	Vec2 pos = GetPlayerPosition();
+	Vec2 offset = Vec2(0, 10); // same as collision box shift
+
+	RectF playerBox{
+		Arg::center = pos,   // shift down
+		SizeF{ hitSize.x, hitSize.y}
+	};
+	// カメラ補正して描画
+	playerBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+
 
 	// カメラ補正
 	Vec2 drawPos = GetPlayerPosition() - CameraPos.getCameraPos();

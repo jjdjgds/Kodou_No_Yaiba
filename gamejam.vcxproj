@@ -118,6 +118,7 @@
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="Game_BG.cpp" />
     <ClCompile Include="Game_Map.cpp" />
     <ClCompile Include="Game_UI.cpp" />
     <ClCompile Include="jokeClass.cpp" />
@@ -339,6 +340,7 @@
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Enemy.hpp" />
     <ClInclude Include="Game.hpp" />
+    <ClInclude Include="Game_BG.hpp" />
     <ClInclude Include="Game_Map.hpp" />
     <ClInclude Include="Game_UI.hpp" />
     <ClInclude Include="jokeClass.h" />
