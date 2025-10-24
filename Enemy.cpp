@@ -27,12 +27,12 @@ Line Enemy::makeGroundProbeLine() const {// 地面探査用の線分を作成
 	return Line{ m_Position, m_Position + dir };
 }
 
-RectF Enemy::attackRect() const
-{
-	const SizeF atkSize{ 80 * m_Scale.x, 50 * m_Scale.y };
-	const double offsetX = (m_FaceRight ? 60.0 : -60.0);
-	return RectF{ Arg::center = m_Position.movedBy(offsetX, 0), atkSize };
-}
+//RectF Enemy::attackRect() const
+//{
+//	const SizeF atkSize{ 80 * m_Scale.x, 50 * m_Scale.y };
+//	const double offsetX = (m_FaceRight ? 60.0 : -60.0);
+//	return RectF{ Arg::center = m_Position.movedBy(offsetX, 0), atkSize };
+//}
 
 void Enemy::update( Player& player, Game_Map& map)
 {
@@ -101,9 +101,9 @@ void Enemy::update( Player& player, Game_Map& map)
 
 	
 
-	if (eBox.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
+	//if (eBox.leftClicked()) takeDamage(1);// テスト用　敵の当たり判定BOXをクリックでダメージを受ける
 
-	const bool gotHit = (RectToRect(pBox, eBoxHurt) && (player.m_state == StateMode::Attack)) || m_takeDamage;
+	const bool gotHit = (RectToRect(pBox, eBoxHurt) && (player.GetPlayerState() == StateMode::Attack)) || m_takeDamage;
 
 	
 	if (gotHit) {
