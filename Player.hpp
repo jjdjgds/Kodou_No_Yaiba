@@ -136,10 +136,16 @@ public:
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
-	StateMode SetPlayerState(const StateMode state) { return m_PlayerState = state; }
+	// 変更後（推奨）
+	void SetPlayerState(const StateMode state) {
+		m_PlayerState = state;
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
 	Player& GetPlayer() { return *this; }
 
 
+	void takeDamage(int dmg);
 
 	void PlayerAttack();
 	void PlayerIdle();

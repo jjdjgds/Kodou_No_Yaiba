@@ -10,6 +10,19 @@ RectF enemyRect{ 1600, 100, 64, 64 };
 Player::Player() {}
 Player::~Player() {}
 
+void Player::takeDamage(int dmg)
+
+{
+	if (GetPlayerState() == StateMode::Hurt || GetPlayerState() == StateMode::Avoidance)
+		return; // 無敵 or 被弾中なら無視
+	//int HP = GetPlayerHP() - dmg;
+	
+	SetPlayerState(StateMode::Hurt);
+	SetPlayerHP(GetPlayerHP() - dmg);
+
+}
+
+
 void Player::PlayerAttack()
 {
 
@@ -121,9 +134,10 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	// 横移動処理
 	// ------------------------------
-	velocity.x = input.x * GetPlayerSpeed() * 10;
-	Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
-	RectF rectX(nextPosX, size);
+	velocity.x = input.x * GetPlayerSpeed();
+	Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime()*10, 0);
+	RectF rectX(Arg::center = nextPosX, size); // 中心基準に変更
+
 
 	// 壁との衝突判定（X方向）
 	if (!map.CheckCollision(rectX))
@@ -145,10 +159,10 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	// 接地判定
 	// ------------------------------
-	RectF playerRect(pos.movedBy(-30, -20), GetPlayerHitBox().x+30, GetPlayerHitBox().y+30); // 判定を少し下にずらす
-	playerRect.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+	// 接地判定は足元少し下をチェック
+	RectF playerRect(Arg::center = pos.movedBy(0, size.y / 2 + 2),
+					 SizeF{ size.x * 0.8, 5 }); // 幅少し狭めて地面チェック用に
 	bool nowOnGround = map.CheckCollision(playerRect);
-
 	// ------------------------------
 	// ジャンプ処理（接地時＋押した瞬間）
 	// ------------------------------
@@ -162,7 +176,9 @@ void Player::update(Game_Map& map)
 	// 縦移動処理（Y方向）
 	// ------------------------------
 	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
-	RectF rectY(nextPosY, size);
+	// 中心を基準にHitBoxを作る
+	RectF rectY(Arg::center = nextPosY, size);
+
 
 	if (!map.CheckCollision(rectY))
 	{
@@ -187,7 +203,7 @@ void Player::update(Game_Map& map)
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
 		SetPlayerState(StateMode::Attack);
-		//m_state = StateMode::Attack;
+		
 		SetPlayerAttackFlag(true);
 		m_frameIndex = 0;
 		animTime = 0.0;
@@ -301,21 +317,31 @@ void Player::draw() const
 	// ------------------------------
 	// デバッグ用当たり判定表示
 	// ------------------------------
-	RectF attackBox{ GetPlayerPosition(), 200, 131 };
+	RectF attackBox{
+	Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
+	SizeF{ 200, 160 }
+	};
+
 	attackBox.drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });
 
-	RectF playerBox{ GetPlayerPosition(), GetPlayerHitBox() };
-	//playerBox.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+	// 中心基準は維持しつつ、上方向に伸ばす
+	RectF playerBox{
+		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.25),
+		SizeF{ GetPlayerHitBox().x, GetPlayerHitBox().y * 1.5 }
+	};
+
+	playerBox.drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+
 	// ------------------------------
 	// デバッグ用　プレイヤー情報表示
 	// ------------------------------
 
-	Print << U"Velo: " << GetPlayerVelocity();
+	//Print << U"Velo: " << GetPlayerVelocity();
 
 	// ------------------------------
 	// プレイヤー描画
 	// ------------------------------
-	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
+	PlayerTex(n * frameWidth, y+90, frameWidth, frameHeight)
 		.scaled(GetPlayerScale())
 		.drawAt(GetPlayerPosition());
 }
