@@ -8,7 +8,7 @@ using namespace Collision;
 Game::Game(const InitData& init)
 	: IScene{ init }
 	, player( // ← 初期化リストで player を作成
-		Vec2(700, 600), // position
+		Vec2(600, 600), // position
 		Vec2(0.5, 0.5),     // scale
 		Vec2(0.0, 0.0),     // velocity
 		Vec2(50.0, 60.0),  // HitBox
@@ -36,14 +36,16 @@ Game::Game(const InitData& init)
 	m_enemies.clear();
 	m_enemies.reserve(8);
 
-	m_enemies.emplace_back(Vec2{ 700,100 }, 200.0, 600.0, 900.0, true, Vec2{ 3,3 });
+	m_enemies.emplace_back(Vec2{ 1000,600 }, 200.0, 600.0, 900.0, true, Vec2{ 3,3 });
 }
 
 void Game::update()
 {
-	player.update(map);
+	
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
+	player.update(map);
+	
 
 	for (auto& e : m_enemies) e.update(player,map);
 

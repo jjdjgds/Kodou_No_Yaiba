@@ -151,7 +151,7 @@ public:
 
 
 	void takeDamage(int dmg);
-
+	RectF getAttackRect() const;
 	void PlayerAttack();
 	void PlayerIdle();
 	void PlaeyrAvoidance();
