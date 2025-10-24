@@ -9,9 +9,9 @@ void Enemy::update(const Player& player)
 {
 	m_Speed = KeyS.pressed() ? 0.0 : m_speedBase;// テスト用　Sキーで停止
 
-	setHitbox(Vec2(100, 150));//テスト用 当たり判定サイズ設定
-	RectF eBox(getPosition(), getScale());// 敵の当たり判定用長方形
-	eBox.setPos(getPosition()).setSize(m_hitBox);
+	//setHitbox(Vec2(100, 150));//テスト用 当たり判定サイズ設定
+	RectF pBox(getPosition(), getScale());// 敵の当たり判定用長方形
+	pBox.setPos(getPosition()).setSize(m_hitBox);
 
 	// プレイヤーの当たり判定用長方形
 	RectF pBox(player.GetPlayerPosition(), player.GetPlayerScale());
@@ -25,24 +25,45 @@ void Enemy::update(const Player& player)
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	if (RectToRect(pBox, eBox) && (player.GetPlayerState() == StateMode::Attack)) {
-		if (m_state != AnimState::Hurt) {
-			setState(AnimState::Hurt); // 状態変化時のみリセット
-		}
+	if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
+	else setState(AnimState::Idle);// 停止中はIdle
+
+
+	const bool hitNow = RectToCircle(pBox, c) || m_takeDamage; // ダメージを受けたらHurt
+	if (m_state == AnimState::Hurt) {}
+	else if (hitNow)
+	{
+		setState(AnimState::Hurt);
 	}
-	else {
-		if (m_state != AnimState::Idle) {
-			setState(AnimState::Idle);
+
+	if (m_state != AnimState::Hurt) {
+		if (!hitNow) {
+			if (std::abs(vx) > 1.0f) setState(AnimState::Run);
+			else                     setState(AnimState::Idle);
 		}
 	}
 
-	m_time += Scene::DeltaTime();
 	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
 	
 	while (m_time >= A.frameTime) {
 		m_time -= A.frameTime;
-		m_frameIndex = (m_frameIndex + 1) % A.frames;// フレーム更新
+
+		if (A.loop) {
+			m_frameIndex = (m_frameIndex + 1) % A.frames;// フレーム更新
+		}
+		else {
+			if (m_frameIndex < (A.frames - 1)) 
+				++m_frameIndex;
+			else {
+				m_takeDamage = false;
+				if (std::abs(vx) > 1.0f) setState(AnimState::Run);
+				else setState(AnimState::Idle);
+				break;
+			}
+		}
 	}
+
+
 }
 
 void Enemy::draw() const
@@ -64,4 +85,13 @@ void Enemy::draw() const
 	RectF(getPosition(), getScale())
 		.setPos(getPosition()).setSize(m_hitBox)
 		.drawFrame(2.0, Palette::Red);
+}
+
+void Enemy::takeDamage(int damage)
+{
+	if (!m_takeDamage) {
+		m_takeDamage = true;
+		m_frameIndex = 0;
+		m_time = 0.0;
+	}
 }

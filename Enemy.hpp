@@ -2,10 +2,9 @@
 #include <Siv3D.hpp>
 
 enum class AnimState {// アニメーション状態列挙型
-	Idle,
-	Run,
 	Hurt,
-	Attack
+	Idle,
+	Run
 };
 
 struct AnimDesc {// アニメーションの説明構造体
@@ -24,7 +23,8 @@ private:
 	float m_Speed;			  //移動速度
 
 	float m_speedBase = m_Speed;// 元の移動速度
-	Vec2 m_hitBox = { 0.0 ,0.0 };// 当たり判定サイズ
+	bool m_takeDamage = false; // ダメージを受けたかどうか
+	Vec2 m_hitBox = { 100.0 ,150.0 };// 当たり判定サイズ
 
 	int m_HP;				  //体力
 	int m_Attack;			  //攻撃力
@@ -35,10 +35,9 @@ private:
 
 	AnimState m_state{ AnimState::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState, AnimDesc> m_anims{	// アニメーションの説明
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
 		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
 		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
-		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.5, false } },
-		{AnimState::Attack ,{ U"EnemyHurt", 4, 0.5, false }}
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
@@ -78,6 +77,7 @@ public:
 	int getAttack() const { return m_Attack; }
 	float getAttackRange() const { return m_AttackRange; }
 	float getAttackSpeed() const { return m_AttackSpeed; }
+	Vec2 getHitbox() const { return m_hitBox; }
 	
 
 	//setter
@@ -97,5 +97,6 @@ public:
 	Enemy& GetEnemy() { return *this; }
 	void update(const Player& player);
 	void draw() const;
+	void takeDamage(int damage);
 };
 
