@@ -23,6 +23,5 @@ public:
 	Vec2 getCameraPos() const { return m_cameraPos; }
 
 	bool CheckCollision(const RectF& rect) const;
-	bool CheckCollision_Line(const Line& line) const;
 };
 

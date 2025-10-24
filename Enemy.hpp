@@ -7,7 +7,6 @@ enum class AnimState {// アニメーション状態列挙型
 	Idle,
 	Run,
 	Hurt,
-	Attack,
 
 };
 
@@ -28,11 +27,10 @@ private:
 
 	double m_hitOffsetY = 16.0;// 当たり判定Y
 
+
 	float m_gravity = 1800.0;// 重力
 	float m_velY = 0.0;// Y方向速度
-	bool   m_onGround = false;
-
-	bool AttackFlag = false; // 攻撃フラグ
+	bool   m_onGround = false; 
 
 
 	float m_speedBase = m_Speed;// 元の移動速度
@@ -43,15 +41,14 @@ private:
 	int m_Attack;			  //攻撃力
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
-	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
+
 	float m_patrolL{ 0.0 }, m_patrolR{ 0.0 }; // 巡回範囲
 
 	AnimState m_state{ AnimState::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState, AnimDesc> m_anims{	// アニメーションの説明
 		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
 		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
-		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
-		{ AnimState::Attack,  { U"EnemyAttack", 7, 0.10, false } },
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } }
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
@@ -78,9 +75,7 @@ public:
 		, m_patrolL(patrolL)
 		, m_patrolR(patrolR)
 		, m_FaceRight(faceRight)
-		, m_Scale(scale)
-		, m_hasHitPlayer(false)
-	{
+		, m_Scale(scale) {
 	}// コンストラクタ
 
 	//getter 
@@ -102,8 +97,6 @@ public:
 	void setSpeed(float speed) { m_Speed = speed; }
 	void setFaceRight(bool faceRight) { m_FaceRight = faceRight; }
 
-
-
 	void setHP(int hp) { m_HP = hp; }
 	void setAttack(int attack) { m_Attack = attack; }
 	void setAttackRange(float range) { m_AttackRange = range; }
@@ -119,9 +112,6 @@ public:
 
 	RectF hurtRect() const; // ダメージ判定矩形を取得
 	RectF  hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
-
-	RectF attackRect() const; // 攻撃判定矩形を取得
-	Line makeGroundProbeLine() const;
-
+	RectF  attackRect() const;
 };
 
