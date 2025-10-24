@@ -14,7 +14,7 @@ Game::Game(const InitData& init)
 		100,               // BPM
 		3,                 // Attack
 		1.0f,              // AttackRange
-		1.0f,              // AttackSpeed
+		0.5f,              // AttackSpeed
 		10.0f,              // Speed
 		3.0f,              // DamageTimeOut
 		false,             // Jump
@@ -41,6 +41,7 @@ void Game::update()
 
 
 	player.update();
+<<<<<<< HEAD
 
 	for (auto& e : m_enemies) {
 
@@ -51,6 +52,12 @@ void Game::update()
 
 		e.update();
 	}
+=======
+	
+	
+	// 全ての敵キャラクターの状態を1フレーム分進める
+	for (auto& e : m_enemies) e.update(player);// 敵キャラクターを更新
+>>>>>>> 72fd5ce0486a6937be8b43edcce319793524be64
 }
 
 void Game::draw() const
@@ -60,7 +67,7 @@ void Game::draw() const
 	
 	// テクスチャアセットを使用する
 	// 登録した名前で呼び出せる
-	TextureAsset(U"Windmill").scaled(player.getScale()).draw(0,0);
+	TextureAsset(U"Windmill").scaled(player.GetPlayerScale()).draw(0,0);
 	player.draw();
 	for (const auto& e : m_enemies) e.draw();// 敵キャラクターを描画
 }

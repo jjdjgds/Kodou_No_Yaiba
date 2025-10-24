@@ -5,18 +5,21 @@
 
 Player::Player() {}
 Player::~Player() {}
-RectF enemyRect{ 600, 100, 64, 64 }; // 仮の敵の当たり判定
+RectF enemyRect{ 1600, 100, 64, 64 }; // 仮の敵の当たり判定
 using namespace Collision;
 void Player::update()
 {
-	animTime += Scene::DeltaTime();
-
+	
+	
 	
 
 	// スペースで攻撃モードへ
-	if (KeySpace.down()&& (!isAttacking()))
+	if (KeySpace.down()&& (!IsPlayerAttacking()))
 	{
-		setAttackFlag(true);
+		m_state = StateMode::Attack;
+
+		//true:攻撃 false : 通常
+		SetPlayerAttackFlag(true);
 		//m_AttackFlag = true;
 		m_frameIndex = 0;
 		animTime = 0.0;
@@ -24,7 +27,7 @@ void Player::update()
 	if (KeyA.pressed())
 	{
 		//true:右 false : 左
-		setFaceRight(false);
+		SetPlayerFaceRight(false);
 		//m_FaceRight = false;
 		m_Position.x -= m_Speed;
 
@@ -33,40 +36,47 @@ void Player::update()
 	if (KeyD.pressed())
 	{
 		//true:右 false : 左
-		setFaceRight(true);
+		SetPlayerFaceRight(true);
 		//m_FaceRight = true;
 		m_Position.x += m_Speed;
 	}
-
+	// 攻撃が終わったらIdleに戻す
+	if (m_state == StateMode::Attack && !m_AttackFlag)
+	{
+		m_state = StateMode::Idle;
+	}
+	animTime += Scene::DeltaTime();
 	// 攻撃アニメーション中
 	if (m_AttackFlag)
 	{
-		const double attackFrameDuration = 0.1;
+		const double attackFrameDuration = 0.08;
 		if (animTime >= attackFrameDuration)
 		{
 			animTime -= attackFrameDuration;
 			m_frameIndex++;
 
-			RectF pBox(getPosition(),getScale());
+			RectF pBox(GetPlayerPosition(),GetPlayerScale());
 
 
 			//ここで当たり判定を行って当たっていたらダメージを与える
-			pBox.setPos(getPosition()).setSize(getAttackRengeBox());
+			pBox.setPos(GetPlayerPosition()).setSize(GetPlayerAttackRengeBox());
  			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"当たった！";
 			}
-
+			// 攻撃アニメーション終了後の処理
 			if (m_frameIndex >= m_attackPatterns.size())
 			{
 				m_frameIndex = 0;
-				setAttackFlag(false);
+				SetPlayerAttackFlag(false);
+				m_state = StateMode::Idle;
 				//m_AttackFlag = false;
 			}
 		}
 	}
 	else
 	{
+		// アイドルアニメーション中
 		const double idleFrameDuration = 0.15;
 		if (animTime >= idleFrameDuration)
 		{
@@ -119,13 +129,13 @@ void Player::draw() const
 	//RectF{player.getPosition().x ,player.getPosition().y, frameHeight}.draw();
 	// 位置を固定して描画（Yは変えない）
 	//debug用当たり判定表示
-	RectF HitBox{getPosition (), 200, 131};
+	RectF HitBox{ GetPlayerPosition (), 200, 131};
 	HitBox.drawFrame(3, 0, ColorF{ 0.0, 1.0, 0.0, 0.5 });//仮の当たり判定表示
 
 	// サイズと位置を別々に設定
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
-		.drawAt(getPosition());
+		.drawAt(GetPlayerPosition());
 
-	enemyRect.draw(ColorF{ 1.0, 0.0, 0.0, 0.5 });//仮の敵の当たり判定表示
+	//enemyRect.draw(ColorF{ 1.0, 0.0, 0.0, 0.5 });//仮の敵の当たり判定表示
 }

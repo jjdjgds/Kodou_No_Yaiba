@@ -38,14 +38,22 @@ private:
 		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
 		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
 		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
+<<<<<<< HEAD
+=======
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.5, false } }
+>>>>>>> 72fd5ce0486a6937be8b43edcce319793524be64
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
 	double m_time{ 0.0 };		// アニメーション時間管理用
 
 	void setState(AnimState s) {	// アニメーション状態を設定
-		if (m_state == s) return;
-		m_state = s; m_frameIndex = 0; m_time = 0.0;
+		if (m_state != s)
+		{
+			m_state = s;
+			m_time = 0.0;        // フレーム更新タイマーをリセット
+			m_frameIndex = 0;    // アニメーションの最初のフレームに戻す
+		}
 	}
 
 
@@ -91,7 +99,7 @@ public:
 
 
 	Enemy& GetEnemy() { return *this; }
-	void update();
+	void update(const Player& player);
 	void draw() const;
 	void takeDamage(int damage);
 };

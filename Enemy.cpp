@@ -1,26 +1,37 @@
 ﻿#include "Game.hpp"
 #include "Enemy.hpp"
 #include "Collision.hpp"
+#include "Player.hpp"
 using namespace Collision;
 
 
-void Enemy::update()
+void Enemy::update(const Player& player)
 {
 	m_Speed = KeyS.pressed() ? 0.0 : m_speedBase;// テスト用　Sキーで停止
 
+<<<<<<< HEAD
 	//setHitbox(Vec2(100, 150));//テスト用 当たり判定サイズ設定
 	RectF pBox(getPosition(), getScale());// 敵の当たり判定用長方形
 	pBox.setPos(getPosition()).setSize(m_hitBox);
+=======
+	setHitbox(Vec2(100, 150));//テスト用 当たり判定サイズ設定
+	RectF eBox(getPosition(), getScale());// 敵の当たり判定用長方形
+	eBox.setPos(getPosition()).setSize(m_hitBox);
+>>>>>>> 72fd5ce0486a6937be8b43edcce319793524be64
 
-	const Circle c{ Cursor::Pos(), 30 };//テスト用 マウスの当たり判定
+	// プレイヤーの当たり判定用長方形
+	RectF pBox(player.GetPlayerPosition(), player.GetPlayerScale());
+	pBox.setPos(player.GetPlayerPosition()).setSize(player.GetPlayerAttackRengeBox());
+	
 
 	float vx = (m_FaceRight ? 1.0f : -1.0f) * m_Speed;// 移動速度計算
-	m_Position.x += vx * Scene::DeltaTime();// 位置更新
+	//m_Position.x += vx * Scene::DeltaTime();// 位置更新
 
 	// 巡回範囲チェック
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
+<<<<<<< HEAD
 	if (std::abs(vx) > 1.0) setState(AnimState::Run);// 移動中はRun
 	else setState(AnimState::Idle);// 停止中はIdle
 
@@ -40,7 +51,22 @@ void Enemy::update()
 	}
 
 	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
+=======
+	if (RectToRect(pBox, eBox) && (player.m_state == StateMode::Attack)) {
+		if (m_state != AnimState::Hurt) {
+			setState(AnimState::Hurt); // 状態変化時のみリセット
+		}
+	}
+	else {
+		if (m_state != AnimState::Idle) {
+			setState(AnimState::Idle);
+		}
+	}
+
+>>>>>>> 72fd5ce0486a6937be8b43edcce319793524be64
 	m_time += Scene::DeltaTime();
+	const auto& A = m_anims[m_state];// 現在のアニメーション情報取得
+	
 	while (m_time >= A.frameTime) {
 		m_time -= A.frameTime;
 
