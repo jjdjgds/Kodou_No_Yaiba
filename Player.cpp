@@ -211,7 +211,7 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
-		SetPlayerState(StateMode::Attack);
+		//SetPlayerState(StateMode::Attack);
 		
 		SetPlayerAttackFlag(true);
 		m_frameIndex = 0;
@@ -345,6 +345,14 @@ void Player::draw(Game_Map CameraPos) const
 
 	// カメラ補正して描画
 	playerBox.movedBy(-CameraPos.getCameraPos()).drawFrame(3, 0, ColorF{ 1.0, 1.0, 0.0, 1.0 });
+
+
+	// ------------------------------
+	// デバッグ用　プレイヤー情報表示
+	// ------------------------------
+
+	Print << U"Player: " << GetPlayerPosition();
+	Print << U"Box: " << playerBox.x;
 
 
 	// ------------------------------
