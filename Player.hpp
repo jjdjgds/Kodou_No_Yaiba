@@ -152,5 +152,5 @@ public:
 	void PlaeyrAvoidance();
 	void PlayerHurt();
 	void update(Game_Map& map);
-	void draw() const;
+	void draw(Game_Map CameraPos) const;
 };

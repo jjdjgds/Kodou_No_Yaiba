@@ -265,7 +265,7 @@ void Player::update(Game_Map& map)
 // ================================================================
 // 描画処理
 // ================================================================
-void Player::draw() const
+void Player::draw(Game_Map CameraPos) const
 {
 	const Texture& PlayerTex = TextureAsset(U"Player");
 
@@ -343,5 +343,5 @@ void Player::draw() const
 	// ------------------------------
 	PlayerTex(n * frameWidth, y+90, frameWidth, frameHeight)
 		.scaled(GetPlayerScale())
-		.drawAt(GetPlayerPosition());
+		.drawAt(GetPlayerPosition() - CameraPos.getCameraPos());
 }

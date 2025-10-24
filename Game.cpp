@@ -9,7 +9,7 @@ using namespace Collision;
 Game::Game(const InitData& init)
 	: IScene{ init }
 	, player( // ← 初期化リストで player を作成
-		Vec2(100.0, 200.0), // position
+		Vec2(150.0, 200.0), // position
 		Vec2(0.5, 0.5),     // scale
 		Vec2(0.0, 0.0),     // velocity
 		Vec2(50.0, 60.0),  // HitBox
@@ -26,7 +26,7 @@ Game::Game(const InitData& init)
 	)
 {
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage1.txt"))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt"))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -42,7 +42,7 @@ Game::Game(const InitData& init)
 void Game::update()
 {
 	player.update(map);
-	map.updateCamera(player.GetPlayerPosition());
+	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 
 
@@ -57,7 +57,7 @@ void Game::draw() const
 	Scene::SetBackground(ColorF(0.2, 0.2, 0.2, 1.0));
 
 	map.draw();                // ← マップを描画
-	player.draw();             // ← プレイヤーを描画
+	player.draw(map);             // ← プレイヤーを描画
 
 	for (const auto& e : m_enemies) e.draw(); //敵描画
 }
