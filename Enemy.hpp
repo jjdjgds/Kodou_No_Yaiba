@@ -50,6 +50,7 @@ private:
 		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
 		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } }
 
+
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
 	double m_time{ 0.0 };		// アニメーション時間管理用
