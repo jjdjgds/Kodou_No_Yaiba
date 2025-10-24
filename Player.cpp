@@ -211,7 +211,7 @@ void Player::update(Game_Map& map)
 	// ------------------------------
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
-		SetPlayerState(StateMode::Attack);
+		//SetPlayerState(StateMode::Attack);
 		
 		SetPlayerAttackFlag(true);
 		m_frameIndex = 0;
