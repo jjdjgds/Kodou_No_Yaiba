@@ -13,7 +13,6 @@ void Main()
 	//第2引数　画像ファイルのパス
 	TextureAsset::Register(U"Windmill", U"example/texture/haikei.jpg");
 	TextureAsset::Register(U"Akkarin",U"example/windmill.png");
-	//TextureAsset::Register(U"Player", U"example/spritesheet/samurai_sheet.png");
 	TextureAsset::Register(U"Idle", U"example/spritesheet/IDLE.png");
 	TextureAsset::Register(U"Run", U"example/spritesheet/RUN.png");
 	TextureAsset::Register(U"Attack", U"example/spritesheet/ATTACK_1.png");
@@ -24,6 +23,8 @@ void Main()
 	TextureAsset::Register(U"EnemyRun", U"example/spritesheet/Enemy_RUN.png");
 	TextureAsset::Register(U"EnemyHurt", U"example/spritesheet/HURT.png");
 	TextureAsset::Register(U"EnemyAttack", U"example/spritesheet/ATTACK_1.png");
+
+	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
 	//ATTACK_1.png
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
 

@@ -91,9 +91,11 @@ void Player::PlayerDoge()
 		isDodging = true;
 		dogeTimer = 0.0;
 
-		// 入力方向へ高速移動（回避の瞬間ダッシュ）
-		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
-		SetPlayerVelocity(Vec2(600 * dir, GetPlayerVelocity().y));
+		//// 入力方向へ高速移動（回避の瞬間ダッシュ）
+		//double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
+		//SetPlayerVelocity(Vec2(700 * dir, GetPlayerVelocity().y));
+
+		SetPlayerSpeed(DogePlayerSpeed);
 
 		// アニメ初期化
 		m_frameIndex = 0;
@@ -123,8 +125,19 @@ void Player::PlayerDoge()
 	{
 		// 終了時のリセット
 		SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y));
-		SetPlayerState(StateMode::Idle);
-
+		SetPlayerSpeed(NormalPlayerSpeed);
+		
+		// ★ ここが重要！ 攻撃後の状態を決める
+		if (KeyA.pressed() || KeyD.pressed())
+		{
+			// まだ移動キーが押されている → Runへ
+			SetPlayerState(StateMode::Run);
+		}
+		else
+		{
+			// 押されていない → Idleへ
+			SetPlayerState(StateMode::Idle);
+		}
 		dogeTimer = 0.0;
 		isDodging = false;
 	}
@@ -303,6 +316,7 @@ void Player::update(Game_Map& map)
 		//-----------------------------------
 		// 横移動処理
 		//-----------------------------------
+		
 		velocity.x = input.x * GetPlayerSpeed();
 		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime() * 10, 0);
 		RectF rectX(Arg::center = nextPosX, size);
@@ -364,7 +378,7 @@ void Player::update(Game_Map& map)
 				// 壁ジャンプ
 				canWallJump = false;
 				velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 0.9); // 少し弱め
-				velocity.x = (isTouchingWallLeft ? 300 : -300); // 反対方向に跳ねる
+				velocity.x = (isTouchingWallLeft ? 500 : -500); // 反対方向に跳ねる
 				m_onGround = false;
 			}
 		}
@@ -601,10 +615,8 @@ void Player::draw(const Game_Map& CameraPos) const
 	RectF attackBox = getAttackRect();
 	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
-	Print << U"state:" << (int)GetPlayerState();
-	Print << U"Frame:" << m_frameIndex;
-	if (m_frameIndex == 6)
-	{
-		Print << U"Frame:6" ;
-	}
+	/*Print << U"state:" << (int)GetPlayerState();
+	Print << U"Frame:" << m_frameIndex;*/
+	Print << U"velo" << m_Velocity;
+	
 }

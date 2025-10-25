@@ -14,7 +14,7 @@ private:
 	Vec2 m_size;
 	int	 m_type = BLOCK_EMPTY;
 	bool m_use = false;
-
+	
 public:
 	Block() = default;
 	void UpdateBlock(void);

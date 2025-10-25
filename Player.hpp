@@ -9,6 +9,8 @@ class Player
 
 
 private:
+	static constexpr float NormalPlayerSpeed = 30.0f;
+	static constexpr float DogePlayerSpeed = 60.0f;
 	Vec2 m_Position;		  //位置
 	Vec2 m_Scale;			  //大きさ
 	Vec2 m_Velocity;		  //速度

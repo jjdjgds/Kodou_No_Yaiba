@@ -35,7 +35,7 @@ void Block::DrawBlock(const Vec2& cameraOffset) const
 		break;
 
 	case BLOCK_SOLID: // wall
-		TextureAsset(U"Windmill").resized(m_size).draw(drawPos);
+		TextureAsset(U"Wall").resized(m_size).draw(drawPos);
 		//RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
 		break;
 	default:
