@@ -117,6 +117,7 @@ public:
 	void update(Player& player, Game_Map& map);
 	void draw() const;
 	void takeDamage(int damage);
+	RectF footRect() const;
 
 	RectF hurtRect() const; // ダメージ判定矩形を取得
 	RectF  hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得

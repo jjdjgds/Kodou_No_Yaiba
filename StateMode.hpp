@@ -9,7 +9,7 @@ enum class StateMode {
 	Attack,			// 4 : 攻撃状態
 	IdleToAttack,   // 5 : 待機状態から攻撃へ
 	Hurt,			// 6 : ダメージ状態
-	Avoidance,		// 7 : 回避状態
+	Doge,    		// 7 : 回避状態
 	Pareise,		// 8 : 防御状態
 	Dead			// 9 : 死亡状態
 };

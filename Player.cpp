@@ -4,7 +4,7 @@
 
 using namespace Collision;
 
-RectF enemyRect{ 1600, 100, 64, 64 };
+RectF enemyRect{ 1000, 750, 64, 64 };
 
 Player::Player() {}
 Player::~Player() {}
@@ -19,7 +19,7 @@ RectF Player::getAttackRect() const
 
 void Player::takeDamage(int dmg)
 {
-	if (GetPlayerState() == StateMode::Hurt || GetPlayerState() == StateMode::Avoidance)
+	if (GetPlayerState() == StateMode::Hurt || GetPlayerState() == StateMode::Doge)
 		return;
 
 	SetPlayerState(StateMode::Hurt);
@@ -79,6 +79,57 @@ void Player::PlayerIdle()
 		m_frameIndex = (m_frameIndex + 1) % m_idlePatterns.size();
 	}
 }
+
+void Player::PlayerDoge()
+{
+	// === 初回突入時の処理 ===
+	static bool isDodging = false;
+	static double dogeTimer = 0.0;
+
+	if (!isDodging)
+	{
+		isDodging = true;
+		dogeTimer = 0.0;
+
+		// 入力方向へ高速移動（回避の瞬間ダッシュ）
+		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
+		SetPlayerVelocity(Vec2(600 * dir, GetPlayerVelocity().y));
+
+		// アニメ初期化
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
+
+	// === アニメーション更新 ===
+	animTime += Scene::DeltaTime();
+	const double dogeFrameDuration = 0.08;
+
+	if (animTime >= dogeFrameDuration)
+	{
+		animTime -= dogeFrameDuration;
+		m_frameIndex++;
+
+		if (m_frameIndex >= m_dogePatterns.size())
+		{
+			m_frameIndex = 0;
+		}
+	}
+
+	// === 持続時間管理 ===
+	dogeTimer += Scene::DeltaTime();
+	const double dogeDuration = 0.5; // 回避時間
+
+	if (dogeTimer >= dogeDuration)
+	{
+		// 終了時のリセット
+		SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y));
+		SetPlayerState(StateMode::Idle);
+
+		dogeTimer = 0.0;
+		isDodging = false;
+	}
+}
+
 
 void Player::PlayerHurt()
 {
@@ -184,6 +235,7 @@ void Player::PlayerRun()
 
 void Player::update(Game_Map& map)
 {
+	
 	animTime += Scene::DeltaTime();
 
 	//-----------------------------------
@@ -196,11 +248,16 @@ void Player::update(Game_Map& map)
 // 入力処理
 //-----------------------------------
 	Vec2 input{
+		
 		(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
 		0.0
 	};
 
 	// === 状態遷移 ===
+
+	if (KeyEnter.down()) {
+		SetPlayerState(StateMode::Doge);
+	}
 
 	// Idle → IdleToRun（最初の走り出し）
 	if ((KeyD.down() || KeyA.down()) && GetPlayerState() == StateMode::Idle)
@@ -249,8 +306,15 @@ void Player::update(Game_Map& map)
 		velocity.x = input.x * GetPlayerSpeed();
 		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime() * 10, 0);
 		RectF rectX(Arg::center = nextPosX, size);
-
-		if (!map.CheckCollision(rectX))
+		RectF erectX(Arg::center = Vec2(1000, 750), Vec2(64, 64));
+		bool mapColli = map.CheckCollision(rectX);
+		bool enemyColli = false;
+		if (GetPlayerState() != StateMode::Doge)
+		{
+			 enemyColli = RectToRect(rectX, enemyRect);
+		}
+		
+		if ((!mapColli) && (!enemyColli))
 		{
 			pos.x = nextPosX.x;
 		}
@@ -407,6 +471,10 @@ void Player::update(Game_Map& map)
 		case StateMode::IdleToAttack:
 			PlayerIdleToAttack();
 			break;
+
+		case StateMode::Doge:
+			PlayerDoge();
+			break;
 		default:
 			break;
 		}
@@ -437,6 +505,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 attackY = frameHeight * 2;
 	const int32 hurtY = frameHeight * 4;
 	const int32 IdleAttack = frameHeight * 4;
+	const int32 Doge = frameHeight * 4;
 
 	int32 n = 0;
 	int32 y = idleY;
@@ -486,6 +555,13 @@ void Player::draw(const Game_Map& CameraPos) const
 		
 		
 		break;
+
+
+	case StateMode::Doge:
+		n = m_dogePatterns[m_frameIndex];
+		y = Doge+65;
+
+		break;
 	default:
 		n = m_idlePatterns[m_frameIndex];
 		break;
@@ -499,6 +575,20 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	// 足元をピッタリ合わせる
 	drawPos.y -= (frameHeight * scaleY) / 2 - (GetPlayerHitBox().y / 2);
+	if (GetPlayerState() == StateMode::Doge)
+	{
+		if(IsPlayerFacingRight())
+		{
+			PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
+				.scaled(scaleX, scaleY)
+				.drawAt(drawPos - Vec2{ 15,0 });
+		}
+		else {
+			PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
+				.scaled(scaleX, scaleY)
+				.drawAt(drawPos + Vec2{ 15,0 });
+		}
+	}
 
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(scaleX, scaleY)
@@ -510,7 +600,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	// デバッグ枠
 	RectF attackBox = getAttackRect();
 	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
-
+	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
 	Print << U"state:" << (int)GetPlayerState();
 	Print << U"Frame:" << m_frameIndex;
 	if (m_frameIndex == 6)

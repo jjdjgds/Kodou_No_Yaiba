@@ -1,4 +1,5 @@
-﻿#include "Game.hpp"
+﻿// Enemy.cpp
+#include "Game.hpp"
 #include "Enemy.hpp"
 #include "Collision.hpp"
 #include "Player.hpp"
@@ -19,10 +20,11 @@ RectF Enemy::hurtRectAt(const Vec2& pos) const
 
 RectF Enemy::attackRect() const
 {
-	// 攻撃矩形は被弾矩形と同サイズで、顔の向きに応じてオフセットする (調整可)
-	const double xOffset = (m_FaceRight ? +17.0 : -17.0);
+	// 被弾矩形をベースに前方へオフセット（攻撃判定）
+	const double forwardOffset = m_hitBox.x * 0.6 * m_Scale.x; // 調整可
+	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
 	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
-	return RectF{ Arg::center = m_Position.movedBy(xOffset * m_Scale.x, m_hitOffsetY * m_Scale.y), sz };
+	return RectF{ Arg::center = m_Position.movedBy(xOffset, m_hitOffsetY * m_Scale.y), sz };
 }
 
 Line Enemy::makeGroundProbeLine() const
@@ -33,79 +35,133 @@ Line Enemy::makeGroundProbeLine() const
 	return Line{ m_Position, m_Position + dir };
 }
 
+RectF Enemy::footRect() const
+{
+	const double footHeight = 8.0; // 足元判定の高さ（調整可）
+	const SizeF sz{ m_hitBox.x * m_Scale.x, footHeight };
+	const double bottomY = m_Position.y + (m_hitBox.y * 0.5 * m_Scale.y);
+	return RectF(Arg::center = Vec2(m_Position.x, bottomY + (footHeight * 0.5)), sz);
+}
+
 void Enemy::update(Player& player, Game_Map& map)
 {
 	const double dt = Scene::DeltaTime();
 
-	// --- 重力＆Y移動（地面補正） ---
-	m_velY += m_gravity * dt;
-	Vec2 tryPos = m_Position;
-	tryPos.y += m_velY * dt;
+	// --- m_speedBase が未設定なら最初に設定しておく（ヘッダでの初期化ミス対策） ---
+	if (m_speedBase == 0.0f) {
+		m_speedBase = m_Speed;
+		if (m_speedBase == 0.0f) m_speedBase = 120.0f; // 保険：適当なデフォルト
+	}
 
-	RectF testY = hurtRectAt(tryPos);
-	if (map.CheckCollision(testY)) {
-		const double step = 2.0;
-		int guard = 0;
-		// 地面にめり込んでいたら少しずつ戻す
-		while (map.CheckCollision(testY) && guard++ < 200) {
-			tryPos.y -= Math::Sign(m_velY) * step;
-			testY = hurtRectAt(tryPos);
-		}
+	// ----------------------------
+	// --- 横移動（X）処理（衝突チェック）
+	// ----------------------------
+	m_Speed = m_speedBase;
+	float vx = (m_FaceRight ? +1.0f : -1.0f) * m_Speed;
 
-		m_Position.y = tryPos.y;
-		m_velY = 0.0;
-		m_onGround = true;
+	Vec2 tryPosX = m_Position;
+	tryPosX.x += vx * dt;
+
+	// 横移動用の矩形（y は現在位置ベース）
+	RectF testX = hurtRectAt(tryPosX);
+
+	if (!map.CheckCollision(testX)) {
+		// 横移動可能
+		m_Position.x = tryPosX.x;
 	}
 	else {
-		m_Position.y = tryPos.y;
-		m_onGround = false;
+		// 衝突：巡回なら向きを変えるのが自然
+		m_FaceRight = !m_FaceRight;
+		vx = 0;
 	}
 
-	// --- 巡回範囲チェック ---
+	// ----------------------------
+	// --- 重力＆縦移動（Y）処理
+	// ----------------------------
+	m_velY += m_gravity * dt;
+	Vec2 tryPosY = m_Position;
+	tryPosY.y += m_velY * dt;
+
+	RectF testY = hurtRectAt(tryPosY);
+
+	const double guardStep = 0.5; // 補正の刻み（px単位）
+	const int guardMax = 400;     // 無限ループ防止
+
+	if (!map.CheckCollision(testY)) {
+		// 移動できる
+		m_Position.y = tryPosY.y;
+		m_onGround = false;
+	}
+	else {
+		// 衝突している -> 上昇 or 下降で補正
+		if (m_velY < 0.0) {
+			// 上昇中 -> 天井に当たった。下へ補正して止める
+			int guard = 0;
+			while (map.CheckCollision(testY) && guard++ < guardMax) {
+				tryPosY.y += guardStep;
+				testY = hurtRectAt(tryPosY);
+			}
+			m_velY = 0.0;
+			m_Position.y = tryPosY.y;
+			m_onGround = false;
+		}
+		else {
+			// 下降中 -> 地面に当たった。上へ補正して接地
+			int guard = 0;
+			while (map.CheckCollision(testY) && guard++ < guardMax) {
+				tryPosY.y -= guardStep;
+				testY = hurtRectAt(tryPosY);
+			}
+			m_velY = 0.0;
+			m_Position.y = tryPosY.y;
+			m_onGround = true;
+		}
+	}
+
+	// footRect による最終的な接地安定化
+	RectF footBox = footRect();
+	if (map.CheckCollision(footBox)) {
+		m_onGround = true;
+	}
+
+	// ----------------------------
+	// --- 巡回範囲クリップ
+	// ----------------------------
 	if (m_Position.x > m_patrolR) { m_Position.x = m_patrolR; m_FaceRight = false; }
 	if (m_Position.x < m_patrolL) { m_Position.x = m_patrolL; m_FaceRight = true; }
 
-	// --- 足元プローブで落下判定（必要なら有効化） ---
-	Line probe = makeGroundProbeLine();
-	// if (!map.CheckCollision_Line(probe)) { m_FaceRight = !m_FaceRight; }
+	// ----------------------------
+	// --- 矩形作成（判定用）
+	// ----------------------------
+	const RectF eBoxHurt = hurtRect();                               // 敵が被弾される矩形（現在位置）
+	const RectF eBoxAttack = attackRect();                           // 敵の攻撃矩形（前方オフセット）
+	const RectF pHitBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox()); // プレイヤー本体
+	const RectF pAttackBox = player.getAttackRect(); // プレイヤーの攻撃矩形（Player の関数利用）
 
-	// --- 各矩形を作成（ひと通り先に作る） ---
-	const RectF eBoxHurt = hurtRect();          // 敵が被弾される矩形（中心基準）
-	const RectF eBoxAttack = attackRect();       // 敵の攻撃矩形
-	const RectF pHitBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox()); // プレイヤー本体矩形（中心基準）
-	const RectF pAttackBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerAttackRengeBox()); // プレイヤーの攻撃矩形
-
-	// --- デバッグ: クリックで敵がダメージ ---
+	// デバッグ：クリックで敵にダメージ
 	if (eBoxHurt.leftClicked()) {
 		takeDamage(1);
 	}
 
-	// --- プレイヤーの攻撃が敵に当たったか？（プレイヤー側の状態を確認）---
+	// --- プレイヤーの攻撃が敵に当たったか ---
 	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
 	if (playerAttackingThisFrame && RectToRect(pAttackBox, eBoxHurt)) {
-		// 敵は被弾
 		if (!m_takeDamage) {
-			takeDamage(1); // もしくは m_takeDamage = true; のみ
+			takeDamage(1);
 		}
 	}
 
-	// --- 敵の攻撃がプレイヤーに当たったか（攻撃中のみ／1回ヒット制御） ---
+	// --- 敵の攻撃がプレイヤーに当たったか（攻撃中のみ／一度だけヒット） ---
 	if (m_state == AnimState::Attack) {
-		// 攻撃モーション中だけ当たり判定を取る
 		if (RectToRect(eBoxAttack, pHitBox)) {
 			if (!m_hasHitPlayer) {
-				// 初回ヒットのみダメージ処理
 				player.takeDamage(1);
 				m_hasHitPlayer = true;
 			}
 		}
 	}
-	// 攻撃状態でなければヒットフラグはリセット（アニメーション終了タイミングでもリセット可）
-	else {
-		// do nothing here — we reset m_hasHitPlayer when attack animation ends (下で)
-	}
 
-	// --- 行動決定（被弾／攻撃開始／通常移動） ---
+	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eBoxHurt) && playerAttackingThisFrame) || m_takeDamage;
 
 	if (gotHit) {
@@ -115,23 +171,17 @@ void Enemy::update(Player& player, Game_Map& map)
 		}
 	}
 	else if (m_state == AnimState::Attack) {
-		// 攻撃中は行動固定（移動しない）
+		// 攻撃中は動かない（そのまま）
 	}
 	else if (KeySpace.down() && !AttackFlag) {
-		// テスト用: Spaceで敵が攻撃（デバッグ）
+		// デバッグ用：スペースで攻撃開始
 		setState(AnimState::Attack);
 		AttackFlag = true;
 		m_Speed = 0.0f;
 	}
 	else {
-		// 通常巡回移動
-		m_Speed = (KeyS.pressed()) ? m_speedBase : m_speedBase; // デフォルトは m_speedBase
-		// (上はテスト用。必要なら KeyS テスト削る)
-
-		float vx = (m_FaceRight ? +1.0f : -1.0f) * m_Speed;
-		m_Position.x += vx * dt;
-
-		if (std::abs(vx) > 1.0f) {
+		// 通常巡回：vx がゼロでなければ Run
+		if (std::abs(vx) > 0.0f) {
 			if (m_state != AnimState::Run) setState(AnimState::Run);
 		}
 		else {
@@ -139,7 +189,9 @@ void Enemy::update(Player& player, Game_Map& map)
 		}
 	}
 
-	// --- アニメーション更新 ---
+	// ----------------------------
+	// --- アニメーション更新
+	// ----------------------------
 	m_time += Scene::DeltaTime();
 	const auto& A = m_anims[m_state];
 
@@ -154,13 +206,12 @@ void Enemy::update(Player& player, Game_Map& map)
 				++m_frameIndex;
 			}
 			else {
-				// ノンループアニメ終了時の後処理
+				// ノンループ終了後の後処理
 				if (m_state == AnimState::Hurt) {
 					m_takeDamage = false;
 					setState(AnimState::Idle);
 				}
 				else if (m_state == AnimState::Attack) {
-					// 攻撃終了で「再ヒット可能」に戻す
 					AttackFlag = false;
 					m_hasHitPlayer = false;
 					setState(AnimState::Idle);
@@ -170,11 +221,17 @@ void Enemy::update(Player& player, Game_Map& map)
 		}
 	}
 
-	// --- デバッグ描画（最後に） ---
+	// デバッグ用ライン
+	Line probe = makeGroundProbeLine();
+
+	// ----------------------------
+	// --- デバッグ描画
+	// ----------------------------
 	if (m_debugDraw) {
 		eBoxHurt.drawFrame(2.0, Palette::Red);
 		eBoxAttack.drawFrame(2.0, Palette::Blue);
-		probe.draw(2, Palette::Yellow); // 必要なら有効化
+		probe.draw(2, Palette::Yellow);
+		footBox.drawFrame(1.5, Palette::Aqua);
 	}
 }
 

@@ -49,7 +49,7 @@ private:
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
-
+	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
 	//IDLEATTACK
 	Array<int32> m_IdleAttackPatterns{7,0,1,2,3};
 
@@ -178,7 +178,7 @@ public:
 	void PlayerIdleToAttack();
 	void PlayerRun();
 
-	void PlaeyrAvoidance();
+	void PlayerDoge();
 	void PlayerHurt();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;
