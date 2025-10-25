@@ -51,7 +51,7 @@ private:
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
 
 	//IDLEATTACK
-	Array<int32> m_IdleAttackPatterns{1,2,3,4,5,6,7};
+	Array<int32> m_IdleAttackPatterns{7,0,1,2,3};
 
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス

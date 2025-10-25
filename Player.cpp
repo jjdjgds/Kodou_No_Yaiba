@@ -362,14 +362,25 @@ void Player::update(Game_Map& map)
 		//-----------------------------------
 		// 攻撃処理
 		//-----------------------------------
+		// 攻撃処理
 		if (KeySpace.down() && !IsPlayerAttacking())
 		{
 			SetPlayerLastState(GetPlayerState());
-			SetPlayerState(StateMode::Attack);
 			SetPlayerAttackFlag(true);
 			m_frameIndex = 0;
 			animTime = 0.0;
+
+			// ★IdleならIdleToAttack、それ以外はAttack
+			if (GetPlayerState() == StateMode::Idle)
+			{
+				SetPlayerState(StateMode::IdleToAttack);
+			}
+			else
+			{
+				SetPlayerState(StateMode::Attack);
+			}
 		}
+
 
 		//-----------------------------------
 		// アニメーション処理
@@ -386,6 +397,7 @@ void Player::update(Game_Map& map)
 		case StateMode::Run:
 			PlayerRun();
 			break;
+		
 		case StateMode::Attack:
 			PlayerAttack();
 			break;
@@ -424,6 +436,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 runY = frameHeight * 1;
 	const int32 attackY = frameHeight * 2;
 	const int32 hurtY = frameHeight * 4;
+	const int32 IdleAttack = frameHeight * 4;
 
 	int32 n = 0;
 	int32 y = idleY;
@@ -442,6 +455,18 @@ void Player::draw(const Game_Map& CameraPos) const
 		y = runY;
 		break;
 
+	case StateMode::IdleToAttack:
+		n = m_IdleAttackPatterns[m_frameIndex];
+		if (m_frameIndex >3 )
+		{
+			
+			y = IdleAttack+50;
+		}
+		else
+		{
+			y = IdleAttack+50;
+		}
+		break;
 	case StateMode::Run:
 		n = m_runPatterns[m_frameIndex];
 		if (m_frameIndex==5)
@@ -453,10 +478,6 @@ void Player::draw(const Game_Map& CameraPos) const
 		{
 			y = runY;
 		}
-
-		
-
-		
 		break;
 	case StateMode::Hurt:
 		n = m_hurtPatterns[m_frameIndex];
