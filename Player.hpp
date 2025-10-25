@@ -37,6 +37,12 @@ private:
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
+	Array<int32> m_idleToRunPatterns{ 0, 1, 2 };
+
+	Array<int32> m_runPatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
+
+	// 攻撃アニメーション（横8枚のうち、0〜6枚目を使う）
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6 };
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
@@ -141,7 +147,7 @@ public:
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
-	// 変更後（推奨）
+	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
 		m_frameIndex = 0;
@@ -154,6 +160,9 @@ public:
 	RectF getAttackRect() const;
 	void PlayerAttack();
 	void PlayerIdle();
+	void PlayerIdleToRun();
+	void PlayerRun();
+
 	void PlaeyrAvoidance();
 	void PlayerHurt();
 	void update(Game_Map& map);
