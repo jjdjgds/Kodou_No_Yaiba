@@ -34,22 +34,28 @@ private:
 	RectF m_HitRect;          //当たり判定矩形
 	float m_gravity = 0.98f;  //重力
 	bool m_onGround = false;
+
 	StateMode m_PlayerState; //プレイヤーの状態管理用
+	StateMode m_PlayerLastState;
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
 	Array<int32> m_idleToRunPatterns{ 0, 1, 2 };
 
-	Array<int32> m_runPatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
+	//走る状態のアニメーション
+	Array<int32> m_runPatterns{  3, 4, 5, 6, 7,8 };
 
 	// 攻撃アニメーション（横8枚のうち、0〜6枚目を使う）
-	Array<int32> m_attackPatterns{ 0, 1, 2, 3, 4, 5, 6 };
+	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
 
+	//IDLEATTACK
+	Array<int32> m_IdleAttackPatterns{1,2,3,4,5,6,7};
+
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
-
+	size_t m_frameIndexY = 0;
 
 public:
 	
@@ -124,6 +130,7 @@ public:
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
 	 RectF GetPlayerHitRect() const { return m_HitRect; }
 	 StateMode GetPlayerState() const { return m_PlayerState; }
+	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	//setter
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
@@ -147,9 +154,16 @@ public:
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
+
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
+
+	void SetPlayerLastState(const StateMode state) {
+		m_PlayerLastState = state;
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
@@ -161,6 +175,7 @@ public:
 	void PlayerAttack();
 	void PlayerIdle();
 	void PlayerIdleToRun();
+	void PlayerIdleToAttack();
 	void PlayerRun();
 
 	void PlaeyrAvoidance();

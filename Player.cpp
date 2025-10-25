@@ -48,14 +48,27 @@ void Player::PlayerAttack()
 			}
 		}
 
+		// 攻撃アニメ終了
 		if (m_frameIndex >= m_attackPatterns.size())
 		{
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
-			SetPlayerState(StateMode::Idle);
+
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
 		}
 	}
 }
+
 
 void Player::PlayerIdle()
 {
@@ -104,6 +117,48 @@ void Player::PlayerIdleToRun()
 
 }
 
+void Player::PlayerIdleToAttack()
+{
+	const double attackToIdleFrameDuration = 0.08;
+	if (!m_AttackFlag) return;
+
+	if (animTime >= attackToIdleFrameDuration)
+	{
+		animTime -= attackToIdleFrameDuration;
+		m_frameIndex++;
+
+		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
+		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		{
+			const RectF pBox = getAttackRect();
+			if (RectToRect(pBox, enemyRect))
+			{
+				Print << U"攻撃ヒット！";
+				// 敵のダメージ処理をここに追加予定
+			}
+		}
+
+		// 攻撃アニメ終了
+		if (m_frameIndex >= m_IdleAttackPatterns.size())
+		{
+			m_frameIndex = 0;
+			SetPlayerAttackFlag(false);
+
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+		}
+	}
+}
+
 void Player::PlayerRun()
 {
 	// Run状態でのみ処理
@@ -137,6 +192,9 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 // 入力処理 & 状態遷移
 //-----------------------------------
+	//-----------------------------------
+// 入力処理
+//-----------------------------------
 	Vec2 input{
 		(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
 		0.0
@@ -144,7 +202,7 @@ void Player::update(Game_Map& map)
 
 	// === 状態遷移 ===
 
-	// Idle → IdleToRun
+	// Idle → IdleToRun（最初の走り出し）
 	if ((KeyD.down() || KeyA.down()) && GetPlayerState() == StateMode::Idle)
 	{
 		SetPlayerState(StateMode::IdleToRun);
@@ -152,14 +210,22 @@ void Player::update(Game_Map& map)
 		animTime = 0.0;
 	}
 
-	// IdleToRun → Run (内部で自動)
+	// IdleToRun → Run は PlayerIdleToRun() 内で自動遷移
 
-	// Run → Idle（キーを離した時）
-	if (!KeyA.pressed() && !KeyD.pressed() && GetPlayerState() == StateMode::Run)
+	// Run 維持処理（キー押しっぱなし）
+	if ((KeyD.pressed() || KeyA.pressed()) && GetPlayerState() == StateMode::Run)
 	{
-		SetPlayerState(StateMode::Idle);
-		m_frameIndex = 0;
-		animTime = 0.0;
+		// 何もしない（Runを維持）
+	}
+	else if (!KeyA.pressed() && !KeyD.pressed())
+	{
+		// 入力が無い場合のみ Idle に戻す
+		if (GetPlayerState() == StateMode::Run)
+		{
+			SetPlayerState(StateMode::Idle);
+			m_frameIndex = 0;
+			animTime = 0.0;
+		}
 	}
 
 	// 向きの反転
@@ -167,6 +233,7 @@ void Player::update(Game_Map& map)
 	{
 		SetPlayerFaceRight(input.x > 0);
 	}
+
 
 
 		Vec2 pos = GetPlayerPosition();
@@ -197,7 +264,9 @@ void Player::update(Game_Map& map)
 		}
 
 		if (input.x != 0)
+		{
 			SetPlayerFaceRight(input.x > 0);
+		}
 
 		//-----------------------------------
 		// 重力処理
@@ -295,6 +364,7 @@ void Player::update(Game_Map& map)
 		//-----------------------------------
 		if (KeySpace.down() && !IsPlayerAttacking())
 		{
+			SetPlayerLastState(GetPlayerState());
 			SetPlayerState(StateMode::Attack);
 			SetPlayerAttackFlag(true);
 			m_frameIndex = 0;
@@ -321,6 +391,9 @@ void Player::update(Game_Map& map)
 			break;
 		case StateMode::Hurt:
 			PlayerHurt();
+			break;
+		case StateMode::IdleToAttack:
+			PlayerIdleToAttack();
 			break;
 		default:
 			break;
@@ -362,7 +435,7 @@ void Player::draw(const Game_Map& CameraPos) const
 		break;
 	case StateMode::Attack:
 		n = m_attackPatterns[m_frameIndex];
-		y = attackY;
+		y = attackY+30;
 		break;
 	case StateMode::IdleToRun:
 		n = m_idleToRunPatterns[m_frameIndex];
@@ -371,11 +444,26 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	case StateMode::Run:
 		n = m_runPatterns[m_frameIndex];
-		y = runY;
+		if (m_frameIndex==5)
+		{
+			n = 0;
+			y = attackY+30;
+		}
+		else
+		{
+			y = runY;
+		}
+
+		
+
+		
 		break;
 	case StateMode::Hurt:
 		n = m_hurtPatterns[m_frameIndex];
-		y = hurtY - 300;
+		
+	    y = hurtY - 300;
+		
+		
 		break;
 	default:
 		n = m_idlePatterns[m_frameIndex];
@@ -404,4 +492,8 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	Print << U"state:" << (int)GetPlayerState();
 	Print << U"Frame:" << m_frameIndex;
+	if (m_frameIndex == 6)
+	{
+		Print << U"Frame:6" ;
+	}
 }
