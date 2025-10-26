@@ -11,7 +11,7 @@ class Player
 private:
 	static constexpr float NormalPlayerSpeed = 800.0f;
 	static constexpr float DogePlayerSpeed = 1600.0f;
-	Vec2 m_Position;		  //位置
+	Vec2 m_Position;	  //位置
 	Vec2 m_Scale;			  //大きさ
 	Vec2 m_Velocity;		  //速度
 	Vec2 m_Acceleration;	  //加速度
@@ -144,6 +144,7 @@ public:
 	 StateMode GetPlayerState() const { return m_PlayerState; }
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	//setter
+	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
 	Vec2 SetPlayerVelocity(const Vec2 vel) { return m_Velocity = vel; }

@@ -1,4 +1,5 @@
-﻿#include "Player.hpp"
+﻿#include <Siv3D.hpp>
+#include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
 
@@ -641,7 +642,7 @@ void Player::update(Game_Map& map)
 	m_onGround = map.CheckCollision(groundCheckRect) || hitGround;
 
 	//-----------------------------------
-	// ★★★ Fall状態への自動遷移（攻撃中は除外）
+	//  Fall状態への自動遷移（ジャンプ以外で空中にいる場合）
 	//-----------------------------------
 	if (!m_onGround &&
 		GetPlayerState() != StateMode::Jump &&
@@ -649,17 +650,33 @@ void Player::update(Game_Map& map)
 		GetPlayerState() != StateMode::OnTheWall &&
 		GetPlayerState() != StateMode::Doge &&
 		GetPlayerState() != StateMode::Attack &&
-		GetPlayerState() != StateMode::IdleToAttack)
+		GetPlayerState() != StateMode::IdleToAttack &&
+		GetPlayerState() != StateMode::IdleToRun)  // ← 追加
 	{
-		// ★★★ 攻撃フラグをリセット
+		//  攻撃フラグをリセット
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Fall);
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
 
+	//  接地時の状態遷移（Fall状態から復帰）
+	if (m_onGround && GetPlayerState() == StateMode::Fall)
+	{
+		if (KeyA.pressed() || KeyD.pressed())
+		{
+			SetPlayerState(StateMode::Run);
+		}
+		else
+		{
+			SetPlayerState(StateMode::Idle);
+		}
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
+
 	//-----------------------------------
-	// 攻撃処理（★★★ 優先度を高く）
+	// 攻撃処理（ 優先度を高く）
 	//-----------------------------------
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
@@ -675,6 +692,30 @@ void Player::update(Game_Map& map)
 		else
 		{
 			SetPlayerState(StateMode::Attack);
+		}
+	}
+	// ======== 接地時の状態復帰 ========
+	if (m_onGround)
+	{
+		if (GetPlayerState() == StateMode::Fall ||
+			GetPlayerState() == StateMode::Jump ||
+			GetPlayerState() == StateMode::OnTheWall)
+		{
+			// 速度リセット
+			velocity.y = 0;
+
+			// 状態遷移
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				SetPlayerState(StateMode::Idle);
+			}
+
+			m_frameIndex = 0;
+			animTime = 0.0;
 		}
 	}
 
@@ -844,7 +885,8 @@ void Player::draw(const Game_Map& CameraPos) const
 	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
-	
+
+
 	
 	Print << U"velo" << GetPlayerSpeed();
 }
