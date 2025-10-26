@@ -97,6 +97,21 @@ bool Game_Map::CheckCollision(const RectF& rect) const
 	return false;
 }
 
+bool Game_Map::CheckCollision_Line(const Line& line) const
+{
+	for (const auto& block : m_blocks)
+	{
+		if (block.getType() == BLOCK_SOLID)
+		{
+			if (line.intersectsAt(block.GetRect()))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 /*
 利用方法
 Game_Map map;
