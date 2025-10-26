@@ -1,4 +1,5 @@
-﻿#include "Player.hpp"
+﻿#include <Siv3D.hpp>
+#include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
 
@@ -93,12 +94,19 @@ void Player::PlayerAttack(const Vec2& camera)
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
+			
+
+
 			// ★ ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				// まだ移動キーが押されている → Runへ
 				SetPlayerState(StateMode::Run);
 			}
+			/*else if (!m_onGround)
+			{
+				SetPlayerState(StateMode::Fall);
+			}*/
 			else
 			{
 				// 押されていない → Idleへ
@@ -130,9 +138,7 @@ void Player::PlayerDoge()
 		isDodging = true;
 		dogeTimer = 0.0;
 
-		//// 入力方向へ高速移動（回避の瞬間ダッシュ）
-		//double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
-		//SetPlayerVelocity(Vec2(700 * dir, GetPlayerVelocity().y));
+		
 
 		SetPlayerSpeed(DogePlayerSpeed);
 
@@ -320,7 +326,7 @@ void Player::PlayerJump()
 			}
 			else
 			{
-				SetPlayerState(StateMode::Jump);
+				SetPlayerState(StateMode::Idle);
 			}
 		}
 	}
@@ -406,7 +412,11 @@ void Player::update(Game_Map& map)
 
 	// === 状態遷移 ===
 	if (KeyEnter.down()) {
+		// ★★★ 攻撃フラグをリセット
+		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
+		m_frameIndex = 0;
+		animTime = 0.0;
 	}
 
 	// Idle → IdleToRun（最初の走り出し）
@@ -449,8 +459,7 @@ void Player::update(Game_Map& map)
 		m_HitBox.y * m_Scale.y / 10
 	};
 
-	// ===  重要：描画との整合性を取るためのオフセット ===
-	// getHitRect() で Vec2{0, -40} しているので、衝突判定も同じ位置で行う
+	// === 重要：描画との整合性を取るためのオフセット ===
 	const Vec2 collisionOffset = Vec2{ 0, -40 };
 
 	bool isTouchingWallLeft = false;
@@ -461,9 +470,8 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	{
 		velocity.x = input.x * GetPlayerSpeed();
-		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime() * 10, 0);
+		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
 
-		//  collisionOffset を適用！
 		RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
 
 		bool mapColli = map.CheckCollision(rectX);
@@ -500,9 +508,8 @@ void Player::update(Game_Map& map)
 				}
 				else
 				{
-					break; // 入力がない場合は抜ける
+					break;
 				}
-				//  ここもoffset適用！
 				rectX.setCenter(nextPosX + collisionOffset);
 				iterations++;
 			}
@@ -537,7 +544,11 @@ void Player::update(Game_Map& map)
 			constexpr double JumpPowerScale = 100.0;
 			velocity.y = -GetPlayerJumpSpeed() * JumpPowerScale;
 			m_onGround = false;
+			// ★★★ 攻撃フラグをリセット
+			SetPlayerAttackFlag(false);
 			SetPlayerState(StateMode::Jump);
+			m_frameIndex = 0;
+			animTime = 0.0;
 		}
 		// 壁ジャンプ
 		else if (tryJump && canWallJump && (isTouchingWallLeft || isTouchingWallRight))
@@ -547,12 +558,18 @@ void Player::update(Game_Map& map)
 			velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 0.9);
 			velocity.x = (isTouchingWallLeft ? 500 : -500);
 			m_onGround = false;
+			// ★★★ 攻撃フラグをリセット
+			SetPlayerAttackFlag(false);
 			SetPlayerState(StateMode::Jump);
+			m_frameIndex = 0;
+			animTime = 0.0;
 		}
 		// 壁に張り付き
 		else if (!m_onGround && (isTouchingWallLeft || isTouchingWallRight))
 		{
 			velocity.y = Min(velocity.y, 100.0);
+			// ★★★ 攻撃フラグをリセット
+			SetPlayerAttackFlag(false);
 			SetPlayerState(StateMode::OnTheWall);
 		}
 	}
@@ -561,8 +578,6 @@ void Player::update(Game_Map& map)
 	// 縦方向移動処理
 	//-----------------------------------
 	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
-
-	// collisionOffset を適用！
 	RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
 
 	bool hitGround = false;
@@ -579,13 +594,11 @@ void Player::update(Game_Map& map)
 			// 地面に衝突
 			velocity.y = 0;
 
-			// めり込みを戻す
 			int maxIterations = 100;
 			int iterations = 0;
 			while (map.CheckCollision(rectY) && iterations < maxIterations)
 			{
 				nextPosY.y -= 0.5;
-				//  ここもoffset適用！
 				rectY.setCenter(nextPosY + collisionOffset);
 				iterations++;
 			}
@@ -606,7 +619,6 @@ void Player::update(Game_Map& map)
 			while (map.CheckCollision(rectY) && iterations < maxIterations)
 			{
 				nextPosY.y += 0.5;
-				// ここもoffset適用！
 				rectY.setCenter(nextPosY + collisionOffset);
 				iterations++;
 			}
@@ -616,12 +628,11 @@ void Player::update(Game_Map& map)
 				pos.y = nextPosY.y;
 				hitCeiling = true;
 			}
-			SetPlayerState(StateMode::Fall);
 		}
 	}
 
 	//-----------------------------------
-	// 接地判定（★★★ offset適用）
+	// 接地判定
 	//-----------------------------------
 	RectF groundCheckRect(
 		Arg::center = (pos + collisionOffset).movedBy(0, collisionSize.y / 2 + 1),
@@ -629,12 +640,43 @@ void Player::update(Game_Map& map)
 	);
 
 	m_onGround = map.CheckCollision(groundCheckRect) || hitGround;
-	if (!m_onGround && (GetPlayerState()!=StateMode::OnTheWall) && (GetPlayerState() != StateMode::Doge))
-	{
-		SetPlayerState(StateMode::Fall);
-	}
+
 	//-----------------------------------
-	// 攻撃処理
+	//  Fall状態への自動遷移（ジャンプ以外で空中にいる場合）
+	//-----------------------------------
+	if (!m_onGround &&
+		GetPlayerState() != StateMode::Jump &&
+		GetPlayerState() != StateMode::Fall &&
+		GetPlayerState() != StateMode::OnTheWall &&
+		GetPlayerState() != StateMode::Doge &&
+		GetPlayerState() != StateMode::Attack &&
+		GetPlayerState() != StateMode::IdleToAttack &&
+		GetPlayerState() != StateMode::IdleToRun)  // ← 追加
+	{
+		//  攻撃フラグをリセット
+		SetPlayerAttackFlag(false);
+		SetPlayerState(StateMode::Fall);
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
+
+	//  接地時の状態遷移（Fall状態から復帰）
+	if (m_onGround && GetPlayerState() == StateMode::Fall)
+	{
+		if (KeyA.pressed() || KeyD.pressed())
+		{
+			SetPlayerState(StateMode::Run);
+		}
+		else
+		{
+			SetPlayerState(StateMode::Idle);
+		}
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
+
+	//-----------------------------------
+	// 攻撃処理（ 優先度を高く）
 	//-----------------------------------
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
@@ -650,6 +692,30 @@ void Player::update(Game_Map& map)
 		else
 		{
 			SetPlayerState(StateMode::Attack);
+		}
+	}
+	// ======== 接地時の状態復帰 ========
+	if (m_onGround)
+	{
+		if (GetPlayerState() == StateMode::Fall ||
+			GetPlayerState() == StateMode::Jump ||
+			GetPlayerState() == StateMode::OnTheWall)
+		{
+			// 速度リセット
+			velocity.y = 0;
+
+			// 状態遷移
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				SetPlayerState(StateMode::Idle);
+			}
+
+			m_frameIndex = 0;
+			animTime = 0.0;
 		}
 	}
 
@@ -671,10 +737,8 @@ void Player::update(Game_Map& map)
 		PlayerJump();
 		break;
 	case StateMode::Fall:
-
 		PlayerFall();
 		break;
-
 	case StateMode::OnTheWall:
 		PlayerOnTheWall();
 		break;
@@ -700,7 +764,6 @@ void Player::update(Game_Map& map)
 	SetPlayerVelocity(velocity);
 	SetPlayerPosition(pos);
 }
-
 
 // ============================
 // 描画処理
@@ -822,7 +885,8 @@ void Player::draw(const Game_Map& CameraPos) const
 	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
+
+
 	
-	
-	Print << U"velo" << static_cast<int>(GetPlayerState());
+	Print << U"velo" << GetPlayerSpeed();
 }

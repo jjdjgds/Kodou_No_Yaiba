@@ -12,8 +12,14 @@ Game::Game(const InitData& init)
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
 	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
-	3, 3, 100, 3,
-	1.0f, 0.5f, 30.0f, 3.0f,
+		3,
+		3,
+		100,
+		3,
+		1.0f,
+		0.5f,
+		player.GetPlayerDefoSpeed(),
+		3.0f,
 	false, true, false
 	)
 
