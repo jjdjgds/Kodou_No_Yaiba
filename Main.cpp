@@ -24,6 +24,9 @@ void Main()
 	TextureAsset::Register(U"EnemyHurt", U"example/spritesheet/HURT.png");
 	TextureAsset::Register(U"EnemyAttack", U"example/spritesheet/ATTACK_1.png");
 
+	TextureAsset::Register(U"Enemy2", U"example/spritesheet/Soldier.png");
+	TextureAsset::Register(U"Enemy2Arrow", U"example/spritesheet/Arrow.png");
+
 	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
 	//ATTACK_1.png
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");

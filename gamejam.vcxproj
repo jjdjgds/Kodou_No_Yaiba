@@ -116,7 +116,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Enemy_1.cpp" />
+    <ClCompile Include="Enemy_2.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Game_BG.cpp" />
     <ClCompile Include="Game_Map.cpp" />
@@ -338,7 +339,8 @@
     <ClInclude Include="Block.hpp" />
     <ClInclude Include="Collision.hpp" />
     <ClInclude Include="Common.hpp" />
-    <ClInclude Include="Enemy.hpp" />
+    <ClInclude Include="Enemy_1.hpp" />
+    <ClInclude Include="Enemy_2.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="Game_BG.hpp" />
     <ClInclude Include="Game_Map.hpp" />
