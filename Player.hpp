@@ -62,7 +62,9 @@ private:
 	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
 
 	//壁ズリアニメーション
-	Array<int32> m_onTheWallPatterns{2,2,2};
+	Array<int32> m_onTheWallPatterns{2};
+
+	Array<int32> m_FallPatterns{ 5,5,5,5,5 };
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -189,7 +191,7 @@ public:
 	void PlayerRun();
 	void PlayerJump();
 	void PlayerOnTheWall();
-
+	void PlayerFall();
 	void PlayerDoge();
 	void PlayerHurt();
 	void update(Game_Map& map);
