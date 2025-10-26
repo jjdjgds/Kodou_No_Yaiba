@@ -180,11 +180,11 @@ public:
 
 
 	void takeDamage(int dmg);
-	RectF getAttackRect() const;
-	void PlayerAttack();
+	RectF getAttackRect(const Vec2& camera) const;
+	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();
-	void PlayerIdleToAttack();
+	void PlayerIdleToAttack(const Vec2& camera);
 	void PlayerRun();
 	void PlayerJump();
 	void PlayerOnTheWall();

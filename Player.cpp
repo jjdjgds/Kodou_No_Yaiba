@@ -9,10 +9,10 @@ RectF enemyRect{ 1000, 750, 64, 64 };
 Player::Player() {}
 Player::~Player() {}
 
-RectF Player::getAttackRect() const
+RectF Player::getAttackRect(const Vec2& camera) const
 {
 	return RectF{
-		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
+		Arg::center = GetPlayerPosition().movedBy(-camera.x, -GetPlayerHitBox().y * 0.2 - camera.y),
 
 		SizeF{ 200, 220 }
 	};
@@ -27,7 +27,7 @@ void Player::takeDamage(int dmg)
 	SetPlayerHP(GetPlayerHP() - dmg);
 }
 
-void Player::PlayerAttack()
+void Player::PlayerAttack(const Vec2& camera)
 {
 	const double attackFrameDuration = 0.08;
 
@@ -41,7 +41,7 @@ void Player::PlayerAttack()
 		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			const RectF pBox = getAttackRect();
+			const RectF pBox = getAttackRect(Vec2{});
 			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"攻撃ヒット！";
@@ -182,7 +182,7 @@ void Player::PlayerIdleToRun()
 
 }
 
-void Player::PlayerIdleToAttack()
+void Player::PlayerIdleToAttack(const Vec2& camera)
 {
 	const double attackToIdleFrameDuration = 0.08;
 	if (!m_AttackFlag) return;
@@ -195,7 +195,7 @@ void Player::PlayerIdleToAttack()
 		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			const RectF pBox = getAttackRect();
+			const RectF pBox = getAttackRect(camera);
 			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"攻撃ヒット！";
@@ -542,13 +542,13 @@ void Player::update(Game_Map& map)
 			break;
 
 		case StateMode::Attack:
-			PlayerAttack();
+			PlayerAttack(map.getCameraPos());
 			break;
 		case StateMode::Hurt:
 			PlayerHurt();
 			break;
 		case StateMode::IdleToAttack:
-			PlayerIdleToAttack();
+			PlayerIdleToAttack(map.getCameraPos());
 			break;
 
 		case StateMode::Doge:
@@ -689,7 +689,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	RectF hitBox(Arg::center = GetPlayerPosition(), GetPlayerHitBox());
 	hitBox.movedBy(-CameraPos.getCameraPos()).drawFrame(1, ColorF{ 1, 1, 0, 0.8 });
 	// デバッグ枠
-	RectF attackBox = getAttackRect();
+	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
 	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
 	/*Print << U"state:" << (int)GetPlayerState();
