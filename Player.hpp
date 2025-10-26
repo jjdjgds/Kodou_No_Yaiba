@@ -9,8 +9,8 @@ class Player
 
 
 private:
-	static constexpr float NormalPlayerSpeed = 30.0f;
-	static constexpr float DogePlayerSpeed = 60.0f;
+	static constexpr float NormalPlayerSpeed = 800.0f;
+	static constexpr float DogePlayerSpeed = 1600.0f;
 	Vec2 m_Position;		  //位置
 	Vec2 m_Scale;			  //大きさ
 	Vec2 m_Velocity;		  //速度
@@ -34,7 +34,7 @@ private:
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
 	Vec2 m_HitRect = { 5.0 ,5.0 };          //当たり判定矩形
-	float m_gravity = 0.98;  //重力
+	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
 
@@ -140,7 +140,7 @@ public:
 	 bool  IsPlayerFacingRight() const { return m_FaceRight; }
 	 bool  IsPlayerInvincible() const { return m_Invincible; }
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
-	
+	 float GetPlayerDefoSpeed() const { return NormalPlayerSpeed; }
 	 StateMode GetPlayerState() const { return m_PlayerState; }
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	//setter

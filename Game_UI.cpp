@@ -18,26 +18,29 @@ void Game_UI::draw( Player player)const
 	//// Draw score
 	//m_font(U"BPM: {}"_fmt(player.GetPlayerBPM())).draw(Arg::topLeft = Vec2{ 40, 150 }, Palette::Red);
 	int pBpm = player.GetPlayerBPM();
-	if (pBpm>=120)//バーサーカーモード
-	{
-
-	}
-	else if (pBpm < 60 && pBpm >= 80)//ザ・ワールドモード
-	{
-
-	}
-	else if (pBpm < 70 && pBpm >= 130)//警告
-	{
-
-	}
-	else if (pBpm < 60 || pBpm >= 140)
-	{
-
-	}
+	//BPMを貰ってきて
+	
 
 
 
 
 
 
+}
+
+HeartRateState GetHeartRateState(int bpm)
+{
+	if (bpm <= 60 || bpm >= 140)
+		return HeartRateState::Stun;
+
+	if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
+		return HeartRateState::Warning;
+
+	if (bpm >= 120 && bpm <= 129)
+		return HeartRateState::Berserk;
+
+	if (bpm >= 71 && bpm <= 80)
+		return HeartRateState::TimeControl;
+
+	return HeartRateState::Normal;
 }
