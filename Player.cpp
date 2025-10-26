@@ -326,7 +326,7 @@ void Player::PlayerJump()
 			}
 			else
 			{
-				SetPlayerState(StateMode::Jump);
+				SetPlayerState(StateMode::Idle);
 			}
 		}
 	}
