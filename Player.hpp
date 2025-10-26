@@ -108,7 +108,7 @@ public:
 		, m_AttackFlag(false)
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		,m_gravity(9.8)
-		, m_PlayerState(StateMode::Hurt)
+		, m_PlayerState(StateMode::Idle)
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
 		}
