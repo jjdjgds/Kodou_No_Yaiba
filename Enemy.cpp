@@ -82,7 +82,7 @@ void Enemy::update(Player& player, Game_Map& map)
 	const RectF eHurtBox= hurtRect(camPos);                               // 敵が被弾される矩形（現在位置）
 	const RectF eAttackBox = attackRect(camPos);                           // 敵の攻撃矩形（前方オフセット）
 	const RectF eChaseBox = chaseRect(camPos);             // 敵のプレイヤー攻撃矩形（広域前方オフセット）
-	const RectF pHitBox(Arg::center = player.GetPlayerPosition()-camPos, player.GetPlayerHitBox()); // プレイヤー本体
+	const RectF pHitBox = player.getHitRect(camPos); // プレイヤー本体
 	const RectF pAttackBox = player.getAttackRect(camPos); // プレイヤーの攻撃矩形（Player の関数利用）
 
 	if (m_state == AnimState::Hurt) {// ダメージ中

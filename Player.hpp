@@ -33,9 +33,10 @@ private:
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
-	RectF m_HitRect;          //当たり判定矩形
+	Vec2 m_HitRect = { 5.0 ,5.0 };          //当たり判定矩形
 	float m_gravity = 0.98;  //重力
 	bool m_onGround = false;
+	double m_hitOffsetY = 20.0;// 当たり判定Y
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
@@ -68,7 +69,7 @@ private:
 
 public:
 	
-	Player();
+	//Player();
 
 
 	Player(
@@ -137,7 +138,7 @@ public:
 	 bool  IsPlayerFacingRight() const { return m_FaceRight; }
 	 bool  IsPlayerInvincible() const { return m_Invincible; }
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
-	 RectF GetPlayerHitRect() const { return m_HitRect; }
+	
 	 StateMode GetPlayerState() const { return m_PlayerState; }
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	//setter
@@ -162,8 +163,7 @@ public:
 	float SetPlayerJumpSpeed(float jumpSpeed) { return m_JumpSpeed = jumpSpeed; }
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
-	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
-
+	
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
@@ -181,6 +181,7 @@ public:
 
 	void takeDamage(int dmg);
 	RectF getAttackRect(const Vec2& camera) const;
+	RectF getHitRect(const Vec2& camera)const;
 	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();

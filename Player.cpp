@@ -6,17 +6,55 @@ using namespace Collision;
 
 RectF enemyRect{ 1000, 750, 64, 64 };
 
-Player::Player() {}
+
 Player::~Player() {}
 
 RectF Player::getAttackRect(const Vec2& camera) const
 {
-	return RectF{
-		Arg::center = GetPlayerPosition().movedBy(-camera.x, -GetPlayerHitBox().y * 0.2 - camera.y),
+	// === プレイヤーの当たり判定サイズを基準にする ===
+	const SizeF hitSize = GetPlayerHitBox() ;
+	const double attackWidth = hitSize.x*12 ; // 攻撃範囲を少し広げる
+	const double attackHeight = hitSize.y*10 ; // 高さはプレイヤーと同じ
+	const SizeF attackSize{ attackWidth, attackHeight  };
 
-		SizeF{ 200, 220 }
+	// === 基準点（プレイヤーの中心） ===
+	Vec2 center = GetPlayerPosition().movedBy(-camera);
+
+	// === 向きによって左右に矩形をオフセット ===
+	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6+50 : -hitSize.x * 0.6-50);
+	center.x += offsetX;
+
+	// === 少し上にオフセットして、胸〜腰あたりの高さに ===
+	center.y -= hitSize.y+30 ;
+
+	return RectF{
+		Arg::center = center,
+		attackSize
 	};
 }
+
+
+RectF Player::getHitRect(const Vec2& camera) const
+{
+	// === 実際の当たり判定サイズ（スケール反映） ===
+	const SizeF sz = {
+		m_HitBox.x * m_Scale.x/10,
+		m_HitBox.y * m_Scale.y/10
+	};
+
+	// === 中心をスプライトと一致させる（体中心基準） ===
+	// m_Position がキャラ中心座標なのでそのまま使用
+	const Vec2 center = m_Position
+		.movedBy(-camera + Vec2{0,-40}); // カメラ補正
+
+	return RectF{
+		Arg::center = center,
+		sz
+	};
+}
+
+
+
 
 void Player::takeDamage(int dmg)
 {
@@ -280,14 +318,29 @@ void Player::PlayerJump()
 void Player::PlayerOnTheWall()
 {
 
-
-
 	const double onTheWallFrameDuration = 0.15;
 	if (animTime >= onTheWallFrameDuration)
 	{
 		animTime -= onTheWallFrameDuration;
-		m_frameIndex = (m_frameIndex + 1) % m_onTheWallPatterns.size();
+		m_frameIndex++;
+		if (m_frameIndex >= m_onTheWallPatterns.size())
+		{
+			m_frameIndex = 0;
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+		}
 	}
+
+	
 
 }
 
@@ -584,116 +637,111 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 attackY = frameHeight * 2;
 	const int32 hurtY = frameHeight * 4;
 	const int32 IdleAttack = frameHeight * 4;
-	const int32 Doge = frameHeight * 4,Jump = frameHeight * 4;
+	const int32 Doge = frameHeight * 4;
+	const int32 Jump = frameHeight * 4;
 	const int32 OnTheWall = frameHeight * 6;
+
 	int32 n = 0;
 	int32 y = idleY;
 
+	// === アニメーション選択 ===
 	switch (GetPlayerState())
 	{
 	case StateMode::Idle:
 		n = m_idlePatterns[m_frameIndex];
 		break;
+
 	case StateMode::IdleToRun:
 		n = m_idleToRunPatterns[m_frameIndex];
 		y = runY;
 		break;
+
 	case StateMode::Run:
 		n = m_runPatterns[m_frameIndex];
 		if (m_frameIndex == 5)
 		{
-			n = 0;
-			y = attackY + 30;
+			n = 0; y = attackY + 30;
 		}
 		else
 		{
 			y = runY;
 		}
 		break;
+
 	case StateMode::Attack:
 		n = m_attackPatterns[m_frameIndex];
-		y = attackY+30;
+		y = attackY + 30;
 		break;
-	
+
 	case StateMode::Jump:
 		n = m_jumpPatterns[m_frameIndex];
-		y = Jump+65;
+		y = Jump + 65;
 		break;
 
 	case StateMode::OnTheWall:
 		n = m_onTheWallPatterns[m_frameIndex];
-		y = OnTheWall+65;
+		y = OnTheWall + 65;
 		break;
 
 	case StateMode::IdleToAttack:
 		n = m_IdleAttackPatterns[m_frameIndex];
-		if (m_frameIndex >3 )
-		{
-			
-			y = IdleAttack+50;
-		}
-		else
-		{
-			y = IdleAttack+50;
-		}
-		break;
-	
-	case StateMode::Hurt:
-		n = m_hurtPatterns[m_frameIndex];
-		
-	    y = hurtY + 45;
-		
-		
+		y = IdleAttack + 50;
 		break;
 
+	case StateMode::Hurt:
+		n = m_hurtPatterns[m_frameIndex];
+		y = hurtY + 45;
+		break;
 
 	case StateMode::Doge:
 		n = m_dogePatterns[m_frameIndex];
-		y = Doge+65;
-
+		y = Doge + 65;
 		break;
+
 	default:
 		n = m_idlePatterns[m_frameIndex];
 		break;
 	}
 
+	// === 描画位置（体中心） ===
 	Vec2 drawPos = GetPlayerPosition() - CameraPos.getCameraPos();
 
-	// ★ 当たり判定にぴったり足元が接地
-	double scaleY = GetPlayerHitBox().y / frameHeight;
-	double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
-	// 描画オフセット（向きによって左右調整）
+	// === スケールと左右反転 ===
+	const double scaleY = GetPlayerScale().y / frameHeight;
+	const double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
+
+	// === オフセット ===
 	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 0 } : Vec2{ -10, 0 };
-	// 足元をピッタリ合わせる
-	drawPos.y -= (frameHeight * scaleY) / 2 - (GetPlayerHitBox().y / 2);
+
+	// === 当たり判定中心と一致 ===
+	// （スプライトの中心がキャラクターの中心に一致）
+	const Vec2 spriteCenterOffset = Vec2{ 0, (GetPlayerHitBox().y * 0.5) - (frameHeight * scaleY * 0.5) };
+	drawPos += spriteCenterOffset;
+
+	// === ドッジ専用オフセット ===
+	Vec2 dogeOffset = Vec2::Zero();
 	if (GetPlayerState() == StateMode::Doge)
 	{
-		if(IsPlayerFacingRight())
-		{
-			PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
-				.scaled(scaleX, scaleY)
-				.drawAt(drawPos - Vec2{ 15,0 });
-		}
-		else {
-			PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
-				.scaled(scaleX, scaleY)
-				.drawAt(drawPos + Vec2{ 15,0 });
-		}
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ -15, 0 } : Vec2{ 15, 0 };
 	}
 
+	// === スプライト描画 ===
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(scaleX, scaleY)
-		.drawAt(drawPos+offset);
+		.drawAt(drawPos + offset + dogeOffset);
 
-	// デバッグ枠
-	RectF hitBox(Arg::center = GetPlayerPosition(), GetPlayerHitBox());
-	hitBox.movedBy(-CameraPos.getCameraPos()).drawFrame(1, ColorF{ 1, 1, 0, 0.8 });
-	// デバッグ枠
+	// === デバッグ表示 ===
+	RectF hitBox = getHitRect(CameraPos.getCameraPos());
+	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
-	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
-	/*Print << U"state:" << (int)GetPlayerState();
-	Print << U"Frame:" << m_frameIndex;*/
-	Print << U"velo" << m_Velocity;
+	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+
+	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
+	if (m_frameIndex == 4)
+	{
+		Print << U"flame" << m_frameIndex;
+	}
 	
+	//Print << U"velo" << m_Velocity;
 }
