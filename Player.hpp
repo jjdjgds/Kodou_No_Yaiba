@@ -34,7 +34,7 @@ private:
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
 	RectF m_HitRect;          //当たり判定矩形
-	float m_gravity = 0.98f;  //重力
+	float m_gravity = 0.98;  //重力
 	bool m_onGround = false;
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
@@ -51,10 +51,17 @@ private:
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
-	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
+
+	//回避アニメーション
+	Array<int32> m_jumpPatterns{ 6,6,6,6,6,6 };
 	//IDLEATTACK
 	Array<int32> m_IdleAttackPatterns{7,0,1,2,3};
 
+	//ジャンプアニメーション
+	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
+
+	//壁ズリアニメーション
+	Array<int32> m_onTheWallPatterns{2,2,2};
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -101,7 +108,7 @@ public:
 		, m_AttackFlag(false)
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		,m_gravity(9.8)
-		, m_PlayerState(StateMode::Idle)
+		, m_PlayerState(StateMode::Hurt)
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
 		}
@@ -179,6 +186,8 @@ public:
 	void PlayerIdleToRun();
 	void PlayerIdleToAttack();
 	void PlayerRun();
+	void PlayerJump();
+	void PlayerOnTheWall();
 
 	void PlayerDoge();
 	void PlayerHurt();

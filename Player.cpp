@@ -13,6 +13,7 @@ RectF Player::getAttackRect() const
 {
 	return RectF{
 		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
+
 		SizeF{ 200, 220 }
 	};
 }
@@ -244,6 +245,52 @@ void Player::PlayerRun()
 	}
 }
 
+void Player::PlayerJump()
+{
+
+	// === アニメーション更新 ===
+	animTime += Scene::DeltaTime();
+	const double JumpFrameDuration = 0.08;
+
+	if (animTime >= JumpFrameDuration)
+	{
+		animTime -= JumpFrameDuration;
+		m_frameIndex++;
+
+		if (m_frameIndex >= m_jumpPatterns.size())
+		{
+			m_frameIndex = 0;
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+		}
+	}
+
+
+}
+
+void Player::PlayerOnTheWall()
+{
+
+
+
+	const double onTheWallFrameDuration = 0.15;
+	if (animTime >= onTheWallFrameDuration)
+	{
+		animTime -= onTheWallFrameDuration;
+		m_frameIndex = (m_frameIndex + 1) % m_onTheWallPatterns.size();
+	}
+
+}
+
 
 
 void Player::update(Game_Map& map)
@@ -317,33 +364,35 @@ void Player::update(Game_Map& map)
 		// 横移動処理
 		//-----------------------------------
 		
-		velocity.x = input.x * GetPlayerSpeed();
-		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime() * 10, 0);
-		RectF rectX(Arg::center = nextPosX, size);
-		RectF erectX(Arg::center = Vec2(1000, 750), Vec2(64, 64));
-		bool mapColli = map.CheckCollision(rectX);
-		bool enemyColli = false;
-		if (GetPlayerState() != StateMode::Doge)
 		{
-			 enemyColli = RectToRect(rectX, enemyRect);
-		}
-		
-		if ((!mapColli) && (!enemyColli))
-		{
-			pos.x = nextPosX.x;
-		}
-		else
-		{
-			// 壁衝突
-			if (input.x > 0) isTouchingWallRight = true;
-			else if (input.x < 0) isTouchingWallLeft = true;
+			velocity.x = input.x * GetPlayerSpeed();
+			Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime() * 10, 0);
+			RectF rectX(Arg::center = nextPosX, size);
+			RectF erectX(Arg::center = Vec2(1000, 750), Vec2(64, 64));
+			bool mapColli = map.CheckCollision(rectX);
+			bool enemyColli = false;
+			if (GetPlayerState() != StateMode::Doge)
+			{
+				enemyColli = RectToRect(rectX, enemyRect);
+			}
 
-			velocity.x = 0;
-		}
+			if ((!mapColli) && (!enemyColli))
+			{
+				pos.x = nextPosX.x;
+			}
+			else
+			{
+				// 壁衝突
+				if (input.x > 0) isTouchingWallRight = true;
+				else if (input.x < 0) isTouchingWallLeft = true;
 
-		if (input.x != 0)
-		{
-			SetPlayerFaceRight(input.x > 0);
+				velocity.x = 0;
+			}
+
+			if (input.x != 0)
+			{
+				SetPlayerFaceRight(input.x > 0);
+			}
 		}
 
 		//-----------------------------------
@@ -352,36 +401,45 @@ void Player::update(Game_Map& map)
 		velocity.y += m_gravity * Scene::DeltaTime() * 90;
 
 		//-----------------------------------
-		// ジャンプ処理（地上 or 壁キック）
-		//-----------------------------------
-		static bool canWallJump = true; // ★ 一度だけ壁ジャンプできるフラグ
-
-		bool tryJump = (KeyW.down() || KeyUp.down());
-
-		if (m_onGround)
+// ジャンプ処理（地上 or 壁キック）
+//-----------------------------------
 		{
-			canWallJump = true; // 地面に着いたらリセット
-		}
-
-		if (tryJump)
-		{
-			constexpr double JumpPowerScale = 100.0;
+			static bool canWallJump = true; // 一度だけ壁ジャンプできるフラグ
+			bool tryJump = (KeyW.down() || KeyUp.down());
 
 			if (m_onGround)
 			{
-				// 通常ジャンプ
+				canWallJump = true; // 地面に着いたらリセット
+			}
+
+			// 通常ジャンプ
+			if (tryJump && m_onGround)
+			{
+				constexpr double JumpPowerScale = 100.0;
 				velocity.y = -GetPlayerJumpSpeed() * JumpPowerScale;
 				m_onGround = false;
+				SetPlayerState(StateMode::Jump);
 			}
-			else if (canWallJump && (isTouchingWallLeft || isTouchingWallRight))
+
+			// 壁ジャンプ（ジャンプキーが押された時のみ）
+			else if (tryJump && canWallJump && (isTouchingWallLeft || isTouchingWallRight))
 			{
-				// 壁ジャンプ
+				constexpr double JumpPowerScale = 100.0;
 				canWallJump = false;
 				velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 0.9); // 少し弱め
-				velocity.x = (isTouchingWallLeft ? 500 : -500); // 反対方向に跳ねる
+				velocity.x = (isTouchingWallLeft ? 500 : -500); // 反対方向へ
 				m_onGround = false;
+				SetPlayerState(StateMode::Jump); // ← 壁キック後はJumpへ戻す
+			}
+
+			// ★ここ追加：壁に張り付いている状態の検出
+			else if (!m_onGround && (isTouchingWallLeft || isTouchingWallRight))
+			{
+				velocity.y = Min(velocity.y, 100.0); // 落下速度を緩める（スライド感）
+				SetPlayerState(StateMode::OnTheWall);
 			}
 		}
+
 
 		//-----------------------------------
 		// 縦方向移動処理（壁上端安定）
@@ -475,7 +533,14 @@ void Player::update(Game_Map& map)
 		case StateMode::Run:
 			PlayerRun();
 			break;
-		
+		case StateMode::Jump:
+			PlayerJump();
+
+			break;
+		case StateMode::OnTheWall:
+			PlayerOnTheWall();
+			break;
+
 		case StateMode::Attack:
 			PlayerAttack();
 			break;
@@ -519,8 +584,8 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 attackY = frameHeight * 2;
 	const int32 hurtY = frameHeight * 4;
 	const int32 IdleAttack = frameHeight * 4;
-	const int32 Doge = frameHeight * 4;
-
+	const int32 Doge = frameHeight * 4,Jump = frameHeight * 4;
+	const int32 OnTheWall = frameHeight * 6;
 	int32 n = 0;
 	int32 y = idleY;
 
@@ -529,13 +594,35 @@ void Player::draw(const Game_Map& CameraPos) const
 	case StateMode::Idle:
 		n = m_idlePatterns[m_frameIndex];
 		break;
+	case StateMode::IdleToRun:
+		n = m_idleToRunPatterns[m_frameIndex];
+		y = runY;
+		break;
+	case StateMode::Run:
+		n = m_runPatterns[m_frameIndex];
+		if (m_frameIndex == 5)
+		{
+			n = 0;
+			y = attackY + 30;
+		}
+		else
+		{
+			y = runY;
+		}
+		break;
 	case StateMode::Attack:
 		n = m_attackPatterns[m_frameIndex];
 		y = attackY+30;
 		break;
-	case StateMode::IdleToRun:
-		n = m_idleToRunPatterns[m_frameIndex];
-		y = runY;
+	
+	case StateMode::Jump:
+		n = m_jumpPatterns[m_frameIndex];
+		y = Jump+65;
+		break;
+
+	case StateMode::OnTheWall:
+		n = m_onTheWallPatterns[m_frameIndex];
+		y = OnTheWall+65;
 		break;
 
 	case StateMode::IdleToAttack:
@@ -550,22 +637,11 @@ void Player::draw(const Game_Map& CameraPos) const
 			y = IdleAttack+50;
 		}
 		break;
-	case StateMode::Run:
-		n = m_runPatterns[m_frameIndex];
-		if (m_frameIndex==5)
-		{
-			n = 0;
-			y = attackY+30;
-		}
-		else
-		{
-			y = runY;
-		}
-		break;
+	
 	case StateMode::Hurt:
 		n = m_hurtPatterns[m_frameIndex];
 		
-	    y = hurtY - 300;
+	    y = hurtY + 45;
 		
 		
 		break;
@@ -586,7 +662,8 @@ void Player::draw(const Game_Map& CameraPos) const
 	// ★ 当たり判定にぴったり足元が接地
 	double scaleY = GetPlayerHitBox().y / frameHeight;
 	double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
-
+	// 描画オフセット（向きによって左右調整）
+	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 0 } : Vec2{ -10, 0 };
 	// 足元をピッタリ合わせる
 	drawPos.y -= (frameHeight * scaleY) / 2 - (GetPlayerHitBox().y / 2);
 	if (GetPlayerState() == StateMode::Doge)
@@ -606,7 +683,7 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(scaleX, scaleY)
-		.drawAt(drawPos);
+		.drawAt(drawPos+offset);
 
 	// デバッグ枠
 	RectF hitBox(Arg::center = GetPlayerPosition(), GetPlayerHitBox());
