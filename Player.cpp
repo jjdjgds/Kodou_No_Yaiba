@@ -9,6 +9,22 @@ RectF enemyRect{ 1000, 750, 64, 64 };
 
 
 Player::~Player() {}
+HeartRateState Player::GetHeartRateState(int bpm)
+{
+	if (bpm <= 60 || bpm >= 140)
+		return HeartRateState::Stun;
+
+	if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
+		return HeartRateState::Warning;
+
+	if (bpm >= 120 && bpm <= 129)
+		return HeartRateState::Berserk;
+
+	if (bpm >= 71 && bpm <= 80)
+		return HeartRateState::TimeControl;
+
+	return HeartRateState::Normal;
+}
 
 RectF Player::getAttackRect(const Vec2& camera) const
 {
@@ -56,6 +72,22 @@ RectF Player::getHitRect(const Vec2& camera) const
 
 
 
+
+void Player::UpdateHeartState()
+{
+	auto bpm = GetPlayerBPM();
+
+	if (bpm <= 60 || bpm >= 140)
+		m_HeartRateState = HeartRateState::Stun;
+	else if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
+		m_HeartRateState = HeartRateState::Warning;
+	else if (bpm >= 120 && bpm <= 129)
+		m_HeartRateState = HeartRateState::Berserk;
+	else if (bpm >= 71 && bpm <= 80)
+		m_HeartRateState = HeartRateState::TimeControl;
+	else
+		m_HeartRateState = HeartRateState::Normal;
+}
 
 void Player::takeDamage(int dmg)
 {
@@ -133,7 +165,7 @@ void Player::PlayerDoge()
 	static bool isDodging = false;
 	static double dogeTimer = 0.0;
 
-	if (!isDodging)
+	if (!isDodging )
 	{
 		isDodging = true;
 		dogeTimer = 0.0;
@@ -164,7 +196,7 @@ void Player::PlayerDoge()
 
 	// === 持続時間管理 ===
 	dogeTimer += Scene::DeltaTime();
-	const double dogeDuration = 0.5; // 回避時間
+	const double dogeDuration = 0.1; // 回避時間
 
 	if (dogeTimer >= dogeDuration)
 	{
@@ -184,6 +216,7 @@ void Player::PlayerDoge()
 			SetPlayerState(StateMode::Idle);
 		}
 		dogeTimer = 0.0;
+		m_DogeCoolTimer += Scene::DeltaTime();
 		isDodging = false;
 	}
 }
@@ -219,6 +252,30 @@ void Player::PlayerHurt()
 			}
 		}
 	}
+}
+
+void Player::ApplyHeartEffects()
+{
+	//移動速度、攻撃速度、
+	// ステータスによっては時止めフラグ、バーサーカーモード
+	//Warningはたぶん画面赤フラグ？
+	auto state = GetPlayerHeartState();
+	switch (state)
+	{
+	case HeartRateState::Stun:
+		break;
+	case HeartRateState::Warning:
+		break;
+	case HeartRateState::Berserk:
+		break;
+	case HeartRateState::TimeControl:
+		break;
+	case HeartRateState::Normal:
+		break;
+	default:
+		break;
+	}
+
 }
 
 void Player::PlayerIdleToRun()
@@ -402,6 +459,8 @@ void Player::update(Game_Map& map)
 {
 	animTime += Scene::DeltaTime();
 
+	UpdateHeartState();
+	ApplyHeartEffects();
 	//-----------------------------------
 	// 入力処理 & 状態遷移
 	//-----------------------------------
@@ -412,7 +471,7 @@ void Player::update(Game_Map& map)
 
 	// === 状態遷移 ===
 	if (KeyEnter.down()) {
-		// ★★★ 攻撃フラグをリセット
+		//  攻撃フラグをリセット
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
 		m_frameIndex = 0;
@@ -524,7 +583,7 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	// 重力処理
 	//-----------------------------------
-	velocity.y += m_gravity * Scene::DeltaTime() * 90;
+	velocity.y += m_gravity * Scene::DeltaTime()*400;
 
 	//-----------------------------------
 	// ジャンプ処理（地上 or 壁キック）
@@ -541,10 +600,10 @@ void Player::update(Game_Map& map)
 		// 通常ジャンプ
 		if (tryJump && m_onGround)
 		{
-			constexpr double JumpPowerScale = 100.0;
+			constexpr double JumpPowerScale = 200.0;
 			velocity.y = -GetPlayerJumpSpeed() * JumpPowerScale;
 			m_onGround = false;
-			// ★★★ 攻撃フラグをリセット
+			//  攻撃フラグをリセット
 			SetPlayerAttackFlag(false);
 			SetPlayerState(StateMode::Jump);
 			m_frameIndex = 0;
@@ -553,12 +612,12 @@ void Player::update(Game_Map& map)
 		// 壁ジャンプ
 		else if (tryJump && canWallJump && (isTouchingWallLeft || isTouchingWallRight))
 		{
-			constexpr double JumpPowerScale = 100.0;
+			constexpr double JumpPowerScale = 200.0;
 			canWallJump = true;
 			velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 0.9);
 			velocity.x = (isTouchingWallLeft ? 500 : -500);
 			m_onGround = false;
-			// ★★★ 攻撃フラグをリセット
+			//  攻撃フラグをリセット
 			SetPlayerAttackFlag(false);
 			SetPlayerState(StateMode::Jump);
 			m_frameIndex = 0;
@@ -568,7 +627,7 @@ void Player::update(Game_Map& map)
 		else if (!m_onGround && (isTouchingWallLeft || isTouchingWallRight))
 		{
 			velocity.y = Min(velocity.y, 100.0);
-			// ★★★ 攻撃フラグをリセット
+			//  攻撃フラグをリセット
 			SetPlayerAttackFlag(false);
 			SetPlayerState(StateMode::OnTheWall);
 		}
@@ -888,5 +947,5 @@ void Player::draw(const Game_Map& CameraPos) const
 
 
 	
-	Print << U"velo" << GetPlayerSpeed();
+	//Print << U"velo" << GetPlayerSpeed();
 }
