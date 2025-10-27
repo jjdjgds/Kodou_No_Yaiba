@@ -16,13 +16,14 @@ public:
 	Game_Map();
 	~Game_Map() = default;
 	bool loadStageFromFile(const FilePath& path);
+	void loadNextStage();
 	void update();
 	void draw() const;
 
 	void updateCamera(const Vec2& playerPos);
 	Vec2 getCameraPos() const { return m_cameraPos; }
 
-	bool CheckCollision(const RectF& rect) const;
+	bool CheckCollision(const RectF& rect) ;
 	bool CheckCollision_Line(const Line& line) const;//敵の地面判定用
 };
 
