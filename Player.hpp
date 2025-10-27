@@ -9,9 +9,9 @@ class Player
 
 
 private:
-	static constexpr float NormalPlayerSpeed = 30.0f;
-	static constexpr float DogePlayerSpeed = 60.0f;
-	Vec2 m_Position;		  //位置
+	static constexpr float NormalPlayerSpeed = 800.0f;
+	static constexpr float DogePlayerSpeed = 1600.0f;
+	Vec2 m_Position;	  //位置
 	Vec2 m_Scale;			  //大きさ
 	Vec2 m_Velocity;		  //速度
 	Vec2 m_Acceleration;	  //加速度
@@ -33,9 +33,10 @@ private:
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
-	RectF m_HitRect;          //当たり判定矩形
-	float m_gravity = 0.98f;  //重力
+	Vec2 m_HitRect = { 5.0 ,5.0 };          //当たり判定矩形
+	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
+	double m_hitOffsetY = 20.0;// 当たり判定Y
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
@@ -51,17 +52,26 @@ private:
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
-	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
+
+	//回避アニメーション
+	Array<int32> m_jumpPatterns{ 6,6,6,6,6,6 };
 	//IDLEATTACK
 	Array<int32> m_IdleAttackPatterns{7,0,1,2,3};
 
+	//ジャンプアニメーション
+	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
+
+	//壁ズリアニメーション
+	Array<int32> m_onTheWallPatterns{2};
+
+	Array<int32> m_FallPatterns{ 5,5,5,5,5 };
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
 
 public:
 	
-	Player();
+	//Player();
 
 
 	Player(
@@ -130,10 +140,11 @@ public:
 	 bool  IsPlayerFacingRight() const { return m_FaceRight; }
 	 bool  IsPlayerInvincible() const { return m_Invincible; }
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
-	 RectF GetPlayerHitRect() const { return m_HitRect; }
+	 float GetPlayerDefoSpeed() const { return NormalPlayerSpeed; }
 	 StateMode GetPlayerState() const { return m_PlayerState; }
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	//setter
+	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
 	Vec2 SetPlayerVelocity(const Vec2 vel) { return m_Velocity = vel; }
@@ -155,8 +166,7 @@ public:
 	float SetPlayerJumpSpeed(float jumpSpeed) { return m_JumpSpeed = jumpSpeed; }
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
-	RectF SetPlayerHitRect(const RectF rect) { return m_HitRect = rect; }
-
+	
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
@@ -173,13 +183,16 @@ public:
 
 
 	void takeDamage(int dmg);
-	RectF getAttackRect() const;
-	void PlayerAttack();
+	RectF getAttackRect(const Vec2& camera) const;
+	RectF getHitRect(const Vec2& camera)const;
+	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();
-	void PlayerIdleToAttack();
+	void PlayerIdleToAttack(const Vec2& camera);
 	void PlayerRun();
-
+	void PlayerJump();
+	void PlayerOnTheWall();
+	void PlayerFall();
 	void PlayerDoge();
 	void PlayerHurt();
 	void update(Game_Map& map);

@@ -8,23 +8,23 @@ using namespace Collision;
 
 Game::Game(const InitData& init)
 	: IScene{ init }
-	, player( // ← 初期化リストで player を作成
-		Vec2(700, 750), // position
-		Vec2(0.5, 0.5),     // scale
-		Vec2(0.0, 0.0),     // velocity
-		Vec2(50.0, 90.0),  // HitBox
-		3,                 // HP
-		3,                 // Max Hp
-		100,               // BPM
-		3,                 // Attack
-		1.0f,              // AttackRange
-		0.5f,              // AttackSpeed
-		30.0f,             // Speed
-		3.0f,              // DamageTimeOut
-		false,             // Jump
-		true,              // FaceRight
-		false              // Invincible
+	, player(
+	Vec2(800, 750), // 位置
+	Vec2(100, 100), // スプライトスケール(px)
+	Vec2(0.0, 0.0),
+	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
+		3,
+		3,
+		100,
+		3,
+		1.0f,
+		0.5f,
+		player.GetPlayerDefoSpeed(),
+		3.0f,
+	false, true, false
 	)
+
+
 {
 
 	// マップ読み込み

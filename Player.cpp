@@ -1,4 +1,5 @@
-﻿#include "Player.hpp"
+﻿#include <Siv3D.hpp>
+#include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
 
@@ -6,16 +7,55 @@ using namespace Collision;
 
 RectF enemyRect{ 1000, 750, 64, 64 };
 
-Player::Player() {}
+
 Player::~Player() {}
 
-RectF Player::getAttackRect() const
+RectF Player::getAttackRect(const Vec2& camera) const
 {
+	// === プレイヤーの当たり判定サイズを基準にする ===
+	const SizeF hitSize = GetPlayerHitBox() ;
+	const double attackWidth = hitSize.x*12 ; // 攻撃範囲を少し広げる
+	const double attackHeight = hitSize.y*10 ; // 高さはプレイヤーと同じ
+	const SizeF attackSize{ attackWidth, attackHeight  };
+
+	// === 基準点（プレイヤーの中心） ===
+	Vec2 center = GetPlayerPosition().movedBy(-camera);
+
+	// === 向きによって左右に矩形をオフセット ===
+	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6+50 : -hitSize.x * 0.6-50);
+	center.x += offsetX;
+
+	// === 少し上にオフセットして、胸〜腰あたりの高さに ===
+	center.y -= hitSize.y+30 ;
+
 	return RectF{
-		Arg::center = GetPlayerPosition().movedBy(0, -GetPlayerHitBox().y * 0.2),
-		SizeF{ 200, 220 }
+		Arg::center = center,
+		attackSize
 	};
 }
+
+
+RectF Player::getHitRect(const Vec2& camera) const
+{
+	// === 実際の当たり判定サイズ（スケール反映） ===
+	const SizeF sz = {
+		m_HitBox.x * m_Scale.x/10,
+		m_HitBox.y * m_Scale.y/10
+	};
+
+	// === 中心をスプライトと一致させる（体中心基準） ===
+	// m_Position がキャラ中心座標なのでそのまま使用
+	const Vec2 center = m_Position
+		.movedBy(-camera + Vec2{0,-40}); // カメラ補正
+
+	return RectF{
+		Arg::center = center,
+		sz
+	};
+}
+
+
+
 
 void Player::takeDamage(int dmg)
 {
@@ -26,7 +66,7 @@ void Player::takeDamage(int dmg)
 	SetPlayerHP(GetPlayerHP() - dmg);
 }
 
-void Player::PlayerAttack()
+void Player::PlayerAttack(const Vec2& camera)
 {
 	const double attackFrameDuration = 0.08;
 
@@ -40,7 +80,7 @@ void Player::PlayerAttack()
 		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			const RectF pBox = getAttackRect();
+			const RectF pBox = getAttackRect(Vec2{});
 			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"攻撃ヒット！";
@@ -54,12 +94,19 @@ void Player::PlayerAttack()
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
+			
+
+
 			// ★ ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				// まだ移動キーが押されている → Runへ
 				SetPlayerState(StateMode::Run);
 			}
+			/*else if (!m_onGround)
+			{
+				SetPlayerState(StateMode::Fall);
+			}*/
 			else
 			{
 				// 押されていない → Idleへ
@@ -91,9 +138,7 @@ void Player::PlayerDoge()
 		isDodging = true;
 		dogeTimer = 0.0;
 
-		//// 入力方向へ高速移動（回避の瞬間ダッシュ）
-		//double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
-		//SetPlayerVelocity(Vec2(700 * dir, GetPlayerVelocity().y));
+		
 
 		SetPlayerSpeed(DogePlayerSpeed);
 
@@ -156,7 +201,21 @@ void Player::PlayerHurt()
 			if (m_frameIndex >= m_hurtPatterns.size())
 			{
 				m_frameIndex = 0;
-				SetPlayerState(StateMode::Idle);
+				//  ここが重要！ 攻撃後の状態を決める
+				if (KeyA.pressed() || KeyD.pressed())
+				{
+					// まだ移動キーが押されている → Runへ
+					SetPlayerState(StateMode::Run);
+				}
+				else
+				{
+					// 押されていない → Idleへ
+					SetPlayerState(StateMode::Idle);
+				}
+				if (KeySpace.down())
+				{
+					SetPlayerState(StateMode::Attack);
+				}
 			}
 		}
 	}
@@ -181,7 +240,7 @@ void Player::PlayerIdleToRun()
 
 }
 
-void Player::PlayerIdleToAttack()
+void Player::PlayerIdleToAttack(const Vec2& camera)
 {
 	const double attackToIdleFrameDuration = 0.08;
 	if (!m_AttackFlag) return;
@@ -194,7 +253,7 @@ void Player::PlayerIdleToAttack()
 		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			const RectF pBox = getAttackRect();
+			const RectF pBox = getAttackRect(camera);
 			if (RectToRect(pBox, enemyRect))
 			{
 				Print << U"攻撃ヒット！";
@@ -208,7 +267,7 @@ void Player::PlayerIdleToAttack()
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
-			// ★ ここが重要！ 攻撃後の状態を決める
+			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				// まだ移動キーが押されている → Runへ
@@ -244,32 +303,120 @@ void Player::PlayerRun()
 	}
 }
 
+void Player::PlayerJump()
+{
+
+	// === アニメーション更新 ===
+	animTime += Scene::DeltaTime();
+	const double JumpFrameDuration = 0.08;
+
+	if (animTime >= JumpFrameDuration)
+	{
+		animTime -= JumpFrameDuration;
+		m_frameIndex++;
+
+		if (m_frameIndex >= m_jumpPatterns.size())
+		{
+			m_frameIndex = 0;
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				SetPlayerState(StateMode::Idle);
+			}
+		}
+	}
+
+
+}
+
+void Player::PlayerOnTheWall()
+{
+
+	const double onTheWallFrameDuration = 0.15;
+	if (animTime >= onTheWallFrameDuration)
+	{
+		animTime -= onTheWallFrameDuration;
+		m_frameIndex++;
+		if (m_frameIndex >= m_onTheWallPatterns.size())
+		{
+			m_frameIndex = 0;
+			
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+
+		}
+	}
+
+	
+
+}
+
+void Player::PlayerFall()
+{
+	const double onTheWallFrameDuration = 0.15;
+	if (animTime >= onTheWallFrameDuration)
+	{
+		animTime -= onTheWallFrameDuration;
+		m_frameIndex++;
+		if (m_frameIndex >= m_onTheWallPatterns.size())
+		{
+			m_frameIndex = 0;
+
+			if (m_onGround)
+			{
+				// ★ ここが重要！ 攻撃後の状態を決める
+				if (KeyA.pressed() || KeyD.pressed())
+				{
+					// まだ移動キーが押されている → Runへ
+					SetPlayerState(StateMode::Run);
+				}
+				else
+				{
+					// 押されていない → Idleへ
+					SetPlayerState(StateMode::Idle);
+				}
+			}
+
+		}
+	}
+
+}
+
 
 
 void Player::update(Game_Map& map)
 {
-	
 	animTime += Scene::DeltaTime();
 
 	//-----------------------------------
-	// 入力処理
+	// 入力処理 & 状態遷移
 	//-----------------------------------
-	//-----------------------------------
-// 入力処理 & 状態遷移
-//-----------------------------------
-	//-----------------------------------
-// 入力処理
-//-----------------------------------
 	Vec2 input{
-		
 		(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
 		0.0
 	};
 
 	// === 状態遷移 ===
-
 	if (KeyEnter.down()) {
+		// ★★★ 攻撃フラグをリセット
+		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
+		m_frameIndex = 0;
+		animTime = 0.0;
 	}
 
 	// Idle → IdleToRun（最初の走り出し）
@@ -279,8 +426,6 @@ void Player::update(Game_Map& map)
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
-
-	// IdleToRun → Run は PlayerIdleToRun() 内で自動遷移
 
 	// Run 維持処理（キー押しっぱなし）
 	if ((KeyD.pressed() || KeyA.pressed()) && GetPlayerState() == StateMode::Run)
@@ -304,205 +449,321 @@ void Player::update(Game_Map& map)
 		SetPlayerFaceRight(input.x > 0);
 	}
 
+	Vec2 pos = GetPlayerPosition();
+	Vec2 size = GetPlayerHitBox();
+	Vec2 velocity = GetPlayerVelocity();
 
+	// === 統一した当たり判定サイズを計算 ===
+	const SizeF collisionSize = {
+		m_HitBox.x * m_Scale.x / 10,
+		m_HitBox.y * m_Scale.y / 10
+	};
 
-		Vec2 pos = GetPlayerPosition();
-		Vec2 size = GetPlayerHitBox();
-		Vec2 velocity = GetPlayerVelocity();
+	// === 重要：描画との整合性を取るためのオフセット ===
+	const Vec2 collisionOffset = Vec2{ 0, -40 };
 
-		bool isTouchingWallLeft = false;
-		bool isTouchingWallRight = false;
+	bool isTouchingWallLeft = false;
+	bool isTouchingWallRight = false;
 
-		//-----------------------------------
-		// 横移動処理
-		//-----------------------------------
-		
+	//-----------------------------------
+	// 横移動処理
+	//-----------------------------------
+	{
 		velocity.x = input.x * GetPlayerSpeed();
-		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime() * 10, 0);
-		RectF rectX(Arg::center = nextPosX, size);
-		RectF erectX(Arg::center = Vec2(1000, 750), Vec2(64, 64));
+		Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
+
+		RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
+
 		bool mapColli = map.CheckCollision(rectX);
 		bool enemyColli = false;
 		if (GetPlayerState() != StateMode::Doge)
 		{
-			 enemyColli = RectToRect(rectX, enemyRect);
+			enemyColli = RectToRect(rectX, enemyRect);
 		}
-		
+
 		if ((!mapColli) && (!enemyColli))
 		{
 			pos.x = nextPosX.x;
 		}
 		else
 		{
-			// 壁衝突
-			if (input.x > 0) isTouchingWallRight = true;
-			else if (input.x < 0) isTouchingWallLeft = true;
-
+			// 壁衝突 - 位置を補正
 			velocity.x = 0;
+
+			// めり込みを戻す
+			int maxIterations = 100;
+			int iterations = 0;
+			while ((map.CheckCollision(rectX) || (GetPlayerState() != StateMode::Doge && RectToRect(rectX, enemyRect)))
+				   && iterations < maxIterations)
+			{
+				if (input.x > 0)
+				{
+					nextPosX.x -= 0.5;
+					isTouchingWallRight = true;
+				}
+				else if (input.x < 0)
+				{
+					nextPosX.x += 0.5;
+					isTouchingWallLeft = true;
+				}
+				else
+				{
+					break;
+				}
+				rectX.setCenter(nextPosX + collisionOffset);
+				iterations++;
+			}
+
+			if (iterations < maxIterations)
+			{
+				pos.x = nextPosX.x;
+			}
 		}
+	}
 
-		if (input.x != 0)
-		{
-			SetPlayerFaceRight(input.x > 0);
-		}
+	//-----------------------------------
+	// 重力処理
+	//-----------------------------------
+	velocity.y += m_gravity * Scene::DeltaTime() * 90;
 
-		//-----------------------------------
-		// 重力処理
-		//-----------------------------------
-		velocity.y += m_gravity * Scene::DeltaTime() * 90;
-
-		//-----------------------------------
-		// ジャンプ処理（地上 or 壁キック）
-		//-----------------------------------
-		static bool canWallJump = true; // ★ 一度だけ壁ジャンプできるフラグ
-
+	//-----------------------------------
+	// ジャンプ処理（地上 or 壁キック）
+	//-----------------------------------
+	{
+		static bool canWallJump = true;
 		bool tryJump = (KeyW.down() || KeyUp.down());
 
 		if (m_onGround)
 		{
-			canWallJump = true; // 地面に着いたらリセット
+			canWallJump = true;
 		}
 
-		if (tryJump)
+		// 通常ジャンプ
+		if (tryJump && m_onGround)
 		{
 			constexpr double JumpPowerScale = 100.0;
+			velocity.y = -GetPlayerJumpSpeed() * JumpPowerScale;
+			m_onGround = false;
+			// ★★★ 攻撃フラグをリセット
+			SetPlayerAttackFlag(false);
+			SetPlayerState(StateMode::Jump);
+			m_frameIndex = 0;
+			animTime = 0.0;
+		}
+		// 壁ジャンプ
+		else if (tryJump && canWallJump && (isTouchingWallLeft || isTouchingWallRight))
+		{
+			constexpr double JumpPowerScale = 100.0;
+			canWallJump = true;
+			velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 0.9);
+			velocity.x = (isTouchingWallLeft ? 500 : -500);
+			m_onGround = false;
+			// ★★★ 攻撃フラグをリセット
+			SetPlayerAttackFlag(false);
+			SetPlayerState(StateMode::Jump);
+			m_frameIndex = 0;
+			animTime = 0.0;
+		}
+		// 壁に張り付き
+		else if (!m_onGround && (isTouchingWallLeft || isTouchingWallRight))
+		{
+			velocity.y = Min(velocity.y, 100.0);
+			// ★★★ 攻撃フラグをリセット
+			SetPlayerAttackFlag(false);
+			SetPlayerState(StateMode::OnTheWall);
+		}
+	}
 
-			if (m_onGround)
+	//-----------------------------------
+	// 縦方向移動処理
+	//-----------------------------------
+	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
+	RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
+
+	bool hitGround = false;
+	bool hitCeiling = false;
+
+	if (!map.CheckCollision(rectY))
+	{
+		pos.y = nextPosY.y;
+	}
+	else
+	{
+		if (velocity.y > 0)
+		{
+			// 地面に衝突
+			velocity.y = 0;
+
+			int maxIterations = 100;
+			int iterations = 0;
+			while (map.CheckCollision(rectY) && iterations < maxIterations)
 			{
-				// 通常ジャンプ
-				velocity.y = -GetPlayerJumpSpeed() * JumpPowerScale;
-				m_onGround = false;
+				nextPosY.y -= 0.5;
+				rectY.setCenter(nextPosY + collisionOffset);
+				iterations++;
 			}
-			else if (canWallJump && (isTouchingWallLeft || isTouchingWallRight))
+
+			if (iterations < maxIterations)
 			{
-				// 壁ジャンプ
-				canWallJump = false;
-				velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 0.9); // 少し弱め
-				velocity.x = (isTouchingWallLeft ? 500 : -500); // 反対方向に跳ねる
-				m_onGround = false;
+				pos.y = nextPosY.y;
+				hitGround = true;
 			}
 		}
-
-		//-----------------------------------
-		// 縦方向移動処理（壁上端安定）
-		//-----------------------------------
-		Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
-		RectF rectY(Arg::center = nextPosY, SizeF{ size.x * 0.95, size.y * 1.05 });
-
-		bool hitGround = false;
-		bool hitCeiling = false;
-
-		if (!map.CheckCollision(rectY))
+		else if (velocity.y < 0)
 		{
-			pos.y = nextPosY.y;
+			// 天井衝突
+			velocity.y = 0;
+
+			int maxIterations = 100;
+			int iterations = 0;
+			while (map.CheckCollision(rectY) && iterations < maxIterations)
+			{
+				nextPosY.y += 0.5;
+				rectY.setCenter(nextPosY + collisionOffset);
+				iterations++;
+			}
+
+			if (iterations < maxIterations)
+			{
+				pos.y = nextPosY.y;
+				hitCeiling = true;
+			}
+		}
+	}
+
+	//-----------------------------------
+	// 接地判定
+	//-----------------------------------
+	RectF groundCheckRect(
+		Arg::center = (pos + collisionOffset).movedBy(0, collisionSize.y / 2 + 1),
+		SizeF{ collisionSize.x * 0.9, 4 }
+	);
+
+	m_onGround = map.CheckCollision(groundCheckRect) || hitGround;
+
+	//-----------------------------------
+	//  Fall状態への自動遷移（ジャンプ以外で空中にいる場合）
+	//-----------------------------------
+	if (!m_onGround &&
+		GetPlayerState() != StateMode::Jump &&
+		GetPlayerState() != StateMode::Fall &&
+		GetPlayerState() != StateMode::OnTheWall &&
+		GetPlayerState() != StateMode::Doge &&
+		GetPlayerState() != StateMode::Attack &&
+		GetPlayerState() != StateMode::IdleToAttack &&
+		GetPlayerState() != StateMode::IdleToRun)  // ← 追加
+	{
+		//  攻撃フラグをリセット
+		SetPlayerAttackFlag(false);
+		SetPlayerState(StateMode::Fall);
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
+
+	//  接地時の状態遷移（Fall状態から復帰）
+	if (m_onGround && GetPlayerState() == StateMode::Fall)
+	{
+		if (KeyA.pressed() || KeyD.pressed())
+		{
+			SetPlayerState(StateMode::Run);
 		}
 		else
 		{
-			if (velocity.y > 0)
-			{
-				// 地面に衝突
-				hitGround = true;
-				velocity.y = 0;
-
-				// 微妙にめり込んだ時の戻し
-				while (map.CheckCollision(rectY))
-				{
-					nextPosY.y -= 0.5;
-					rectY.setCenter(nextPosY);
-				}
-				pos.y = nextPosY.y;
-				m_onGround = true;
-			}
-			else if (velocity.y < 0)
-			{
-				// 天井衝突
-				hitCeiling = true;
-				velocity.y = 0;
-				while (map.CheckCollision(rectY))
-				{
-					nextPosY.y += 0.5;
-					rectY.setCenter(nextPosY);
-				}
-				pos.y = nextPosY.y;
-			}
+			SetPlayerState(StateMode::Idle);
 		}
+		m_frameIndex = 0;
+		animTime = 0.0;
+	}
 
-		//-----------------------------------
-		// 接地判定
-		//-----------------------------------
-		RectF groundCheckRect(
-			Arg::center = pos.movedBy(0, size.y / 2 + 2), // 判定を小さく
-			SizeF{ size.x * 0.9, 6 }
-		);
+	//-----------------------------------
+	// 攻撃処理（ 優先度を高く）
+	//-----------------------------------
+	if (KeySpace.down() && !IsPlayerAttacking())
+	{
+		SetPlayerLastState(GetPlayerState());
+		SetPlayerAttackFlag(true);
+		m_frameIndex = 0;
+		animTime = 0.0;
 
-		m_onGround = map.CheckCollision(groundCheckRect) || hitGround;
-
-		//-----------------------------------
-		// 攻撃処理
-		//-----------------------------------
-		// 攻撃処理
-		if (KeySpace.down() && !IsPlayerAttacking())
+		if (GetPlayerState() == StateMode::Idle)
 		{
-			SetPlayerLastState(GetPlayerState());
-			SetPlayerAttackFlag(true);
-			m_frameIndex = 0;
-			animTime = 0.0;
+			SetPlayerState(StateMode::IdleToAttack);
+		}
+		else
+		{
+			SetPlayerState(StateMode::Attack);
+		}
+	}
+	// ======== 接地時の状態復帰 ========
+	if (m_onGround)
+	{
+		if (GetPlayerState() == StateMode::Fall ||
+			GetPlayerState() == StateMode::Jump ||
+			GetPlayerState() == StateMode::OnTheWall)
+		{
+			// 速度リセット
+			velocity.y = 0;
 
-			// ★IdleならIdleToAttack、それ以外はAttack
-			if (GetPlayerState() == StateMode::Idle)
+			// 状態遷移
+			if (KeyA.pressed() || KeyD.pressed())
 			{
-				SetPlayerState(StateMode::IdleToAttack);
+				SetPlayerState(StateMode::Run);
 			}
 			else
 			{
-				SetPlayerState(StateMode::Attack);
+				SetPlayerState(StateMode::Idle);
 			}
+
+			m_frameIndex = 0;
+			animTime = 0.0;
 		}
+	}
 
+	//-----------------------------------
+	// アニメーション処理
+	//-----------------------------------
+	switch (GetPlayerState())
+	{
+	case StateMode::Idle:
+		PlayerIdle();
+		break;
+	case StateMode::IdleToRun:
+		PlayerIdleToRun();
+		break;
+	case StateMode::Run:
+		PlayerRun();
+		break;
+	case StateMode::Jump:
+		PlayerJump();
+		break;
+	case StateMode::Fall:
+		PlayerFall();
+		break;
+	case StateMode::OnTheWall:
+		PlayerOnTheWall();
+		break;
+	case StateMode::Attack:
+		PlayerAttack(map.getCameraPos());
+		break;
+	case StateMode::Hurt:
+		PlayerHurt();
+		break;
+	case StateMode::IdleToAttack:
+		PlayerIdleToAttack(map.getCameraPos());
+		break;
+	case StateMode::Doge:
+		PlayerDoge();
+		break;
+	default:
+		break;
+	}
 
-		//-----------------------------------
-		// アニメーション処理
-		//-----------------------------------
-		switch (GetPlayerState())
-		{
-		case StateMode::Idle:
-			PlayerIdle();
-			break;
-
-		case StateMode::IdleToRun:
-			PlayerIdleToRun();
-			break;
-		case StateMode::Run:
-			PlayerRun();
-			break;
-		
-		case StateMode::Attack:
-			PlayerAttack();
-			break;
-		case StateMode::Hurt:
-			PlayerHurt();
-			break;
-		case StateMode::IdleToAttack:
-			PlayerIdleToAttack();
-			break;
-
-		case StateMode::Doge:
-			PlayerDoge();
-			break;
-		default:
-			break;
-		}
-
-		//-----------------------------------
-		// 値を反映
-		//-----------------------------------
-		SetPlayerVelocity(velocity);
-		SetPlayerPosition(pos);
-	
+	//-----------------------------------
+	// 値を反映
+	//-----------------------------------
+	SetPlayerVelocity(velocity);
+	SetPlayerPosition(pos);
 }
-
-
-
 
 // ============================
 // 描画処理
@@ -520,103 +781,112 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 hurtY = frameHeight * 4;
 	const int32 IdleAttack = frameHeight * 4;
 	const int32 Doge = frameHeight * 4;
+	const int32 Jump = frameHeight * 4;
+	const int32 Fall = frameHeight * 4;
+	const int32 OnTheWall = frameHeight * 6;
 
 	int32 n = 0;
 	int32 y = idleY;
 
+	// === アニメーション選択 ===
 	switch (GetPlayerState())
 	{
 	case StateMode::Idle:
 		n = m_idlePatterns[m_frameIndex];
 		break;
-	case StateMode::Attack:
-		n = m_attackPatterns[m_frameIndex];
-		y = attackY+30;
-		break;
+
 	case StateMode::IdleToRun:
 		n = m_idleToRunPatterns[m_frameIndex];
 		y = runY;
 		break;
 
-	case StateMode::IdleToAttack:
-		n = m_IdleAttackPatterns[m_frameIndex];
-		if (m_frameIndex >3 )
-		{
-			
-			y = IdleAttack+50;
-		}
-		else
-		{
-			y = IdleAttack+50;
-		}
-		break;
 	case StateMode::Run:
 		n = m_runPatterns[m_frameIndex];
-		if (m_frameIndex==5)
+		if (m_frameIndex == 5)
 		{
-			n = 0;
-			y = attackY+30;
+			n = 0; y = attackY + 30;
 		}
 		else
 		{
 			y = runY;
 		}
 		break;
-	case StateMode::Hurt:
-		n = m_hurtPatterns[m_frameIndex];
-		
-	    y = hurtY - 300;
-		
-		
+
+	case StateMode::Attack:
+		n = m_attackPatterns[m_frameIndex];
+		y = attackY + 30;
 		break;
 
+	case StateMode::Jump:
+		n = m_jumpPatterns[m_frameIndex];
+		y = Jump + 65;
+		break;
+	case StateMode::Fall:
+		n = m_FallPatterns[m_frameIndex];
+		y = Fall + 65;
+		break;
+	case StateMode::OnTheWall:
+		n = m_onTheWallPatterns[m_frameIndex];
+		y = OnTheWall + 65;
+		break;
+
+	case StateMode::IdleToAttack:
+		n = m_IdleAttackPatterns[m_frameIndex];
+		y = IdleAttack + 50;
+		break;
+
+	case StateMode::Hurt:
+		n = m_hurtPatterns[m_frameIndex];
+		y = hurtY + 45;
+		break;
 
 	case StateMode::Doge:
 		n = m_dogePatterns[m_frameIndex];
-		y = Doge+65;
-
+		y = Doge + 65;
 		break;
+
 	default:
 		n = m_idlePatterns[m_frameIndex];
 		break;
 	}
 
+	// === 描画位置（体中心） ===
 	Vec2 drawPos = GetPlayerPosition() - CameraPos.getCameraPos();
 
-	// ★ 当たり判定にぴったり足元が接地
-	double scaleY = GetPlayerHitBox().y / frameHeight;
-	double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
+	// === スケールと左右反転 ===
+	const double scaleY = GetPlayerScale().y / frameHeight;
+	const double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
 
-	// 足元をピッタリ合わせる
-	drawPos.y -= (frameHeight * scaleY) / 2 - (GetPlayerHitBox().y / 2);
+	// === オフセット ===
+	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 0 } : Vec2{ -10, 0 };
+
+	// === 当たり判定中心と一致 ===
+	// （スプライトの中心がキャラクターの中心に一致）
+	const Vec2 spriteCenterOffset = Vec2{ 0, (GetPlayerHitBox().y * 0.5) - (frameHeight * scaleY * 0.5) };
+	drawPos += spriteCenterOffset;
+
+	// === ドッジ専用オフセット ===
+	Vec2 dogeOffset = Vec2::Zero();
 	if (GetPlayerState() == StateMode::Doge)
 	{
-		if(IsPlayerFacingRight())
-		{
-			PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
-				.scaled(scaleX, scaleY)
-				.drawAt(drawPos - Vec2{ 15,0 });
-		}
-		else {
-			PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
-				.scaled(scaleX, scaleY)
-				.drawAt(drawPos + Vec2{ 15,0 });
-		}
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ -15, 0 } : Vec2{ 15, 0 };
 	}
 
+	// === スプライト描画 ===
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(scaleX, scaleY)
-		.drawAt(drawPos);
+		.drawAt(drawPos + offset + dogeOffset);
 
-	// デバッグ枠
-	RectF hitBox(Arg::center = GetPlayerPosition(), GetPlayerHitBox());
-	hitBox.movedBy(-CameraPos.getCameraPos()).drawFrame(1, ColorF{ 1, 1, 0, 0.8 });
-	// デバッグ枠
-	RectF attackBox = getAttackRect();
-	attackBox.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
-	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 0, 0.5 });
-	/*Print << U"state:" << (int)GetPlayerState();
-	Print << U"Frame:" << m_frameIndex;*/
-	Print << U"velo" << m_Velocity;
+	// === デバッグ表示 ===
+	RectF hitBox = getHitRect(CameraPos.getCameraPos());
+	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+
+	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
+	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+
+	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
+
+
 	
+	Print << U"velo" << GetPlayerSpeed();
 }
