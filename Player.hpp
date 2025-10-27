@@ -48,18 +48,25 @@ private:
 	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
-	double m_DogeCoolTimer = 0.5;
 	double m_DogelstTimer = 0.0;
+	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間
+	double m_DogeCooldown = 10.0;    // クールタイム時間（秒）
+	bool   m_isDodging = false;     // 現在ドッジ中か
+	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
+
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
-	Array<int32> m_idleToRunPatterns{ 0, 1, 2 };
+	Array<int32> m_idleToRunPatterns{ 0, 1, 2 ,3 };
+
+	//走リはじめ状態のアニメーション
+	Array<int32> m_runStartPatterns{};
 
 	//走る状態のアニメーション
-	Array<int32> m_runPatterns{  3, 4, 5, 6, 7,8 };
+	Array<int32> m_runPatterns{ 4, 5, 6, 7,8 };
 
 	// 攻撃アニメーション（横8枚のうち、0〜6枚目を使う）
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
@@ -76,6 +83,8 @@ private:
 
 	//壁ズリアニメーション
 	Array<int32> m_onTheWallPatterns{2};
+
+	
 
 	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
 	double m_scale = 4.0;     //描画スケール
@@ -215,6 +224,7 @@ public:
 	void PlayerFall();
 	void PlayerDoge();
 	void PlayerHurt();
+	void PlayerRunStart();
 	void ApplyHeartEffects();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;
