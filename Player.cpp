@@ -310,11 +310,34 @@ void Player::ApplyHeartEffects()
 
 }
 
+void Player::PlayerDead()
+{
+	// Dead 状態のときのみ処理
+	if (GetPlayerState() != StateMode::Dead)
+		return;
+
+	const double DeadFrameDuration = 0.45;
+	animTime += Scene::DeltaTime();  // 時間を加算（忘れていないか確認）
+
+	if (animTime >= DeadFrameDuration)
+	{
+		animTime -= DeadFrameDuration;
+
+		// まだ最後のフレームに到達していない場合のみ進める
+		if (m_frameIndex < static_cast<int>(m_deadPatterns.size()) - 1)
+		{
+			m_frameIndex++;
+		}
+		// 最後に達したら何もしない（そのまま静止）
+	}
+}
+
+
 void Player::PlayerIdleToRun()
 {
 	if (GetPlayerState() == StateMode::IdleToRun)
 	{
-		const double runFrameDuration = 0.15;
+		const double runFrameDuration = 0.1;
 		if (animTime >= runFrameDuration)
 		{				
 			animTime -= runFrameDuration;
@@ -624,7 +647,11 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	// 重力処理
 	//-----------------------------------
-	velocity.y += m_gravity * Scene::DeltaTime()*400;
+	if (!m_onGround)
+	{
+		velocity.y += m_gravity * Scene::DeltaTime() * 400;
+	}
+	
 
 	//-----------------------------------
 	// ジャンプ処理（地上 or 壁キック）
@@ -752,7 +779,8 @@ void Player::update(Game_Map& map)
 		GetPlayerState() != StateMode::Attack &&
 		GetPlayerState() != StateMode::IdleToAttack &&
 		GetPlayerState() != StateMode::IdleToRun &&
-		GetPlayerState() != StateMode::JumpAttack
+		GetPlayerState() != StateMode::JumpAttack &&
+		GetPlayerState() != StateMode::Dead
 		)  // ← 追加
 	{
 		//  攻撃フラグをリセット
@@ -825,6 +853,22 @@ void Player::update(Game_Map& map)
 		}
 	}
 
+	//-----------------------------
+	//デバック用
+	//-----------------------------
+	{
+		if (KeyP.down())
+		{
+
+			SetPlayerState(StateMode::Dead);
+
+		}
+
+
+
+	}
+	
+
 	//-----------------------------------
 	// アニメーション処理
 	//-----------------------------------
@@ -864,6 +908,10 @@ void Player::update(Game_Map& map)
 	case StateMode::Doge:
 		PlayerDoge();
 		break;
+
+	case StateMode::Dead:
+		PlayerDead();
+		break;
 	default:
 		break;
 	}
@@ -894,6 +942,9 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 Jump = frameHeight * 4;
 	const int32 Fall = frameHeight * 4;
 	const int32 OnTheWall = frameHeight * 6;
+	const int32 Dead = frameHeight * 5;
+	const int32 Dead2 = frameHeight * 6;
+
 
 	int32 n = 0;
 	int32 y = idleY;
@@ -926,7 +977,7 @@ void Player::draw(const Game_Map& CameraPos) const
 		n = m_attackPatterns[m_frameIndex];
 		y = attackY + 30;
 		break;
-
+	
 	case StateMode::Jump:
 		n = m_jumpPatterns[m_frameIndex];
 		y = Jump + 65;
@@ -978,7 +1029,20 @@ void Player::draw(const Game_Map& CameraPos) const
 		n = m_dogePatterns[m_frameIndex];
 		y = Doge + 65;
 		break;
+	case StateMode::Dead:
+		n = m_deadPatterns[m_frameIndex];
+		if (m_frameIndex >= 4)
+		{
+			//n = 0;
+			y = Dead2+75;
+		}
+		else
+		{
+			y = Dead + 75;
+		}
+		break;
 
+	
 	default:
 		n = m_idlePatterns[m_frameIndex];
 		break;
@@ -1020,8 +1084,7 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
-	//SimpleGUI::Label(U"Dodge CoolTime: {:.2f}"_fmt(m_DogeCoolTimer), Vec2{ 50, 50 });
-
+	
 	
 	Print << U"velo" << m_frameIndex;
 }

@@ -50,7 +50,7 @@ private:
 	double m_hitOffsetY = 20.0;// 当たり判定Y
 	double m_DogelstTimer = 0.0;
 	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間
-	double m_DogeCooldown = 10.0;    // クールタイム時間（秒）
+	double m_DogeCooldown = 1.0;    // クールタイム時間（秒）
 	bool   m_isDodging = false;     // 現在ドッジ中か
 	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
 
@@ -86,7 +86,8 @@ private:
 	//壁ズリアニメーション
 	Array<int32> m_onTheWallPatterns{2};
 
-	
+	//死亡アニメーション
+	Array<int32>m_deadPatterns{4,5,6,7,0,1};
 
 	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
 	double m_scale = 4.0;     //描画スケール
@@ -228,6 +229,7 @@ public:
 	void PlayerHurt();
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
+	void PlayerDead();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;
 };
