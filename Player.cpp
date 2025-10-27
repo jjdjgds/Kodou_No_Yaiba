@@ -240,7 +240,7 @@ void Player::PlayerJumpAttack()
 {
 
 
-	const double JumpattackFrameDuration = 1;
+	const double JumpattackFrameDuration = 0.08;
 
 	if (!m_AttackFlag) return;
 

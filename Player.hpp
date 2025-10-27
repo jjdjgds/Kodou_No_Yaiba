@@ -75,7 +75,7 @@ private:
 	//Jumpアニメーション
 	Array<int32> m_jumpPatterns{5,5,5,5,5  };
 
-	Array<int32>m_jumpAttackPatterns{ 8,0,1,2,3,4 };
+	Array<int32>m_jumpAttackPatterns{ 7,0,1,2,3,4 };
 
 	//IDLEATTACK
 	Array<int32> m_IdleAttackPatterns{6,7,0,1,2,3};
