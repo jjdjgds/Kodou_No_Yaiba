@@ -90,7 +90,11 @@ private:
 	//死亡アニメーション
 	Array<int32>m_deadPatterns{4,5,6,7,0,1};
 
+	//落下アニメーション
 	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
+
+	//薬ブッキメアニメーション
+	Array<int32> m_medecinePatterns{3,4,5,6};
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -230,6 +234,7 @@ public:
 	void PlayerHurt();
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
+	void PlayerMedecine();
 	void PlayerDead();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;

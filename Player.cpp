@@ -322,6 +322,10 @@ void Player::ApplyHeartEffects()
 
 }
 
+void Player::PlayerMedecine()
+{
+}
+
 void Player::PlayerDead()
 {
 	// Dead 状態のときのみ処理
