@@ -85,6 +85,21 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const RectF pHitBox = player.getHitRect(camPos); // プレイヤー本体
 	const RectF pAttackBox = player.getAttackRect(camPos); // プレイヤーの攻撃矩形（Player の関数利用）
 
+
+	const bool playerInChaseRange = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡範囲内にいるかどうか
+	if (m_state != AnimState_Enemy1::Attack
+	 && m_state != AnimState_Enemy1::Hurt
+	 && m_mode != Behavior_Enemy1::Retreat) {
+		if (playerInChaseRange) {
+			m_chaseLostTimer = 0.0;
+		}
+		else {
+			m_chaseLostTimer += dt;
+		}
+	} // プレイヤーが追跡範囲内にいるかどうかでタイマー増減
+
+
+
 	if (m_state == AnimState_Enemy1::Hurt) {// ダメージ中
 		m_mode = Behavior_Enemy1::Patrol;
 	}
@@ -92,20 +107,27 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		m_mode = Behavior_Enemy1::Attack;
 	}
 	else {// 通常状態
-		const bool canAttack = RectToRect(eAttackBox, pHitBox) && (m_attackCooldown <= 0.0) && m_onGround;// 攻撃可能か
-		if (canAttack) {// 攻撃範囲内なら攻撃モードへ
-			m_mode = Behavior_Enemy1::Attack;
-			setState(AnimState_Enemy1::Attack);
-			AttackFlag = true;
-			m_hasHitPlayer = false;
-			m_Speed = 0.0;
-			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);
+
+		if (m_backoffRemain > 0.0) {
+			m_mode = Behavior_Enemy1::Retreat;
 		}
-		else if (RectToRect(eChaseBox, pHitBox)) {// 追跡範囲内なら追跡モードへ
-			m_mode = Behavior_Enemy1::Chase;
-		}
-		else {// それ以外は巡回モードへ
-			m_mode = Behavior_Enemy1::Patrol;
+		else
+		{
+			const bool canAttack = RectToRect(eAttackBox, pHitBox) && (m_attackCooldown <= 0.0) && m_onGround;// 攻撃可能か
+			if (canAttack) {// 攻撃範囲内なら攻撃モードへ
+				m_mode = Behavior_Enemy1::Attack;
+				setState(AnimState_Enemy1::Attack);
+				AttackFlag = true;
+				m_hasHitPlayer = false;
+				m_Speed = 0.0;
+				m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);
+			}
+			else if (playerInChaseRange||(m_mode == Behavior_Enemy1::Chase&& m_chaseLostTimer < m_chaseLostThreshold)) {// 追跡範囲内なら追跡モードへ
+				m_mode = Behavior_Enemy1::Chase;
+			}
+			else {// それ以外は巡回モードへ
+				m_mode = Behavior_Enemy1::Patrol;
+			}
 		}
 	}
 
@@ -116,6 +138,42 @@ void Enemy_1::update(Player& player, Game_Map& map)
 			// 攻撃アニメーション中
 		}
 	}
+	else if (m_mode == Behavior_Enemy1::Retreat) {// 退避モード
+		m_FaceRight = m_retreatFaceRight;
+
+		m_Speed = m_backoffSpeed;
+		double remaining = Min(m_backoffRemain, m_Speed * dt);
+		const double unit = 2.0;
+
+
+		while (remaining > 0.0) {
+			const double step = Min(remaining, unit);
+
+			Vec2 probe = m_Position;
+			probe.x += m_retreatDirSign * step;
+
+			RectF box = hurtRectAt(probe);
+			if (!map.CheckCollision(box)) {
+				m_Position.x = probe.x;
+				remaining -= step;
+				m_backoffRemain -= step;
+			}
+			else {
+				m_backoffRemain = 0.0;
+				break;
+			}
+		}
+
+		if (m_state != AnimState_Enemy1::Run)
+		{
+			isRuning = true;
+			setState(AnimState_Enemy1::Run);// 退避中は走るアニメーション
+		}
+
+		if (m_backoffRemain <= 0.0) {
+			m_mode = Behavior_Enemy1::Patrol;
+		}
+	}
 	else if (m_mode == Behavior_Enemy1::Chase) {// 追跡モード
 		m_Speed = (m_speedBase > 0 ? m_speedBase : 150.0);// 恢复正常速度
 		double remaining = m_Speed * dt;// 移動可能距離
@@ -124,13 +182,20 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		isRuning = false;// 走っているかどうか
 
 		while (remaining > 0.0 && safety++ < 400) {// 移動可能距離が残っている限り移動処理
-			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);// プレイヤーの位置に向く
+
+			const double dx = player.GetPlayerPosition().x - m_Position.x;
+			if (Abs(dx) > 6.0) {// プレイヤーが近すぎる場合は向きを変えない
+				m_FaceRight = (dx >= 0.0);
+			}
+
 			const double step = Min(remaining, unit);// 今回の移動ステップ
 
 			Vec2 probe = m_Position;
 			probe.x += (m_FaceRight ? +step : -step);
 
 			RectF box = hurtRectAt(probe);
+
+
 			if (!map.CheckCollision(box)) {
 				m_Position.x = probe.x;
 				remaining -= step;
@@ -147,6 +212,8 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		}
 	}
 	else { // 巡回モード
+
+		m_chaseLostTimer = m_chaseLostThreshold;
 		if (m_phaseTimer <= 0.0) enterPhase(RandomBool() ? PatrolPhase_Enemy1::Move : PatrolPhase_Enemy1::Wait);
 		else {// フェーズタイマー減少
 			m_phaseTimer -= dt;
@@ -321,6 +388,13 @@ void Enemy_1::update(Player& player, Game_Map& map)
 					AttackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;
+
+					m_backoffRemain = m_backoffDist;
+					m_retreatFaceRight = m_FaceRight;
+					m_retreatDirSign = (m_FaceRight ? -1 : +1);
+
+					m_mode = Behavior_Enemy1::Retreat;
+
 				}
 				setState(AnimState_Enemy1::Idle);
 				break;

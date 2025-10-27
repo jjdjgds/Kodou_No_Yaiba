@@ -4,7 +4,7 @@
 #include "Game_Map.hpp"
 
 enum class AnimState_Enemy1 {Idle,Run,Hurt,Attack,};// アニメーション状態列挙型
-enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
+enum class Behavior_Enemy1 { Patrol, Chase, Attack, Retreat,};// 行動パターン列挙型
 enum class PatrolPhase_Enemy1 { Move, Wait, };// 巡回フェーズ列挙型
 
 struct AnimDesc_Enemy1 {// アニメーションの説明構造体
@@ -38,6 +38,17 @@ private:
 	double m_strideMin = m_stride - 100.0;// 巡回範囲最小値
 	double m_strideMax = m_stride + 100.0;// 巡回範囲最大値
 	double m_budget = m_stride;// 巡回予算
+
+
+	double m_backoffSpeed = 150.0;
+	double m_backoffDist = 30.0;// バックオフ距離
+	double m_backoffRemain = 0.0;
+
+	double m_chaseLostTimer = 0.0;// 追跡ロストタイマー
+	double m_chaseLostThreshold = 5.0;
+
+	bool   m_retreatFaceRight = true;// 退避時の向き
+	int    m_retreatDirSign = 0;
 
 	bool isRuning = false;
 
