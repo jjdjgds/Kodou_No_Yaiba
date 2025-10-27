@@ -165,7 +165,7 @@ void Player::PlayerDoge()
 	static bool isDodging = false;
 	static double dogeTimer = 0.0;
 
-	if (!isDodging)
+	if (!isDodging )
 	{
 		isDodging = true;
 		dogeTimer = 0.0;
@@ -216,6 +216,7 @@ void Player::PlayerDoge()
 			SetPlayerState(StateMode::Idle);
 		}
 		dogeTimer = 0.0;
+		m_DogeCoolTimer += Scene::DeltaTime();
 		isDodging = false;
 	}
 }

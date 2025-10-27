@@ -48,6 +48,8 @@ private:
 	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
+	double m_DogeCoolTimer = 0.5;
+	double m_DogelstTimer = 0.0;
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
