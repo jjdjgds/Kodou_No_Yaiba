@@ -14,7 +14,7 @@ Game::Game(const InitData& init)
 	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
-		100,
+		125,
 		3,
 		1.0f,
 		0.5f,
@@ -45,6 +45,7 @@ void Game::update()
 	bg.update();
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
+	Ui.update(player, map);
 	player.update(map);
 	
 
@@ -61,7 +62,7 @@ void Game::draw() const
 
 	for (const auto& e : m_enemies) e.draw(map); //敵描画
 
-	Ui.draw(player);
+	Ui.draw(player,map);
 
 }
 

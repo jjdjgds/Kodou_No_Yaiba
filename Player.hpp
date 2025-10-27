@@ -3,6 +3,17 @@
 #include "StateMode.hpp"
 #include "Game_Map.hpp"
 #define MAX_WEAPON (3)
+enum class HeartRateState
+{
+	Stun,          // スタン（60以下 or 140以上）
+	Warning,       // 警告（61-70 or 130-139）
+	Berserk,       // バーサーカー（120-129）
+	TimeControl,   // ザ・ワールド（71-80）
+	Normal         // 通常（81-119）
+
+};
+
+
 class Player
 {
 
@@ -37,6 +48,8 @@ private:
 	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
+	double m_DogeCoolTimer = 0.5;
+	double m_DogelstTimer = 0.0;
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
@@ -53,22 +66,22 @@ private:
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
 	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
 
-	//回避アニメーション
-	Array<int32> m_jumpPatterns{ 6,6,6,6,6,6 };
+	//Jumpアニメーション
+	Array<int32> m_jumpPatterns{5,5,5,5,5  };
 	//IDLEATTACK
 	Array<int32> m_IdleAttackPatterns{7,0,1,2,3};
 
-	//ジャンプアニメーション
+	//回避アニメーション
 	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
 
 	//壁ズリアニメーション
 	Array<int32> m_onTheWallPatterns{2};
 
-	Array<int32> m_FallPatterns{ 5,5,5,5,5 };
+	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
-
+	HeartRateState m_HeartRateState = HeartRateState::Berserk;
 public:
 	
 	//Player();
@@ -110,8 +123,10 @@ public:
 		, m_Invincible(invincible)
 		, m_AttackFlag(false)
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
-		,m_gravity(9.8)
+		, m_gravity(9.8)
 		, m_PlayerState(StateMode::Idle)
+		, m_HeartRateState(HeartRateState::Normal)
+	
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
 		}
@@ -143,6 +158,8 @@ public:
 	 float GetPlayerDefoSpeed() const { return NormalPlayerSpeed; }
 	 StateMode GetPlayerState() const { return m_PlayerState; }
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
+	 HeartRateState GetPlayerHeartState()const { return m_HeartRateState; }
+	 HeartRateState GetHeartRateState(int bpm);
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
@@ -166,7 +183,10 @@ public:
 	float SetPlayerJumpSpeed(float jumpSpeed) { return m_JumpSpeed = jumpSpeed; }
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
-	
+	HeartRateState SetPlayerHeartState(HeartRateState a) { return m_HeartRateState = a; }
+	void UpdateHeartState();
+
+
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
@@ -195,6 +215,7 @@ public:
 	void PlayerFall();
 	void PlayerDoge();
 	void PlayerHurt();
+	void ApplyHeartEffects();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;
 };
