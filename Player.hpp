@@ -62,8 +62,7 @@ private:
 	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
 	Array<int32> m_idleToRunPatterns{ 0, 1, 2 ,3 };
 
-	//走リはじめ状態のアニメーション
-	Array<int32> m_runStartPatterns{};
+	
 
 	//走る状態のアニメーション
 	Array<int32> m_runPatterns{ 4, 5, 6, 7,8 };
@@ -75,8 +74,11 @@ private:
 
 	//Jumpアニメーション
 	Array<int32> m_jumpPatterns{5,5,5,5,5  };
+
+	Array<int32>m_jumpAttackPatterns{ 8,0,1,2,3,4 };
+
 	//IDLEATTACK
-	Array<int32> m_IdleAttackPatterns{7,0,1,2,3};
+	Array<int32> m_IdleAttackPatterns{6,7,0,1,2,3};
 
 	//回避アニメーション
 	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
@@ -224,7 +226,7 @@ public:
 	void PlayerFall();
 	void PlayerDoge();
 	void PlayerHurt();
-	void PlayerRunStart();
+	void PlayerJumpAttack();
 	void ApplyHeartEffects();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;

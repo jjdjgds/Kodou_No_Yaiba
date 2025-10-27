@@ -236,6 +236,56 @@ void Player::PlayerHurt()
 	}
 }
 
+void Player::PlayerJumpAttack()
+{
+
+
+	const double JumpattackFrameDuration = 1;
+
+	if (!m_AttackFlag) return;
+
+	if (animTime >= JumpattackFrameDuration)
+	{
+		animTime -= JumpattackFrameDuration;
+		m_frameIndex++;
+
+		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
+		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		{
+			const RectF pBox = getAttackRect(Vec2{});
+			if (RectToRect(pBox, enemyRect))
+			{
+				Print << U"攻撃ヒット！";
+				// 敵のダメージ処理をここに追加予定
+			}
+		}
+
+		// 攻撃アニメ終了
+		if (m_frameIndex >= m_jumpAttackPatterns.size())
+		{
+			m_frameIndex = 0;
+			SetPlayerAttackFlag(false);
+
+
+
+
+			// ★ ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+		}
+	}
+
+}
+
 void Player::ApplyHeartEffects()
 {
 	//移動速度、攻撃速度、
@@ -701,7 +751,9 @@ void Player::update(Game_Map& map)
 		GetPlayerState() != StateMode::Doge &&
 		GetPlayerState() != StateMode::Attack &&
 		GetPlayerState() != StateMode::IdleToAttack &&
-		GetPlayerState() != StateMode::IdleToRun)  // ← 追加
+		GetPlayerState() != StateMode::IdleToRun &&
+		GetPlayerState() != StateMode::JumpAttack
+		)  // ← 追加
 	{
 		//  攻撃フラグをリセット
 		SetPlayerAttackFlag(false);
@@ -738,6 +790,10 @@ void Player::update(Game_Map& map)
 		if (GetPlayerState() == StateMode::Idle)
 		{
 			SetPlayerState(StateMode::IdleToAttack);
+		}
+		if (GetPlayerState() == StateMode::Jump)
+		{
+			SetPlayerState(StateMode::JumpAttack);
 		}
 		else
 		{
@@ -786,6 +842,10 @@ void Player::update(Game_Map& map)
 	case StateMode::Jump:
 		PlayerJump();
 		break;
+	case StateMode::JumpAttack:
+		PlayerJumpAttack();
+		break;
+
 	case StateMode::Fall:
 		PlayerFall();
 		break;
@@ -871,6 +931,20 @@ void Player::draw(const Game_Map& CameraPos) const
 		n = m_jumpPatterns[m_frameIndex];
 		y = Jump + 65;
 		break;
+
+	case StateMode::JumpAttack:
+		n = m_jumpAttackPatterns[m_frameIndex];
+		if (m_frameIndex >= 1)
+		{
+			//n = 0;
+			y = (frameHeight * 5) + 60;
+		}
+		else
+		{
+			y = (frameHeight * 4) + 60;
+		}
+		break;
+
 	case StateMode::Fall:
 		n = m_FallPatterns[m_frameIndex];
 		y = Fall + 65;
@@ -882,8 +956,18 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	case StateMode::IdleToAttack:
 		n = m_IdleAttackPatterns[m_frameIndex];
-		y = IdleAttack + 50;
+		if (m_frameIndex >= 2)
+		{
+			//n = 0;
+			y = (frameHeight * 4) + 50;
+		}
+		else
+		{
+			y = (frameHeight * 3) + 50;
+		}
 		break;
+		
+	
 
 	case StateMode::Hurt:
 		n = m_hurtPatterns[m_frameIndex];
