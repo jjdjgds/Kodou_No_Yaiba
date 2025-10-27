@@ -23,6 +23,12 @@ HeartRateState Player::GetHeartRateState(int bpm)
 	if (bpm >= 71 && bpm <= 80)
 		return HeartRateState::TimeControl;
 
+	if(bpm==0)
+	{
+		return HeartRateState::Dead;
+	}
+
+
 	return HeartRateState::Normal;
 }
 
@@ -76,8 +82,9 @@ RectF Player::getHitRect(const Vec2& camera) const
 void Player::UpdateHeartState()
 {
 	auto bpm = GetPlayerBPM();
-
-	if (bpm <= 60 || bpm >= 140)
+	if (bpm == 0)
+		m_HeartRateState = HeartRateState::Dead;
+	else if (bpm <= 60 || bpm >= 140)
 		m_HeartRateState = HeartRateState::Stun;
 	else if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
 		m_HeartRateState = HeartRateState::Warning;
@@ -85,6 +92,7 @@ void Player::UpdateHeartState()
 		m_HeartRateState = HeartRateState::Berserk;
 	else if (bpm >= 71 && bpm <= 80)
 		m_HeartRateState = HeartRateState::TimeControl;
+	
 	else
 		m_HeartRateState = HeartRateState::Normal;
 }
@@ -303,6 +311,10 @@ void Player::ApplyHeartEffects()
 	case HeartRateState::TimeControl:
 		break;
 	case HeartRateState::Normal:
+		break;
+
+	case HeartRateState::Dead:
+
 		break;
 	default:
 		break;

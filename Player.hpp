@@ -9,7 +9,8 @@ enum class HeartRateState
 	Warning,       // 警告（61-70 or 130-139）
 	Berserk,       // バーサーカー（120-129）
 	TimeControl,   // ザ・ワールド（71-80）
-	Normal         // 通常（81-119）
+	Normal,        // 通常（81-119）
+	Dead           // 死亡(000)
 
 };
 
@@ -137,7 +138,7 @@ public:
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		, m_gravity(9.8)
 		, m_PlayerState(StateMode::Idle)
-		, m_HeartRateState(HeartRateState::Normal)
+		, m_HeartRateState(HeartRateState::Dead)
 	
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
