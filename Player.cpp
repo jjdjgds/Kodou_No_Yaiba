@@ -324,6 +324,35 @@ void Player::ApplyHeartEffects()
 
 void Player::PlayerMedecine()
 {
+
+
+	const double medicineFrameDuration = 1.0;
+	if (animTime >= medicineFrameDuration)
+	{
+		animTime -= medicineFrameDuration;
+		m_frameIndex++;
+		if (m_frameIndex >= m_medecinePatterns.size())
+		{
+			m_frameIndex = 0;
+			//  ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+			if (KeySpace.down())
+			{
+				SetPlayerState(StateMode::Attack);
+			}
+		}
+	}
+
+
 }
 
 void Player::PlayerDead()
@@ -879,6 +908,10 @@ void Player::update(Game_Map& map)
 			SetPlayerState(StateMode::Dead);
 
 		}
+		if (KeyL.down())
+		{
+			SetPlayerState(StateMode::Medecine);
+		}
 
 
 
@@ -925,6 +958,11 @@ void Player::update(Game_Map& map)
 		PlayerDoge();
 		break;
 
+	case StateMode::Medecine:
+
+		PlayerMedecine();
+		break;
+
 	case StateMode::Dead:
 		PlayerDead();
 		break;
@@ -960,7 +998,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 OnTheWall = frameHeight * 6;
 	const int32 Dead = frameHeight * 5;
 	const int32 Dead2 = frameHeight * 6;
-
+	const int32 Medicine = frameHeight * 6;
 
 	int32 n = 0;
 	int32 y = idleY;
@@ -1045,6 +1083,12 @@ void Player::draw(const Game_Map& CameraPos) const
 		n = m_dogePatterns[m_frameIndex];
 		y = Doge + 65;
 		break;
+
+	case StateMode::Medecine:
+		n = m_medecinePatterns[m_frameIndex];
+		y = Medicine + 75;
+		break;
+
 	case StateMode::Dead:
 		n = m_deadPatterns[m_frameIndex];
 		if (m_frameIndex >= 4)

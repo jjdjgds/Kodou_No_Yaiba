@@ -14,8 +14,9 @@ enum class StateMode {
 	IdleToAttack,   // 9: 待機状態から攻撃へ
 	Hurt,			// 10: ダメージ状態
 	Doge,    		// 11 : 回避状態
-	Pareise,		// 12 : 防御状態
-	Dead			// 13 : 死亡状態
+	Medecine,       // 12 : 薬決め状態
+	Pareise,		// 13 : 防御状態
+	Dead			// 14 : 死亡状態
 };
 /*
 enum class PlayerState { Idle, Jump, Attack };
