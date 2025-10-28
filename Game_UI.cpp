@@ -67,7 +67,7 @@ void Game_UI::UITimeControl()
 void Game_UI::UINormal()
 {
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.3;
+	const double NomalFrameDuration = 0.045;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -230,3 +230,4 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 		.scaled(1.0)
 		.drawAt(drawPos);
 }
+
