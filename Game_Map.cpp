@@ -2,17 +2,14 @@
 
 #include "Game_Map.hpp"
 #include "MapLoader.hpp"
-#include "Enemy_Boss.hpp"
 
 Game_Map::Game_Map()
 {
 	Block::LoadTextures(); // load all textures once
-	m_boss = new Enemy_Boss(Vec2(500, 300), 0, true, Vec2(1, 1));
 }
 
 Game_Map::~Game_Map()
 {
-	delete m_boss;
 }
 
 bool Game_Map::loadStageFromFile(const FilePath& path)
@@ -86,6 +83,7 @@ void Game_Map::update()
 	for (auto& block : m_blocks)
 	{
 		block.UpdateBlock();
+
 	}
 
 }
@@ -113,12 +111,6 @@ void Game_Map::draw() const
 		case BLOCK_GOAL:
 			RectF(drawPos, size).draw(ColorF(0.8, 0.2, 0.2));
 			break;
-
-		case BLOCK_BOSS:
-			if (m_boss)
-				m_boss->draw(drawPos, size); // example position and size
-			break;
-
 		default:
 			break;
 		}

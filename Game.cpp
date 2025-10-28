@@ -27,11 +27,12 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt"))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage1.txt"))
 	{
 		Print << U"Failed to load stage1";
 		return;
 	}
+	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
 
 	// 敵初期化
 	m_enemies.clear();
@@ -47,7 +48,7 @@ void Game::update()
 	map.update();
 	Ui.update(player, map);
 	player.update(map);
-	
+	Boss_spawner.update(player, map);
 
 	for (auto& e : m_enemies) e.update(player,map);
 
@@ -59,9 +60,7 @@ void Game::draw() const
 	bg.draw();
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
-
-	//for (const auto& e : m_enemies) e.draw(map); //敵描画
-
+	Boss_spawner.draw(map);
 	Ui.draw(player,map);
 
 }

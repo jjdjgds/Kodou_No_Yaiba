@@ -1,8 +1,8 @@
 ﻿#pragma once
-
 #include <Siv3D.hpp>
 
 class Player;
+class Game_Map;
 
 enum class AnimState_Boss {// アニメーション状態列挙型
 	Idle,
@@ -39,16 +39,20 @@ class Enemy_Boss
 {
 private :
 	Vec2 m_boss_pos = { 0,0 };
-	Vec2 m_boss_scale = { 1,1 };
+	Vec2 m_boss_scale = { 75,75 };
+	Vec2 m_vel = { 0,0 };
 	bool m_FaceRight = true;
+	float m_gravity = 1000.0f;
 
 	int m_boss_hp = 50;
 	int m_boss_bpm = 100;
 	int m_boss_atk = 10;
 	int m_boss_rang = 100;
+	float tex_offsetY = 45.0f;
+	float dist = 0;
 	float m_boss_speed = 1.0f;
 
-	Vec2 m_hitBox = { 22.0 ,35.0 };
+	Vec2 m_hitBox = { 75.0  ,100.0 };
 
 	Boss_Behavior m_behavior = Boss_Behavior::idle;
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_1;
@@ -85,7 +89,7 @@ public:
 	{
 	}
 
-	void update(Player& player);
+	void update(Player& player, Game_Map& map);
 
 
 	void draw(Vec2 pos , Vec2 size) const;
