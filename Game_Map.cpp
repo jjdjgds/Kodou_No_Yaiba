@@ -25,8 +25,8 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 
 
 	//map height to screen and let width scroll
-	m_chipHeight = 50.0f;
-	m_chipWidth  = 50.0f;
+	m_chipHeight = 75.0f;
+	m_chipWidth  = 75.0f;
 
 
 	m_blocks.clear();
@@ -46,6 +46,32 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 		}
 	}
 	return true;
+}
+
+void Game_Map::loadNextStage()
+{
+	static int currentStage = 2;
+	currentStage++;
+
+	FilePath nextPath = U"example/Map/stage" + Format(currentStage) + U".txt";
+
+	if (!FileSystem::Exists(nextPath))
+	{
+		Print << U"🎉 All stages cleared!";
+		return;
+	}
+
+	// Reset camera and load the next stage
+	m_cameraPos = Vec2{ 0, 0 };
+
+	if (loadStageFromFile(nextPath))
+	{
+		Print << U"✅ Loaded next stage: " << nextPath;
+	}
+	else
+	{
+		Print << U"❌ Failed to load next stage: " << nextPath;
+	}
 }
 
 void Game_Map::update()
@@ -82,7 +108,7 @@ void Game_Map::updateCamera(const Vec2& playerPos)
 	m_cameraPos = desiredCameraPos;
 }
 
-bool Game_Map::CheckCollision(const RectF& rect) const
+bool Game_Map::CheckCollision(const RectF& rect)
 {
 	for (const auto& block : m_blocks)
 	{
@@ -90,6 +116,14 @@ bool Game_Map::CheckCollision(const RectF& rect) const
 		{
 			if (rect.intersects(block.GetRect()))
 			{
+				return true;
+			}
+		}
+		if(block.getType() == BLOCK_GOAL)
+		{
+			if (rect.intersects(block.GetRect()))
+			{
+				loadNextStage();
 				return true;
 			}
 		}
