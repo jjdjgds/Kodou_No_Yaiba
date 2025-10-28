@@ -58,7 +58,7 @@ private:
 	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
 	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
 	double m_HeartTimer = 0.0;
-
+	double m_WallKickTimer = 0.0;
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
