@@ -50,7 +50,7 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 
 void Game_Map::loadNextStage()
 {
-	static int currentStage = 2;
+	int currentStage = 2;
 	currentStage++;
 
 	FilePath nextPath = U"example/Map/stage" + Format(currentStage) + U".txt";
@@ -112,18 +112,42 @@ bool Game_Map::CheckCollision(const RectF& rect)
 {
 	for (const auto& block : m_blocks)
 	{
-		if (block.getType() == BLOCK_SOLID)
+		switch (block.getType())
 		{
+		case BLOCK_EMPTY:
+			
+		break;
+		case BLOCK_SOLID:
 			if (rect.intersects(block.GetRect()))
 			{
 				return true;
 			}
-		}
-		if(block.getType() == BLOCK_GOAL)
-		{
+		break; 
+		case BLOCK_GOAL:
 			if (rect.intersects(block.GetRect()))
 			{
+				Print << U"Goal touched! Player rect = " << rect << U", Goal rect = " << block.GetRect();
+				RectF(0, 0).draw(ColorF(0.8, 0.2, 0.2));
 				loadNextStage();
+				return true;
+			}
+		break;
+		default:
+		break;
+		}
+
+	}
+	return false;
+}
+
+bool Game_Map::CheckCollision_Line(const Line& line)
+{
+	for (const auto& block : m_blocks)
+	{
+		if (block.getType() == BLOCK_SOLID)
+		{
+			if (line.intersectsAt(block.GetRect()))
+			{
 				return true;
 			}
 		}
@@ -131,13 +155,13 @@ bool Game_Map::CheckCollision(const RectF& rect)
 	return false;
 }
 
-bool Game_Map::CheckCollision_Line(const Line& line) const
+bool Game_Map::CheckCollision_RecF(const RectF& rect)
 {
 	for (const auto& block : m_blocks)
 	{
 		if (block.getType() == BLOCK_SOLID)
 		{
-			if (line.intersectsAt(block.GetRect()))
+			if (rect.intersectsAt(block.GetRect()))
 			{
 				return true;
 			}

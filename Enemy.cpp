@@ -131,13 +131,13 @@ void Enemy::update(Player& player, Game_Map& map)
 			probe.x += (m_FaceRight ? +step : -step);
 
 			RectF box = hurtRectAt(probe);
-			if (!map.CheckCollision(box)) {
+			if (!map.CheckCollision_RecF(box)) {
 				m_Position.x = probe.x;
 				remaining -= step;
 				isRuning = true;
 			}
 			else {
-				int fix = 0; while (map.CheckCollision(box) && fix++ < 32) {
+				int fix = 0; while (map.CheckCollision_RecF(box) && fix++ < 32) {
 					probe.x -= (m_FaceRight ? +0.5 : -0.5);
 					box = hurtRectAt(probe);
 				}
@@ -168,7 +168,7 @@ void Enemy::update(Player& player, Game_Map& map)
 				probe.x += (m_FaceRight ? +step : -step);
 
 				RectF box = hurtRectAt(probe);
-				if (!map.CheckCollision(box)) {
+				if (!map.CheckCollision_RecF(box)) {
 					m_Position.x = probe.x;
 					remaining -= step;
 					m_budget -= step;
@@ -180,7 +180,7 @@ void Enemy::update(Player& player, Game_Map& map)
 					}
 				}
 				else {
-					int fix = 0; while (map.CheckCollision(box) && fix++ < 32) {
+					int fix = 0; while (map.CheckCollision_RecF(box) && fix++ < 32) {
 						probe.x -= (m_FaceRight ? +0.5 : -0.5);
 						box = hurtRectAt(probe);
 					}
@@ -207,7 +207,7 @@ void Enemy::update(Player& player, Game_Map& map)
 
 	RectF testY = hurtRectAt(tryPosY);
 
-	if (!map.CheckCollision(testY)) {
+	if (!map.CheckCollision_RecF(testY)) {
 		// 移動できる
 		m_Position.y = tryPosY.y;
 		m_onGround = false;
@@ -220,7 +220,7 @@ void Enemy::update(Player& player, Game_Map& map)
 		if (m_velY < 0.0) {
 			// 上昇中 -> 天井に当たった。下へ補正して止める
 			int guard = 0;
-			while (map.CheckCollision(testY) && guard++ < guardMax) {
+			while (map.CheckCollision_RecF(testY) && guard++ < guardMax) {
 				tryPosY.y += guardStep;
 				testY = hurtRectAt(tryPosY);
 			}
@@ -231,7 +231,7 @@ void Enemy::update(Player& player, Game_Map& map)
 		else {
 			// 下降中 -> 地面に当たった。上へ補正して接地
 			int guard = 0;
-			while (map.CheckCollision(testY) && guard++ < guardMax) {
+			while (map.CheckCollision_RecF(testY) && guard++ < guardMax) {
 				tryPosY.y -= guardStep;
 				testY = hurtRectAt(tryPosY);
 			}
@@ -244,7 +244,7 @@ void Enemy::update(Player& player, Game_Map& map)
 	{
 		const double eps = 1.5;
 		RectF footProbe = hurtRectAt(m_Position).movedBy(0, eps);
-		m_onGround = m_onGround || map.CheckCollision(footProbe);
+		m_onGround = m_onGround || map.CheckCollision_RecF(footProbe);
 	}
 
 

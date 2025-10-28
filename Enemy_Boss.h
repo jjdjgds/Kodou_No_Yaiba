@@ -38,6 +38,10 @@ private :
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_1;
 
 public:
+	void update(Player& player, Game_Map& map);
+
+	void draw(const Game_Map& CameraPos) const;
+
 	const Vec2& GetPosition() const { return m_boss_pos; }
 	const Vec2& GetScale() const { return m_boss_scal; }
 	int GetHP() const { return m_boss_hp; }
@@ -57,10 +61,6 @@ public:
 	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
 
 	Enemy_Boss& GetEnemy_Boss() { return *this; }
-
-	void update(Player& player, Game_Map& map);
-
-	void draw(const Game_Map& CameraPos) const;
 };
 
 //->hp
