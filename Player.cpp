@@ -114,7 +114,7 @@ void Player::takeDamage(int dmg)
 	//----------------------------------------
 	// ★ ダメージを受けた瞬間に心拍数を上昇させる
 	//----------------------------------------
-	SetPlayerBPM(GetPlayerBPM() + 8);  // 上昇値は調整してOK
+	SetPlayerBPM(GetPlayerBPM() - 8);  // 上昇値は調整してOK
 	m_HeartTimer = 0.0;
 	m_HeartCoolTimer = m_HeartCooldown;
 	m_HeartCoolFlg = true; // クールタイム中は減少停止
