@@ -6,7 +6,13 @@
 using namespace Collision;
 
 RectF enemyRect{ 1000, 750, 64, 64 };
-
+/******************************************
+//
+//プレイヤーの移動量によって変化？
+//プレイヤーの行動によって変化？
+//
+//
+*****************************************/
 
 Player::~Player() {}
 HeartRateState Player::GetHeartRateState(int bpm)
@@ -22,6 +28,12 @@ HeartRateState Player::GetHeartRateState(int bpm)
 
 	if (bpm >= 71 && bpm <= 80)
 		return HeartRateState::TimeControl;
+
+	if(bpm==0)
+	{
+		return HeartRateState::Dead;
+	}
+
 
 	return HeartRateState::Normal;
 }
@@ -76,8 +88,9 @@ RectF Player::getHitRect(const Vec2& camera) const
 void Player::UpdateHeartState()
 {
 	auto bpm = GetPlayerBPM();
-
-	if (bpm <= 60 || bpm >= 140)
+	if (bpm == 0)
+		m_HeartRateState = HeartRateState::Dead;
+	else if (bpm <= 60 || bpm >= 140)
 		m_HeartRateState = HeartRateState::Stun;
 	else if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
 		m_HeartRateState = HeartRateState::Warning;
@@ -85,6 +98,7 @@ void Player::UpdateHeartState()
 		m_HeartRateState = HeartRateState::Berserk;
 	else if (bpm >= 71 && bpm <= 80)
 		m_HeartRateState = HeartRateState::TimeControl;
+	
 	else
 		m_HeartRateState = HeartRateState::Normal;
 }
@@ -96,7 +110,16 @@ void Player::takeDamage(int dmg)
 
 	SetPlayerState(StateMode::Hurt);
 	SetPlayerHP(GetPlayerHP() - dmg);
+
+	//----------------------------------------
+	// ★ ダメージを受けた瞬間に心拍数を上昇させる
+	//----------------------------------------
+	SetPlayerBPM(GetPlayerBPM() - 8);  // 上昇値は調整してOK
+	m_HeartTimer = 0.0;
+	m_HeartCoolTimer = m_HeartCooldown;
+	m_HeartCoolFlg = true; // クールタイム中は減少停止
 }
+
 
 void Player::PlayerAttack(const Vec2& camera)
 {
@@ -144,8 +167,10 @@ void Player::PlayerAttack(const Vec2& camera)
 				// 押されていない → Idleへ
 				SetPlayerState(StateMode::Idle);
 			}
+			m_HeartTimer = 0.0;
 		}
 	}
+	
 }
 
 
@@ -304,17 +329,77 @@ void Player::ApplyHeartEffects()
 		break;
 	case HeartRateState::Normal:
 		break;
+
+	case HeartRateState::Dead:
+
+		break;
 	default:
 		break;
 	}
 
 }
 
+void Player::PlayerMedecine()
+{
+
+
+	const double medicineFrameDuration = 1.0;
+	if (animTime >= medicineFrameDuration)
+	{
+		animTime -= medicineFrameDuration;
+		m_frameIndex++;
+		if (m_frameIndex >= m_medecinePatterns.size())
+		{
+			m_frameIndex = 0;
+			//  ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+			if (KeySpace.down())
+			{
+				SetPlayerState(StateMode::Attack);
+			}
+		}
+	}
+
+
+}
+
+void Player::PlayerDead()
+{
+	// Dead 状態のときのみ処理
+	if (GetPlayerState() != StateMode::Dead)
+		return;
+
+	const double DeadFrameDuration = 0.45;
+	animTime += Scene::DeltaTime();  // 時間を加算（忘れていないか確認）
+
+	if (animTime >= DeadFrameDuration)
+	{
+		animTime -= DeadFrameDuration;
+
+		// まだ最後のフレームに到達していない場合のみ進める
+		if (m_frameIndex < static_cast<int>(m_deadPatterns.size()) - 1)
+		{
+			m_frameIndex++;
+		}
+		// 最後に達したら何もしない（そのまま静止）
+	}
+}
+
+
 void Player::PlayerIdleToRun()
 {
 	if (GetPlayerState() == StateMode::IdleToRun)
 	{
-		const double runFrameDuration = 0.15;
+		const double runFrameDuration = 0.1;
 		if (animTime >= runFrameDuration)
 		{				
 			animTime -= runFrameDuration;
@@ -489,14 +574,41 @@ void Player::PlayerFall()
 
 void Player::update(Game_Map& map)
 {
+
+	//行動するたびにFlgをTrueにし減少処理を遮断
+	//行動終了後にタイマー開始
+	//タイマーが指定時間に達したらFlgをFalseに変更し減少処理を開始
+
+
+
 	animTime += Scene::DeltaTime();
 	m_DogelstTimer += Scene::DeltaTime();
+	
+	m_HeartTimer += Scene::DeltaTime(); // 
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
 	{
 		m_DogeCoolTimer -= Scene::DeltaTime();
 		m_DogeCoolTimer = Max(0.0, m_DogeCoolTimer);
 	}
+	if (m_HeartCoolTimer > 0.0)
+	{
+		m_HeartCoolTimer -= Scene::DeltaTime();
+		m_HeartCoolTimer = Max(0.0, m_HeartCoolTimer);
+	}
+	else {
+		m_HeartCoolFlg = false;
+	}
+	
+	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
+	{
+		if (m_HeartTimer >= 1.0) // 1秒経過ごと
+		{
+			m_BPM -= 1;
+			m_HeartTimer = 0.0;
+		}
+	}
+
 	UpdateHeartState();
 	ApplyHeartEffects();
 	//-----------------------------------
@@ -624,7 +736,11 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	// 重力処理
 	//-----------------------------------
-	velocity.y += m_gravity * Scene::DeltaTime()*400;
+	if (!m_onGround)
+	{
+		velocity.y += m_gravity * Scene::DeltaTime() * 400;
+	}
+	
 
 	//-----------------------------------
 	// ジャンプ処理（地上 or 壁キック）
@@ -752,7 +868,8 @@ void Player::update(Game_Map& map)
 		GetPlayerState() != StateMode::Attack &&
 		GetPlayerState() != StateMode::IdleToAttack &&
 		GetPlayerState() != StateMode::IdleToRun &&
-		GetPlayerState() != StateMode::JumpAttack
+		GetPlayerState() != StateMode::JumpAttack &&
+		GetPlayerState() != StateMode::Dead
 		)  // ← 追加
 	{
 		//  攻撃フラグをリセット
@@ -778,7 +895,7 @@ void Player::update(Game_Map& map)
 	}
 
 	//-----------------------------------
-	// 攻撃処理（ 優先度を高く）
+	// 攻撃処理（優先度を高く）
 	//-----------------------------------
 	if (KeySpace.down() && !IsPlayerAttacking())
 	{
@@ -787,19 +904,32 @@ void Player::update(Game_Map& map)
 		m_frameIndex = 0;
 		animTime = 0.0;
 
+		// ステート遷移
 		if (GetPlayerState() == StateMode::Idle)
 		{
 			SetPlayerState(StateMode::IdleToAttack);
+			// 心拍変化とクール制御
+			SetPlayerBPM(GetPlayerBPM() + 4);
 		}
-		if (GetPlayerState() == StateMode::Jump)
+		else if (GetPlayerState() == StateMode::Jump)
 		{
 			SetPlayerState(StateMode::JumpAttack);
+			// 心拍変化とクール制御
+			SetPlayerBPM(GetPlayerBPM() + 8);
 		}
 		else
 		{
 			SetPlayerState(StateMode::Attack);
+			// 心拍変化とクール制御
+			SetPlayerBPM(GetPlayerBPM() + 5);
 		}
+
+		
+		m_HeartTimer = 0.0;
+		m_HeartCoolTimer = m_HeartCooldown;
+		m_HeartCoolFlg = true; // ★ クールタイム中は減少を止める
 	}
+
 	// ======== 接地時の状態復帰 ========
 	if (m_onGround)
 	{
@@ -824,6 +954,26 @@ void Player::update(Game_Map& map)
 			animTime = 0.0;
 		}
 	}
+
+	//-----------------------------
+	//デバック用
+	//-----------------------------
+	{
+		if (KeyP.down())
+		{
+
+			SetPlayerState(StateMode::Dead);
+
+		}
+		if (KeyL.down())
+		{
+			SetPlayerState(StateMode::Medecine);
+		}
+
+
+
+	}
+	
 
 	//-----------------------------------
 	// アニメーション処理
@@ -864,6 +1014,15 @@ void Player::update(Game_Map& map)
 	case StateMode::Doge:
 		PlayerDoge();
 		break;
+
+	case StateMode::Medecine:
+
+		PlayerMedecine();
+		break;
+
+	case StateMode::Dead:
+		PlayerDead();
+		break;
 	default:
 		break;
 	}
@@ -894,6 +1053,9 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 Jump = frameHeight * 4;
 	const int32 Fall = frameHeight * 4;
 	const int32 OnTheWall = frameHeight * 6;
+	const int32 Dead = frameHeight * 5;
+	const int32 Dead2 = frameHeight * 6;
+	const int32 Medicine = frameHeight * 6;
 
 	int32 n = 0;
 	int32 y = idleY;
@@ -926,7 +1088,7 @@ void Player::draw(const Game_Map& CameraPos) const
 		n = m_attackPatterns[m_frameIndex];
 		y = attackY + 30;
 		break;
-
+	
 	case StateMode::Jump:
 		n = m_jumpPatterns[m_frameIndex];
 		y = Jump + 65;
@@ -979,6 +1141,25 @@ void Player::draw(const Game_Map& CameraPos) const
 		y = Doge + 65;
 		break;
 
+	case StateMode::Medecine:
+		n = m_medecinePatterns[m_frameIndex];
+		y = Medicine + 75;
+		break;
+
+	case StateMode::Dead:
+		n = m_deadPatterns[m_frameIndex];
+		if (m_frameIndex >= 4)
+		{
+			//n = 0;
+			y = Dead2+75;
+		}
+		else
+		{
+			y = Dead + 75;
+		}
+		break;
+
+	
 	default:
 		n = m_idlePatterns[m_frameIndex];
 		break;
@@ -1020,8 +1201,7 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
-	//SimpleGUI::Label(U"Dodge CoolTime: {:.2f}"_fmt(m_DogeCoolTimer), Vec2{ 50, 50 });
-
 	
-	Print << U"velo" << m_frameIndex;
+	Print << U"" << m_BPM;
+	
 }

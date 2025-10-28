@@ -38,6 +38,7 @@ private :
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_1;
 
 public:
+<<<<<<< HEAD
 	Enemy_Boss(Vec2 pos, double stride,
 			 bool faceRight, Vec2 scale)
 		: m_boss_pos(pos)
@@ -46,6 +47,10 @@ public:
 	}
 
 	void update(Player& player, Game_Map& map);
+=======
+	void update(Player& player, Game_Map& map);
+
+>>>>>>> 6d0cfbb41edf9bd256c9bb12c88c8c318a29daae
 	void draw(const Game_Map& CameraPos) const;
 
 	const Vec2& GetPosition() const { return m_boss_pos; }

@@ -9,7 +9,8 @@ enum class HeartRateState
 	Warning,       // 警告（61-70 or 130-139）
 	Berserk,       // バーサーカー（120-129）
 	TimeControl,   // ザ・ワールド（71-80）
-	Normal         // 通常（81-119）
+	Normal,        // 通常（81-119）
+	Dead           // 死亡(000)
 
 };
 
@@ -50,9 +51,13 @@ private:
 	double m_hitOffsetY = 20.0;// 当たり判定Y
 	double m_DogelstTimer = 0.0;
 	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間
-	double m_DogeCooldown = 10.0;    // クールタイム時間（秒）
+	double m_DogeCooldown = 1.0;    // クールタイム時間（秒）
 	bool   m_isDodging = false;     // 現在ドッジ中か
 	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
+	bool   m_HeartCoolFlg = false;  // 行動後の心拍数低下時間  Trueでカウントダウン開始
+	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
+	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
+	double m_HeartTimer = 0.0;
 
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
@@ -86,9 +91,14 @@ private:
 	//壁ズリアニメーション
 	Array<int32> m_onTheWallPatterns{2};
 
-	
+	//死亡アニメーション
+	Array<int32>m_deadPatterns{4,5,6,7,0,1};
 
+	//落下アニメーション
 	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
+
+	//薬ブッキメアニメーション
+	Array<int32> m_medecinePatterns{3,4,5,6};
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -136,7 +146,7 @@ public:
 		, m_AttackRengeBox(200, 131)//ここかえれば攻撃範囲変わる
 		, m_gravity(9.8)
 		, m_PlayerState(StateMode::Idle)
-		, m_HeartRateState(HeartRateState::Normal)
+		, m_HeartRateState(HeartRateState::Dead)
 	
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
@@ -228,6 +238,8 @@ public:
 	void PlayerHurt();
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
+	void PlayerMedecine();
+	void PlayerDead();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;
 };
