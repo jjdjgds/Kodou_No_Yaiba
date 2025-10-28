@@ -60,7 +60,7 @@ void Game::draw() const
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
 
-	for (const auto& e : m_enemies) e.draw(map); //敵描画
+	//for (const auto& e : m_enemies) e.draw(map); //敵描画
 
 	Ui.draw(player,map);
 

@@ -1,11 +1,18 @@
 ﻿#include "stdafx.h"
+
 #include "Game_Map.hpp"
 #include "MapLoader.hpp"
-
+#include "Enemy_Boss.hpp"
 
 Game_Map::Game_Map()
 {
 	Block::LoadTextures(); // load all textures once
+	m_boss = new Enemy_Boss(Vec2(500, 300), 0, true, Vec2(1, 1));
+}
+
+Game_Map::~Game_Map()
+{
+	delete m_boss;
 }
 
 bool Game_Map::loadStageFromFile(const FilePath& path)
@@ -85,9 +92,36 @@ void Game_Map::update()
 
 void Game_Map::draw() const
 {
+	
 	for (const auto& block : m_blocks)
 	{
-		block.DrawBlock(m_cameraPos);
+		if (!block.IsUsed()) continue;
+
+		Vec2 drawPos = block.GetPos() - m_cameraPos;
+		const Vec2 size = Vec2(m_chipWidth, m_chipHeight);
+
+		switch (block.getType())
+		{
+		case BLOCK_EMPTY:
+			// nothing
+			break;
+
+		case BLOCK_SOLID:
+			TextureAsset(U"Wall").resized(size).draw(drawPos);
+			break;
+
+		case BLOCK_GOAL:
+			RectF(drawPos, size).draw(ColorF(0.8, 0.2, 0.2));
+			break;
+
+		case BLOCK_BOSS:
+			if (m_boss)
+				m_boss->draw(drawPos, size); // example position and size
+			break;
+
+		default:
+			break;
+		}
 	}
 }
 
@@ -126,8 +160,6 @@ bool Game_Map::CheckCollision(const RectF& rect)
 		case BLOCK_GOAL:
 			if (rect.intersects(block.GetRect()))
 			{
-				Print << U"Goal touched! Player rect = " << rect << U", Goal rect = " << block.GetRect();
-				RectF(0, 0).draw(ColorF(0.8, 0.2, 0.2));
 				loadNextStage();
 				return true;
 			}

@@ -2,6 +2,8 @@
 #include <Siv3D.hpp>
 #include "Block.hpp"
 
+class Enemy_Boss;
+
 class Game_Map
 {
 private:
@@ -12,9 +14,10 @@ private:
 	double m_chipHeight = 100.0;
 
 	Vec2 m_cameraPos = Vec2(0, 0);
+	Enemy_Boss* m_boss = nullptr; // pointer
 public:
 	Game_Map();
-	~Game_Map() = default;
+	~Game_Map();
 	bool loadStageFromFile(const FilePath& path);
 	void loadNextStage();
 	void update();

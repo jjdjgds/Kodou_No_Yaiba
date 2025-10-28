@@ -881,7 +881,7 @@
     <ClInclude Include="Game_BG.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Enemy_Boss.h">
+    <ClInclude Include="Enemy_Boss.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
