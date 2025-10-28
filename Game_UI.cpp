@@ -26,7 +26,7 @@ void Game_UI::UIStun()
 void Game_UI::UIWarning()
 {
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.98;
+	const double NomalFrameDuration = 0.015;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
