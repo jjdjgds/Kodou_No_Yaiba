@@ -158,9 +158,10 @@ void Player::PlayerAttack(const Vec2& camera)
 				// 押されていない → Idleへ
 				SetPlayerState(StateMode::Idle);
 			}
+			m_HeartTimer = 0.0;
 		}
 	}
-	m_HeartTimer = 0.0;
+	
 }
 
 
@@ -573,7 +574,7 @@ void Player::update(Game_Map& map)
 
 	animTime += Scene::DeltaTime();
 	m_DogelstTimer += Scene::DeltaTime();
-	m_HeartCoolTimer += Scene::DeltaTime();
+	//m_HeartCoolTimer += Scene::DeltaTime();
 	m_HeartTimer += Scene::DeltaTime(); // 
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
