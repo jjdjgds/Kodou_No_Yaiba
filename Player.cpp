@@ -1146,5 +1146,5 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	
 	
-	Print << U"velo" << m_frameIndex;
+	
 }
