@@ -343,7 +343,7 @@ void Player::PlayerMedecine()
 {
 
 
-	const double medicineFrameDuration = 1.0;
+	const double medicineFrameDuration = 0.15;
 	if (animTime >= medicineFrameDuration)
 	{
 		animTime -= medicineFrameDuration;
@@ -1281,6 +1281,6 @@ void Player::draw(const Game_Map& CameraPos) const
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
-	//Print << U"" << m_BPM;
+	Print << U"" << m_BPM;
 	
 }
