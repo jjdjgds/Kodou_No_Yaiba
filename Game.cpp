@@ -14,7 +14,7 @@ Game::Game(const InitData& init)
 	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
-		0,
+		150,
 		3,
 		1.0f,
 		0.5f,
@@ -60,7 +60,7 @@ void Game::draw() const
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
 
-	for (const auto& e : m_enemies) e.draw(map); //敵描画
+	//for (const auto& e : m_enemies) e.draw(map); //敵描画
 
 	Ui.draw(player,map);
 

@@ -54,6 +54,10 @@ private:
 	double m_DogeCooldown = 1.0;    // クールタイム時間（秒）
 	bool   m_isDodging = false;     // 現在ドッジ中か
 	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
+	bool   m_HeartCoolFlg = false;  // 行動後の心拍数低下時間  Trueでカウントダウン開始
+	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
+	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
+	double m_HeartTimer = 0.0;
 
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用

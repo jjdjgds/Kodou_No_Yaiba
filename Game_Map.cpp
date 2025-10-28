@@ -1,11 +1,18 @@
 ﻿#include "stdafx.h"
+
 #include "Game_Map.hpp"
 #include "MapLoader.hpp"
-
+#include "Enemy_Boss.hpp"
 
 Game_Map::Game_Map()
 {
 	Block::LoadTextures(); // load all textures once
+	m_boss = new Enemy_Boss(Vec2(500, 300), 0, true, Vec2(1, 1));
+}
+
+Game_Map::~Game_Map()
+{
+	delete m_boss;
 }
 
 bool Game_Map::loadStageFromFile(const FilePath& path)
@@ -25,8 +32,8 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 
 
 	//map height to screen and let width scroll
-	m_chipHeight = 50.0f;
-	m_chipWidth  = 50.0f;
+	m_chipHeight = 75.0f;
+	m_chipWidth  = 75.0f;
 
 
 	m_blocks.clear();
@@ -48,6 +55,32 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 	return true;
 }
 
+void Game_Map::loadNextStage()
+{
+	int currentStage = 2;
+	currentStage++;
+
+	FilePath nextPath = U"example/Map/stage" + Format(currentStage) + U".txt";
+
+	if (!FileSystem::Exists(nextPath))
+	{
+		Print << U"🎉 All stages cleared!";
+		return;
+	}
+
+	// Reset camera and load the next stage
+	m_cameraPos = Vec2{ 0, 0 };
+
+	if (loadStageFromFile(nextPath))
+	{
+		Print << U"✅ Loaded next stage: " << nextPath;
+	}
+	else
+	{
+		Print << U"❌ Failed to load next stage: " << nextPath;
+	}
+}
+
 void Game_Map::update()
 {
 	for (auto& block : m_blocks)
@@ -59,9 +92,36 @@ void Game_Map::update()
 
 void Game_Map::draw() const
 {
+	
 	for (const auto& block : m_blocks)
 	{
-		block.DrawBlock(m_cameraPos);
+		if (!block.IsUsed()) continue;
+
+		Vec2 drawPos = block.GetPos() - m_cameraPos;
+		const Vec2 size = Vec2(m_chipWidth, m_chipHeight);
+
+		switch (block.getType())
+		{
+		case BLOCK_EMPTY:
+			// nothing
+			break;
+
+		case BLOCK_SOLID:
+			TextureAsset(U"Wall").resized(size).draw(drawPos);
+			break;
+
+		case BLOCK_GOAL:
+			RectF(drawPos, size).draw(ColorF(0.8, 0.2, 0.2));
+			break;
+
+		case BLOCK_BOSS:
+			if (m_boss)
+				m_boss->draw(drawPos, size); // example position and size
+			break;
+
+		default:
+			break;
+		}
 	}
 }
 
@@ -82,13 +142,43 @@ void Game_Map::updateCamera(const Vec2& playerPos)
 	m_cameraPos = desiredCameraPos;
 }
 
-bool Game_Map::CheckCollision(const RectF& rect) const
+bool Game_Map::CheckCollision(const RectF& rect)
+{
+	for (const auto& block : m_blocks)
+	{
+		switch (block.getType())
+		{
+		case BLOCK_EMPTY:
+			
+		break;
+		case BLOCK_SOLID:
+			if (rect.intersects(block.GetRect()))
+			{
+				return true;
+			}
+		break; 
+		case BLOCK_GOAL:
+			if (rect.intersects(block.GetRect()))
+			{
+				loadNextStage();
+				return true;
+			}
+		break;
+		default:
+		break;
+		}
+
+	}
+	return false;
+}
+
+bool Game_Map::CheckCollision_Line(const Line& line)
 {
 	for (const auto& block : m_blocks)
 	{
 		if (block.getType() == BLOCK_SOLID)
 		{
-			if (rect.intersects(block.GetRect()))
+			if (line.intersectsAt(block.GetRect()))
 			{
 				return true;
 			}
@@ -97,13 +187,13 @@ bool Game_Map::CheckCollision(const RectF& rect) const
 	return false;
 }
 
-bool Game_Map::CheckCollision_Line(const Line& line) const
+bool Game_Map::CheckCollision_RecF(const RectF& rect)
 {
 	for (const auto& block : m_blocks)
 	{
 		if (block.getType() == BLOCK_SOLID)
 		{
-			if (line.intersectsAt(block.GetRect()))
+			if (rect.intersectsAt(block.GetRect()))
 			{
 				return true;
 			}

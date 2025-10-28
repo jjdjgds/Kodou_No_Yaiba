@@ -117,6 +117,7 @@
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Enemy_Boss.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Game_BG.cpp" />
     <ClCompile Include="Game_Map.cpp" />
@@ -339,6 +340,7 @@
     <ClInclude Include="Collision.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Enemy.hpp" />
+    <ClInclude Include="Enemy_Boss.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="Game_BG.hpp" />
     <ClInclude Include="Game_Map.hpp" />
