@@ -1017,6 +1017,7 @@ void Player::update(Game_Map& map)
 		if (KeyL.down())
 		{
 			SetPlayerState(StateMode::Medecine);
+			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
 
 
