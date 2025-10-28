@@ -38,8 +38,12 @@ void Block::DrawBlock(const Vec2& cameraOffset) const
 		TextureAsset(U"Wall").resized(m_size).draw(drawPos);
 		//RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
 		break;
+	case BLOCK_GOAL: // goal
+		RectF(drawPos, m_size).draw(ColorF(0.8, 0.2, 0.2));
+		//RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
+		break;
 	default:
-		RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
+		//RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
 		break;
 	}
 }

@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
 #include "Player.hpp"
-#include "Game_Map.hpp"
 
 enum class AnimState {// アニメーション状態列挙型
 	Idle,
