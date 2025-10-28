@@ -37,6 +37,22 @@ namespace Collision
 	}
 
 	//===------------------------------------------------------
+	// Line vs Rect
+	//===------------------------------------------------------
+	inline bool LineToRect(const Line& line, const RectF& rect)
+	{
+		return line.intersects(rect);
+	}
+
+	//===------------------------------------------------------
+	// Line vs Circle
+	//===------------------------------------------------------
+	inline bool LineToCircle(const Line& line, const Circle& circle)
+	{
+		return line.intersects(circle);
+	}
+
+	//===------------------------------------------------------
 	// 任意オブジェクト vs 任意オブジェクト
 	// Object が getRect() / getCircle() を持つことを前提
 	//===------------------------------------------------------

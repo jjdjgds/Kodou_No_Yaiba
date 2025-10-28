@@ -11,13 +11,28 @@ void Main()
 	// テクスチャアセットを登録する
 	//第1引数　呼び出す時に使う名前
 	//第2引数　画像ファイルのパス
-	TextureAsset::Register(U"Windmill", U"example/texture/haikei.jpg");
-	TextureAsset::Register(U"Akkarin",U"example/windmill.png");
-	TextureAsset::Register(U"Player", U"example/spritesheet/samurai_sheet.png");
+	/*TextureAsset::Register(U"Windmill", U"example/texture/haikei.jpg");
 	TextureAsset::Register(U"Idle", U"example/spritesheet/IDLE.png");
 	TextureAsset::Register(U"Run", U"example/spritesheet/RUN.png");
 	TextureAsset::Register(U"Attack", U"example/spritesheet/ATTACK_1.png");
-	TextureAsset::Register(U"Hurt", U"example/spritesheet/HURT.png");
+	TextureAsset::Register(U"Hurt", U"example/spritesheet/HURT.png");*/
+
+	
+	{
+		TextureAsset::Register(U"Player", U"example/spritesheet/samurai.png");
+		TextureAsset::Register(U"HeatBeat", U"example/spritesheet/HEARTBEAT.png");
+	}
+
+
+	{
+		TextureAsset::Register(U"EnemyIdle", U"example/spritesheet/Enemy_IDLE.png");
+		TextureAsset::Register(U"EnemyRun", U"example/spritesheet/Enemy_RUN.png");
+		TextureAsset::Register(U"EnemyHurt", U"example/spritesheet/HURT.png");
+		TextureAsset::Register(U"EnemyAttack", U"example/spritesheet/ATTACK_1.png");
+	}
+
+	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
+	//ATTACK_1.png
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
 
 	
@@ -37,8 +52,8 @@ void Main()
 	// シーンマネージャの作成
 	//ここに追加していく
 	App manager;
-	manager.add<Title>(State::Title);
 	manager.add<Game>(State::Game);
+	manager.add<Title>(State::Title);
 
 	
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え
