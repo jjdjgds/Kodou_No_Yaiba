@@ -1032,7 +1032,7 @@ void Player::update(Game_Map& map)
 		runDuration += Scene::DeltaTime();
 
 		// BPM上昇間隔を徐々に短くする（走り続けるほど疲れる）
-		double interval = Max(0.2, 2.0 - runDuration * 0.2); // 最短0.5秒まで
+		double interval = Max(0.2, 2.0 - runDuration * 0.2); // 最短0.2秒まで
 
 		if (runHeartTimer >= interval)
 		{
