@@ -15,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
-		150,
+		90,
 		3,
 		1.0f,
 		0.5f,
@@ -28,7 +28,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage1.txt"))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt"))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -48,7 +48,7 @@ void Game::update()
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 	Ui.update(player, map);
-	player.update(map);
+	player.update(map,m_enemies);
 	Boss_spawner.update(player, map);
 
 	

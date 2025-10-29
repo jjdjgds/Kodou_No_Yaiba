@@ -2,7 +2,7 @@
 #include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
-
+#include "Enemy.hpp"
 using namespace Collision;
 
 RectF enemyRect{ 0, 0, 0, 0 };
@@ -82,6 +82,21 @@ RectF Player::getHitRect(const Vec2& camera) const
 	};
 }
 
+RectF Player::getHitRectWorld() const
+{
+	const SizeF sz = {
+		m_HitBox.x * m_Scale.x / 10,
+		m_HitBox.y * m_Scale.y / 10
+	};
+
+	const Vec2 center = m_Position + Vec2{ 0, -40 };
+
+	return RectF{
+		Arg::center = center,
+		sz
+	};
+}
+
 
 
 
@@ -105,25 +120,56 @@ void Player::UpdateHeartState()
 
 void Player::takeDamage(int dmg)
 {
+	// ★無敵時は無視
+	if (m_IsInvincible)
+		return;
+
 	if (GetPlayerState() == StateMode::Hurt || GetPlayerState() == StateMode::Doge)
 		return;
 
 	SetPlayerState(StateMode::Hurt);
 	SetPlayerHP(GetPlayerHP() - dmg);
 
-	//----------------------------------------
-	// ★ ダメージを受けた瞬間に心拍数を上昇させる
-	//----------------------------------------
-	SetPlayerBPM(GetPlayerBPM() - 8);  // 上昇値は調整してOK
+	SetPlayerBPM(GetPlayerBPM() - 8);
 	m_HeartTimer = 0.0;
 	m_HeartCoolTimer = m_HeartCooldown;
-	m_HeartCoolFlg = true; // クールタイム中は減少停止
+	m_HeartCoolFlg = true;
 }
 
-
-void Player::PlayerAttack(const Vec2& camera)
+// ワールド座標での当たり判定取得（カメラ補正なし）
+RectF Player::getAttackRectWorld() const
 {
-	const double attackFrameDuration = 0.08;
+	const SizeF hitSize = GetPlayerHitBox();
+	const double attackWidth = hitSize.x * 12;
+	const double attackHeight = hitSize.y * 10;
+	const SizeF attackSize{ attackWidth, attackHeight };
+
+	// ★★★ カメラ補正なし ★★★
+	Vec2 center = GetPlayerPosition();
+
+	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 50 : -hitSize.x * 0.6 - 50);
+	center.x += offsetX;
+	center.y -= hitSize.y + 30;
+
+	return RectF{
+		Arg::center = center,
+		attackSize
+	};
+}
+
+// ============================================
+// Player.cpp の修正部分
+// ============================================
+
+void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
+{
+	double attackFrameDuration = ATTACKSPEED;
+
+	// バーサーク中は攻撃速度上昇
+	if (m_BersarkFlg)
+	{
+		attackFrameDuration /= m_AttackSpeedBoost;
+	}
 
 	if (!m_AttackFlag) return;
 
@@ -132,14 +178,22 @@ void Player::PlayerAttack(const Vec2& camera)
 		animTime -= attackFrameDuration;
 		m_frameIndex++;
 
-		// 攻撃判定のフレームを限定（例：3〜5フレーム目でヒット）
+		// 攻撃判定フレーム（3〜5）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			const RectF pBox = getAttackRect(Vec2{});
-			if (RectToRect(pBox, enemyRect))
+			// ★★★ カメラ座標を渡さない（ワールド座標で判定） ★★★
+			const RectF pBox = getAttackRect(Vec2{ 0, 0 });
+
+			for (auto& e : m_enemies)
 			{
-				Print << U"攻撃ヒット！";
-				// 敵のダメージ処理をここに追加予定
+				// ★★★ 敵もワールド座標で取得 ★★★
+				RectF eBox = e.hurtRect(Vec2{ 0, 0 });
+
+				if (RectToRect(pBox, eBox))
+				{
+					Print << U"攻撃ヒット！";
+					e.takeDamage(10);
+				}
 			}
 		}
 
@@ -149,31 +203,29 @@ void Player::PlayerAttack(const Vec2& camera)
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
+<<<<<<< HEAD
 			
 
 
 			// ★ ここが重要！ 攻撃後の状態を決める
+=======
+>>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 			if (KeyA.pressed() || KeyD.pressed())
 			{
-				// まだ移動キーが押されている → Runへ
 				SetPlayerState(StateMode::Run);
 			}
-			/*else if (!m_onGround)
-			{
-				SetPlayerState(StateMode::Fall);
-			}*/
 			else
 			{
-				// 押されていない → Idleへ
 				SetPlayerState(StateMode::Idle);
 			}
 			m_HeartTimer = 0.0;
 		}
 	}
+<<<<<<< HEAD
 	
+=======
+>>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 }
-
-
 void Player::PlayerIdle()
 {
 	const double idleFrameDuration = 0.15;
@@ -231,32 +283,26 @@ void Player::PlayerDoge()
 
 void Player::PlayerHurt()
 {
-	if (GetPlayerState() != StateMode::Pareise)
+	const double hurtFrameDuration = 0.3;
+	if (animTime >= hurtFrameDuration)
 	{
-		const double hurtFrameDuration = 0.3;
-		if (animTime >= hurtFrameDuration)
+		animTime -= hurtFrameDuration;
+		m_frameIndex++;
+
+		if (m_frameIndex >= m_hurtPatterns.size())
 		{
-			animTime -= hurtFrameDuration;
-			m_frameIndex++;
-			if (m_frameIndex >= m_hurtPatterns.size())
+			m_frameIndex = 0;
+
+			// 一旦 Idle に固定（次のフレームで入力による遷移）
+			SetPlayerState(StateMode::Idle);
+			animTime = 0.0;
+
+			// HPが0ならDeadへ
+			if (GetPlayerHP() <= 0)
 			{
-				m_frameIndex = 0;
-				//  ここが重要！ 攻撃後の状態を決める
-				if (KeyA.pressed() || KeyD.pressed())
-				{
-					// まだ移動キーが押されている → Runへ
-					SetPlayerState(StateMode::Run);
-				}
-				else
-				{
-					// 押されていない → Idleへ
-					SetPlayerState(StateMode::Idle);
-				}
-				if (KeySpace.down())
-				{
-					SetPlayerState(StateMode::Attack);
-				}
+				SetPlayerState(StateMode::Dead);
 			}
+			return;
 		}
 	}
 }
@@ -368,6 +414,15 @@ void Player::PlayerMedecine()
 			}
 		}
 	}
+
+
+}
+
+void Player::PlayerBerserk()
+{
+
+
+
 
 
 }
@@ -572,7 +627,7 @@ void Player::PlayerFall()
 
 
 
-void Player::update(Game_Map& map)
+void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 {
 
 	//行動するたびにFlgをTrueにし減少処理を遮断
@@ -600,6 +655,10 @@ void Player::update(Game_Map& map)
 		m_HeartCoolFlg = false;
 	}
 	
+<<<<<<< HEAD
+=======
+
+>>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
 	{
 		if (m_HeartTimer >= 1.0) // 1秒経過ごと
@@ -609,6 +668,41 @@ void Player::update(Game_Map& map)
 		}
 	}
 	
+<<<<<<< HEAD
+=======
+	// ===== Player::update の中から抜粋 =====
+
+// バーサークモード突入条件
+	if (GetPlayerBPM() >= 120 && !m_BersarkFlg)
+	{
+		m_BersarkFlg = true;
+		m_BersarkTimer = 8.0;             // バーサーク継続秒数
+		m_IsInvincible = true;            // ★無敵ON
+		m_AttackSpeedBoost = 1.5;         // ★攻撃速度倍率（1.5倍）
+		Print << U"🔥バーサークモード突入！🔥";
+	}
+
+	// バーサーク継続処理
+	if (m_BersarkFlg)
+	{
+		if (m_BersarkTimer > 0.0)
+		{
+			m_BersarkTimer -= Scene::DeltaTime();
+			m_BersarkTimer = Max(0.0, m_BersarkTimer);
+		}
+		else
+		{
+			// 時間切れ → 通常状態に戻す
+			m_BersarkFlg = false;
+			m_IsInvincible = false;        // ★無敵解除
+			m_AttackSpeedBoost = 1.0;      // ★攻撃速度戻す
+			Print << U"バーサーク解除";
+		}
+	}
+
+
+
+>>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 
 	UpdateHeartState();
 	ApplyHeartEffects();
@@ -724,9 +818,10 @@ void Player::update(Game_Map& map)
 
 			bool mapColli = map.CheckCollision(rectX);
 			bool enemyColli = false;
-			if (GetPlayerState() != StateMode::Doge)
+			if (GetPlayerState() != StateMode::Doge )
 			{
 				enemyColli = RectToRect(rectX, enemyRect);
+
 			}
 
 			if ((!mapColli) && (!enemyColli))
@@ -741,8 +836,8 @@ void Player::update(Game_Map& map)
 				// めり込みを戻す
 				int maxIterations = 100;
 				int iterations = 0;
-				while ((map.CheckCollision(rectX) || (GetPlayerState() != StateMode::Doge && RectToRect(rectX, enemyRect)))
-					   && iterations < maxIterations)
+				while ((map.CheckCollision(rectX) ||
+					(GetPlayerState() != StateMode::Doge &&RectToRect(rectX, enemyRect)))&& iterations < maxIterations)
 				{
 					if (input.x > 0)
 					{
@@ -946,38 +1041,42 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	// 攻撃処理（優先度を高く）
 	//-----------------------------------
-	if (KeySpace.down() && !IsPlayerAttacking())
+	// --- update() 内の末尾付近 ---
+	if (KeySpace.down()
+		&& !IsPlayerAttacking()
+		&& GetPlayerState() != StateMode::Hurt
+		&& GetPlayerState() != StateMode::Dead
+		&& GetPlayerState() != StateMode::Doge)
 	{
 		SetPlayerLastState(GetPlayerState());
 		SetPlayerAttackFlag(true);
 		m_frameIndex = 0;
 		animTime = 0.0;
 
-		// ステート遷移
-		if (GetPlayerState() == StateMode::Idle)
+		// 攻撃ステートへ
+		if (m_onGround)
 		{
-			SetPlayerState(StateMode::IdleToAttack);
-			// 心拍変化とクール制御
-			SetPlayerBPM(GetPlayerBPM() + 4);
-		}
-		else if (GetPlayerState() == StateMode::Jump)
-		{
-			SetPlayerState(StateMode::JumpAttack);
-			// 心拍変化とクール制御
-			SetPlayerBPM(GetPlayerBPM() + 8);
+			if (GetPlayerState() == StateMode::Idle)
+				SetPlayerState(StateMode::IdleToAttack);
+			else
+				SetPlayerState(StateMode::Attack);
+			SetPlayerBPM(GetPlayerBPM() + 5);
 		}
 		else
 		{
-			SetPlayerState(StateMode::Attack);
-			// 心拍変化とクール制御
-			SetPlayerBPM(GetPlayerBPM() + 5);
+			SetPlayerState(StateMode::JumpAttack);
+			SetPlayerBPM(GetPlayerBPM() + 8);
 		}
+<<<<<<< HEAD
 
 		
 		m_HeartTimer = 0.0;
 		m_HeartCoolTimer = m_HeartCooldown;
 		m_HeartCoolFlg = true; // ★ クールタイム中は減少を止める
+=======
+>>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 	}
+
 
 	// ======== 接地時の状態復帰 ========
 	if (m_onGround)
@@ -1082,7 +1181,7 @@ void Player::update(Game_Map& map)
 		PlayerOnTheWall();
 		break;
 	case StateMode::Attack:
-		PlayerAttack(map.getCameraPos());
+		PlayerAttack(map.getCameraPos(), m_enemies);
 		break;
 	case StateMode::Hurt:
 		PlayerHurt();
@@ -1278,7 +1377,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
 	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
-	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
+	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
 	//Print << U"" << m_BPM;
