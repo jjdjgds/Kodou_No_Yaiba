@@ -1,15 +1,15 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
 #include "Player.hpp"
-#include "Game_Map.hpp"
 
-enum class AnimState_Enemy1 {Idle,Run,Hurt,Attack,};// アニメーション状態列挙型
-enum class Behavior_Enemy1 { Patrol, Chase, Attack, Retreat,};// 行動パターン列挙型
+enum class AnimState_Enemy1 { Idle, Run, Dead, Attack, };// アニメーション状態列挙型
+enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
 enum class PatrolPhase_Enemy1 { Move, Wait, };// 巡回フェーズ列挙型
 
 struct AnimDesc_Enemy1 {// アニメーションの説明構造体
-	String asset;
-	int32  frames;
+	int   row;
+	int   start;
+	int  frames;
 	double frameTime;
 	bool   loop = true;
 };
@@ -20,13 +20,18 @@ private:
 	bool m_debugDraw = true; //デバッグ描画フラグ
 
 	Vec2 m_Position;		  //位置
-	Vec2 m_Scale;			  //大きさ
+
 	bool m_FaceRight;		  //向き
 	float m_Speed = 150.0f;	  //移動速度
-	int m_HP;				  //体力
 
-	double m_hitOffsetY = 16.0;// 当たり判定Y
-	Vec2 m_hitBox = { 22.0 ,35.0 };// 当たり判定サイズ
+
+	bool   m_dead = false;              // 已进入死亡流程
+	bool   m_pendingRemoval = false;
+
+	double m_hitOffsetY = 0.0;// 当たり判定Y
+
+	Vec2 m_Scale = { 140.0 ,120.0 };// 大きさ
+	Vec2 m_hitBox = { 70.0 ,100.0 };// 当たり判定サイズ
 
 
 	float m_gravity = 1800.0;// 重力
@@ -39,18 +44,7 @@ private:
 	double m_strideMax = m_stride + 100.0;// 巡回範囲最大値
 	double m_budget = m_stride;// 巡回予算
 
-
-	double m_backoffSpeed = 150.0;
-	double m_backoffDist = 30.0;// バックオフ距離
-	double m_backoffRemain = 0.0;
-
-	double m_chaseLostTimer = 0.0;// 追跡ロストタイマー
-	double m_chaseLostThreshold = 5.0;
-
-	bool   m_retreatFaceRight = true;// 退避時の向き
-	int    m_retreatDirSign = 0;
-
-	bool isRuning = false;
+	bool m_isRunning = false;
 
 	Behavior_Enemy1 m_mode = Behavior_Enemy1::Patrol;
 	PatrolPhase_Enemy1 m_phase = PatrolPhase_Enemy1::Wait;
@@ -75,21 +69,33 @@ private:
 	bool m_takeDamage = false; // ダメージを受けたかどうか
 
 
-	bool AttackFlag = false; // 攻撃フラグ
+	bool m_attackFlag = false; // 攻撃フラグ
 	int m_Attack;			  //攻撃力
 	double m_attackCooldown = 0.0;
 	double m_attackCooldownMax = 0.6; // 可调
 	float m_AttackRange;	  //攻撃範囲
 	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
 
+	bool   m_engaged = false;         // 是否处于交战（进入过 chaseRect 即置 true）
+	double m_yLoseTimer = 0.0;        // 玩家在不同Y轴的累计时长
+	double m_yLoseThresholdSec = 5.0; // 满足该秒数才允许脱战
+
+	// 纵向判定阈值（像素）：|player.y - enemy.y| 超过才算“不同Y轴”
+	double m_ySepThreshold = 48.0;    // 按你素材调，常用=半个身位~1格
+
+	double m_flipThreshold = 12.0;     // 水平方向改向阈值(px)
+	double m_yFacingGate = 48.0;     // 仅当 |dy| <= 该值才允许改向（同层判定）
+	double m_faceFlipCooldownMax = 0.30; // 改向冷却(s)
+	double m_faceFlipCooldown = 0.0;  // 当前冷却
+
 
 
 	AnimState_Enemy1 m_state{ AnimState_Enemy1::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState_Enemy1, AnimDesc_Enemy1> m_anims{	// アニメーションの説明
-		{ AnimState_Enemy1::Idle, { U"EnemyIdle", 10, 0.12, true } },
-		{ AnimState_Enemy1::Run,  { U"EnemyRun",  16, 0.07, true } },
-		{ AnimState_Enemy1::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
-		{ AnimState_Enemy1::Attack,  { U"EnemyAttack", 7, 0.08, false } },
+		{ AnimState_Enemy1::Idle, {0, 0, 8, 0.09, true } },
+		{ AnimState_Enemy1::Run,  { 1, 3, 9, 0.10, true } },
+		{ AnimState_Enemy1::Dead,  { 4, 1, 3, 0.25, false } },
+		{ AnimState_Enemy1::Attack,  { 3,2, 4, 0.20, false } },
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
@@ -106,12 +112,9 @@ private:
 
 
 public:
-	Enemy_1(Vec2 pos, double stride,
-			 bool faceRight, Vec2 scale)
+	Enemy_1(Vec2 pos, double stride)
 		: m_Position(pos)
-		, m_stride(stride)
-		, m_FaceRight(faceRight)
-		, m_Scale(scale) {
+		, m_stride(stride) {
 	}// コンストラクタ
 
 	//getter 
@@ -120,7 +123,7 @@ public:
 	float getSpeed() const { return m_Speed; }
 	bool isFacingRight() const { return m_FaceRight; }
 
-	int getHP() const { return m_HP; }
+
 	int getAttack() const { return m_Attack; }
 	float getAttackRange() const { return m_AttackRange; }
 	Vec2 getHitbox() const { return m_hitBox; }
@@ -133,13 +136,10 @@ public:
 	void setFaceRight(bool faceRight) { m_FaceRight = faceRight; }
 
 
-
-	void setHP(int hp) { m_HP = hp; }
 	void setAttack(int attack) { m_Attack = attack; }
 	void setAttackRange(float range) { m_AttackRange = range; }
 
 	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
-
 
 	Enemy_1& GetEnemy() { return *this; }
 
@@ -147,16 +147,16 @@ public:
 
 	void draw(const Game_Map& CameraPos) const;
 
-	void takeDamage(int damage);
+	void die();// 死亡処理
+	bool IsPendingRemoval() const { return m_pendingRemoval; }
+	bool IsDead() const { return m_dead; }
 
 	RectF hurtRect(const Vec2& cam) const; // ダメージ判定矩形を取得
 	RectF hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 
 	RectF attackRect(const Vec2& cam) const; // 攻撃判定矩形を取得
-	RectF chaseRect(const Vec2& cam) const;
+	RectF chaseRect(const Vec2& cam) const;// 追跡判定矩形を取得
 
-	Line makeGroundProbeLine(const Vec2& cam) const;
-
-
+	Line makeGroundProbeLine(const Vec2& cam, bool debug) const;// 地面探査用の線分を作成
 };
 

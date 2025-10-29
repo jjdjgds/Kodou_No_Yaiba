@@ -28,7 +28,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage1.txt"))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt"))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -38,11 +38,11 @@ Game::Game(const InitData& init)
 	// 敵初期化
 	m_enemies1.clear();
 	m_enemies1.reserve(8);
-	m_enemies1.emplace_back(Vec2{ 200,700 },300.0, true, Vec2{ 3,3 });
+	//m_enemies1.emplace_back(Vec2{ 200,700 },300.0);
 
 	m_enemies2.clear();
 	m_enemies2.reserve(8);
-	//m_enemies2.emplace_back(Vec2{ 200,400 }, 300.0, true, Vec2{ 3,3 });
+	//m_enemies2.emplace_back(Vec2{ 200,700 }, 600.0);
 
 }
 

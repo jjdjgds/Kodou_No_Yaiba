@@ -3,208 +3,321 @@
 #include "Enemy_2.hpp"
 #include "Collision.hpp"
 #include "Player.hpp"
+#include "Game_Map.hpp"
+#include "Bullet.hpp"
 
 using namespace Collision;
 
 
+void Enemy_2::die() {// 死亡処理
+	if (m_dead) return;
+	m_dead = true;
+	m_pendingRemoval = false;
+	m_attackFlag = false;
+	m_hasHitPlayer = false;
 
+	m_Speed = 0.0;
+	m_isRunning = false;
+	m_velY = 0.0;
 
+	m_frameIndex = 0;
+	m_time = 0.0;
+}
 
-void Enemy_2::takeDamage(int damage)// ダメージを受けたときの処理
+void Enemy_2::fireBullet()// 弾丸発射処理
 {
-	if (!m_takeDamage) {
-		m_takeDamage = true;
-		m_frameIndex = 0;
-		m_time = 0.0;
+	m_bullets << Bullet(m_Position, m_FaceRight, m_bulletSpeed, m_bulletHit, m_bulletLife);// 弾丸を配列に追加
+
+	Bullet& b = m_bullets.back();
+
+	b.setDrawBiasLocal(Vec2{ -10, +7 });// 描画用の偏移を設定
+	b.setHitBiasLocal(Vec2{ 0, +42 });// 衝突箱用の偏移を設定
+}
+
+void Enemy_2::updateBullets(double dt, Player& player, Game_Map& map)// 弾丸更新処理
+{
+	const Vec2 cam = map.getCameraPos();
+	RectF pHitBoxScreen(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox());
+
+	for (auto& b : m_bullets) {
+		if (!b.isAlive()) continue;
+
+		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, cam);// 弾の更新とプレイヤーへの命中判定
+		if (hit) {
+			player.takeDamage(1);
+		}
 	}
+
+	m_bullets.remove_if([](const Bullet& b) { return !b.isAlive(); });// 死んだ弾丸を配列から削除
 }
 
 RectF Enemy_2::hurtRect(const Vec2& cam) const
 {
-	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
-	return RectF{ Arg::center = m_Position.movedBy(0-cam.x, m_hitOffsetY * m_Scale.y- cam.y), sz};
+	const double forwardOffset = m_hitBox.x * -0.2; // 調整可
+	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
+	const SizeF sz{ m_hitBox.x , m_hitBox.y};
+	return RectF{ Arg::center = m_Position.movedBy(xOffset, m_hitOffsetY )-cam, sz};
 }
 
 RectF Enemy_2::hurtRectAt(const Vec2& pos) const
 {
-	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
-	return RectF{ Arg::center = pos.movedBy(0 , m_hitOffsetY * m_Scale.y ), sz };
+	const double forwardOffset = m_hitBox.x * 1; // 調整可
+	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
+	const SizeF sz{ m_hitBox.x , m_hitBox.y };
+	return RectF{ Arg::center = pos.movedBy(xOffset , m_hitOffsetY  ), sz };
 }
 
 RectF Enemy_2::attackRect(const Vec2& cam) const
 {
-	// 被弾矩形をベースに前方へオフセット（攻撃判定）
-	const double forwardOffset = m_hitBox.x * 1 * m_Scale.x; // 調整可
-	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
-	const SizeF sz{ m_hitBox.x * m_Scale.x, m_hitBox.y * m_Scale.y };
-	return RectF{ Arg::center = m_Position.movedBy(xOffset - cam.x, m_hitOffsetY * m_Scale.y - cam.y), sz };
-}
+	const double baseW = m_hitBox.x;
+	const double baseH = m_hitBox.y;
 
-RectF Enemy_2::chaseRect(const Vec2& cam) const
-{
-	const double baseW = m_hitBox.x * m_Scale.x;
-	const double baseH = m_hitBox.y * m_Scale.y;
-
-	const double extraForward = 350.0;                       // 只向前多出的长度（始终为正）
-	const double lead = m_hitBox.x * - 0.5 * m_Scale.x; // 前移基准（原先的 forwardOffset）
+	const double extraForward = 350.0;// 前方拡張量
+	const double lead = m_hitBox.x * -0.5;
 
 	const int dir = (m_FaceRight ? +1 : -1);
 
-	// 新的中心：在原中心基础上，先前移 lead，再额外前移 extraForward/2
 	const Vec2 worldCenter = m_Position.movedBy(
 		dir * (lead + extraForward * 0.5),
-		m_hitOffsetY * m_Scale.y
+		m_hitOffsetY
 	);
 
-	// 新的尺寸：宽度 = 基础宽度 + extraForward（永远为正）
 	const SizeF sz{ baseW + extraForward, baseH };
 
-	// 仍按你当前做法：函数内减相机
 	return RectF{ Arg::center = (worldCenter - cam), sz };
 }
 
-Line Enemy_2::makeGroundProbeLine(const Vec2& cam) const
+RectF Enemy_2::chaseRect(const Vec2& cam) const// プレイヤー追跡用矩形を作成
+{
+	const double baseW = m_hitBox.x ;
+	const double baseH = m_hitBox.y ;
+	
+	const double extraForward = 500.0;// 前方拡張量
+	const double lead = m_hitBox.x * - 0.5 ;
+
+	const int dir = (m_FaceRight ? +1 : -1);
+
+	const Vec2 worldCenter = m_Position.movedBy(
+		dir * (lead + extraForward * 0.5),
+		m_hitOffsetY 
+	);
+
+	const SizeF sz{ baseW + extraForward, baseH };
+
+	return RectF{ Arg::center = (worldCenter - cam), sz };
+}
+
+Line Enemy_2::makeGroundProbeLine(const Vec2& cam,bool debug) const
 {
 	// 地面探査用の線分を作成
-	const double fwd = 17 * m_Scale.x;
-	const double down = 40.0 * m_Scale.y;
+	const double fwd = 1.3 * m_hitBox.x;
+	const double down = 1.0 * m_hitBox.y;
 	const Vec2 dir = (m_FaceRight ? Vec2{ +fwd, +down } : Vec2{ -fwd, +down });
-	return Line{ m_Position-cam, m_Position-cam + dir };
+	if (debug)
+	{
+		return Line{ m_Position - cam, m_Position - cam + dir };
+	}
+	else
+	{
+		return Line{ m_Position, m_Position + dir };
+	}
 }
 
 
 void Enemy_2::update(Player& player, Game_Map& map)
 {
-	if (!TextureAsset::IsRegistered(U"Enemy2")) {
-		TextureAsset::Register(U"Enemy2", U"example/spritesheet/Soldier.png");
-	}
-
 	const double dt = Scene::DeltaTime();
-	const Vec2 camPos = map.getCameraPos();
+	const Vec2 cam = map.getCameraPos();
 
-	if (m_attackCooldown > 0.0) m_attackCooldown = Max(0.0, m_attackCooldown - dt);// 攻撃クールダウン減少
+	m_faceFlipCooldown = Max(0.0, m_faceFlipCooldown - dt);
+	m_attackCooldown = Max(0.0, m_attackCooldown - dt);
 
-	const bool inBlockedState = (m_state == AnimState_Enemy2::Hurt) || (m_state == AnimState_Enemy2::Attack);// ダメージ中or攻撃中は行動制限
+	const RectF eHurtBox = hurtRect(cam);                               // 敵が被弾される矩形（現在位置）
+	const RectF eAttackBox = attackRect(cam);                           // 敵の攻撃矩形（前方オフセット）
+	const RectF eChaseBox = chaseRect(cam);// プレイヤー追跡矩形（広域前方オフセット）
 
-	const RectF eHurtBox= hurtRect(camPos);                               // 敵が被弾される矩形（現在位置）
-	const RectF eAttackBox = attackRect(camPos);                           // 敵の攻撃矩形（前方オフセット）
-	const RectF eChaseBox = chaseRect(camPos);             // 敵のプレイヤー攻撃矩形（広域前方オフセット）
-	const RectF pHitBox(Arg::center = player.GetPlayerPosition()-camPos, player.GetPlayerHitBox()); // プレイヤー本体
-	const RectF pAttackBox = player.getAttackRect(camPos); // プレイヤーの攻撃矩形（Player の関数利用）
+	const Line  eGroundProbeLine = makeGroundProbeLine(cam,false); // 敵の地面探査用線分
+	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
 
-	if (m_state == AnimState_Enemy2::Hurt) {// ダメージ中
-		m_mode = Behavior_Enemy2::Patrol;
+	const RectF pHitBox(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox()); // プレイヤー本体
+	const RectF pAttackBox = player.getAttackRect(cam); // プレイヤーの攻撃矩形（Player の関数利用）
+
+	const bool playerInChase = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡矩形内にいるか
+	const bool playerInAttack = RectToRect(eAttackBox, pHitBox);// プレイヤーが攻撃矩形内にいるか
+
+	if (playerInChase) {// プレイヤーが追跡矩形内にいるなら交戦状態に移行
+		m_engaged = true;
+		m_yLoseTimer = 0.0;
 	}
-	else if (m_state == AnimState_Enemy2::Attack) {// 攻撃中
-		m_mode = Behavior_Enemy2::Attack;
+	else {// プレイヤーが追跡矩形外にいるなら縦軸判定
+		const double dy = Abs(player.GetPlayerPosition().y - m_Position.y);
+		if (dy >= m_ySepThreshold)  m_yLoseTimer += dt;
+		else m_yLoseTimer = 0.0;
 	}
-	else {// 通常状態
-		const bool canAttack = RectToRect(eAttackBox, pHitBox) && (m_attackCooldown <= 0.0) && m_onGround;// 攻撃可能か
-		if (canAttack) {// 攻撃範囲内なら攻撃モードへ
-			m_mode = Behavior_Enemy2::Attack;
-			setState(AnimState_Enemy2::Attack);
-			AttackFlag = true;
-			m_hasHitPlayer = false;
-			m_Speed = 0.0;
-			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);
-		}
-		else if (RectToRect(eChaseBox, pHitBox)) {// 追跡範囲内なら追跡モードへ
-			m_mode = Behavior_Enemy2::Chase;
-		}
-		else {// それ以外は巡回モードへ
-			m_mode = Behavior_Enemy2::Patrol;
-		}
+	if (m_engaged && (m_yLoseTimer >= m_yLoseThresholdSec)) {
+		m_engaged = false;
+		m_yLoseTimer = 0.0;
 	}
+	
+	//const bool playerDead = player.IsDead ? player.IsDead() : false;
+	//if (playerDead) {// プレイヤーが死亡しているなら脱戦
+	//	m_engaged = false;
+	//	m_yLoseTimer = 0.0;
+	//}
 
-	if (m_mode == Behavior_Enemy2::Attack) {// 攻撃モード
+	
+
+	auto updateFacingStable = [&]() {// 安定向き更新
+		const double dx = player.GetPlayerPosition().x - m_Position.x;
+		const double dy = player.GetPlayerPosition().y - m_Position.y;
+
+		if (m_faceFlipCooldown > 0.0) return;
+		if (Abs(dy) > m_yFacingGate)   return;
+
+		if (dx > m_flipThreshold && !m_FaceRight) { m_FaceRight = true;  m_faceFlipCooldown = m_faceFlipCooldownMax; }
+		else if (dx < -m_flipThreshold && m_FaceRight) { m_FaceRight = false; m_faceFlipCooldown = m_faceFlipCooldownMax; }
+		};
+
+
+
+	if (m_dead || (m_state == AnimState_Enemy2::Dead)) {// 死亡状態
+		setState(AnimState_Enemy2::Dead);
+		updateBullets(dt, player, map);
 		m_Speed = 0.0;
-		isRuning = false;
-		if (m_state == AnimState_Enemy2::Attack) {
-			// 攻撃アニメーション中
-		}
-	}
-	else if (m_mode == Behavior_Enemy2::Chase) {// 追跡モード
-		m_Speed = (m_speedBase > 0 ? m_speedBase : 150.0);// 恢复正常速度
-		double remaining = m_Speed * dt;// 移動可能距離
-		const double unit = 2.0;// 移動単位
-		int safety = 0;// 無限ループ防止用カウンタ
-		isRuning = false;// 走っているかどうか
+		m_isRunning = false;
+		m_velY = 0.0;
+		m_onGround = true;
 
-		while (remaining > 0.0 && safety++ < 400) {// 移動可能距離が残っている限り移動処理
-			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);// プレイヤーの位置に向く
-			const double step = Min(remaining, unit);// 今回の移動ステップ
-
-			Vec2 probe = m_Position;
-			probe.x += (m_FaceRight ? +step : -step);
-
-			RectF box = hurtRectAt(probe);
-			if (!map.CheckCollision_RecF(box)) {
-				m_Position.x = probe.x;
-				remaining -= step;
-				isRuning = true;
+		const auto& A = m_anims[m_state];
+		m_time += dt;
+		while (m_time >= A.frameTime) {
+			m_time -= A.frameTime;
+			if (A.loop) {
+				m_frameIndex = (m_frameIndex + 1) % A.frames;
 			}
 			else {
-				int fix = 0; while (map.CheckCollision_RecF(box) && fix++ < 32) {
-					probe.x -= (m_FaceRight ? +0.5 : -0.5);
-					box = hurtRectAt(probe);
-				}
-				m_Position.x = probe.x;
-				m_FaceRight = !m_FaceRight;
-			}
-		}
-	}
-	else { // 巡回モード
-		if (m_phaseTimer <= 0.0) enterPhase(RandomBool() ? PatrolPhase_Enemy2::Move : PatrolPhase_Enemy2::Wait);
-		else {// フェーズタイマー減少
-			m_phaseTimer -= dt;
-			if (m_phaseTimer <= 0.0) enterPhase(m_phase == PatrolPhase_Enemy2::Move ? PatrolPhase_Enemy2::Wait : PatrolPhase_Enemy2::Move);
-		}
-
-		isRuning = false;
-
-		if (m_phase == PatrolPhase_Enemy2::Move) {// 移動フェーズ
-			m_Speed = (m_speedBase > 0 ? m_speedBase : 150.0);
-			double remaining = m_Speed * dt;
-			const double unit = 2.0;
-			int safety = 0;
-
-			while (remaining > 0.0 && safety++ < 400) {
-				const double step = Min({ remaining, m_budget, unit });
-
-				Vec2 probe = m_Position;
-				probe.x += (m_FaceRight ? +step : -step);
-
-				RectF box = hurtRectAt(probe);
-				if (!map.CheckCollision_RecF(box)) {
-					m_Position.x = probe.x;
-					remaining -= step;
-					m_budget -= step;
-					isRuning = true;
-
-					if (m_budget <= 0.0) {
-						m_FaceRight = !m_FaceRight;
-						m_budget = m_strideRandom ? Random(m_strideMin, m_strideMax) : m_stride;
-					}
+				if (m_frameIndex < (A.frames - 1)) {
+					++m_frameIndex;
 				}
 				else {
-					int fix = 0; while (map.CheckCollision_RecF(box) && fix++ < 32) {
-						probe.x -= (m_FaceRight ? +0.5 : -0.5);
-						box = hurtRectAt(probe);
-					}
-					m_Position.x = probe.x;
-
-					m_FaceRight = !m_FaceRight;
-					m_budget = m_strideRandom ? Random(m_strideMin, m_strideMax) : m_stride;
-					remaining -= step;
+					m_pendingRemoval = true;
 				}
 			}
 		}
-		else {// 待機フェーズ
-			m_Speed = 0.0;
-			isRuning = false;
+		return;
+	}
+	else if (m_state == AnimState_Enemy2::Attack) {
+		m_Speed = 0.0;
+		m_isRunning = false;
+		updateFacingStable();
+
+	}
+	else {// 通常行動状態
+		if (m_engaged) {// 交戦モード
+			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround) {
+				m_mode = Behavior_Enemy2::Attack;
+				setState(AnimState_Enemy2::Attack);
+				m_firedThisAttack = false;
+				m_attackFlag = true;
+				m_hasHitPlayer = false;
+				m_Speed = 0.0;
+				updateFacingStable();
+			}
+			else {// 追跡モード
+				m_mode = Behavior_Enemy2::Chase;
+				updateFacingStable();
+
+				if (!groundAhead || playerInAttack) {
+					m_Speed = 0.0;
+					m_isRunning = false;
+				}
+				else {// プレイヤーに向かって移動
+					m_Speed = (m_speedBase > 0 ? m_speedBase : 150.0);
+					double remaining = m_Speed * dt;
+					const double unit = 2.0;
+					int safety = 0;
+					m_isRunning = false;
+
+					while (remaining > 0.0 && safety++ < 400) {
+						const double step = Min(remaining, unit);
+						Vec2 probe = m_Position;
+						probe.x += (m_FaceRight ? +step : -step);
+						RectF box = hurtRectAt(probe);
+						if (!map.CheckCollision_RecF(box)) {
+							m_Position.x = probe.x;
+							remaining -= step;
+							m_isRunning = true;
+						}
+						else {
+							int fix = 0; while (map.CheckCollision_RecF(box) && fix++ < 32) {
+								probe.x -= (m_FaceRight ? +0.5 : -0.5);
+								box = hurtRectAt(probe);
+							}
+							m_Position.x = probe.x;
+
+							remaining = 0.0;
+						}
+					}
+				}
+			}
+		}
+		else { // 巡回モード
+
+			m_mode = Behavior_Enemy2::Patrol;
+			if (!groundAhead) {
+				m_FaceRight = !m_FaceRight;
+				m_isRunning = false;
+			}
+
+
+			if (m_phaseTimer <= 0.0) enterPhase(RandomBool() ? PatrolPhase_Enemy2::Move : PatrolPhase_Enemy2::Wait);
+			else {// フェーズタイマー減少
+				m_phaseTimer -= dt;
+				if (m_phaseTimer <= 0.0) enterPhase(m_phase == PatrolPhase_Enemy2::Move ? PatrolPhase_Enemy2::Wait : PatrolPhase_Enemy2::Move);
+			}
+
+			m_isRunning = false;
+
+			if (m_phase == PatrolPhase_Enemy2::Move) {// 移動フェーズ
+				m_Speed = (m_speedBase > 0 ? m_speedBase : 150.0);
+				double remaining = m_Speed * dt;
+				const double unit = 2.0;
+				int safety = 0;
+
+				while (remaining > 0.0 && safety++ < 400) {
+					const double step = Min({ remaining, m_budget, unit });
+					Vec2 probe = m_Position;
+					probe.x += (m_FaceRight ? +step : -step);
+					RectF box = hurtRectAt(probe);
+					if (!map.CheckCollision_RecF(box)) {
+						m_Position.x = probe.x;
+						remaining -= step;
+						m_budget -= step;
+						m_isRunning = true;
+						if (m_budget <= 0.0) {
+							m_FaceRight = !m_FaceRight;
+							m_budget = m_strideRandom ? Random(m_strideMin, m_strideMax) : m_stride;
+						}
+					}
+					else {
+						int fix = 0; while (map.CheckCollision_RecF(box) && fix++ < 32) {
+							probe.x -= (m_FaceRight ? +0.5 : -0.5);
+							box = hurtRectAt(probe);
+						}
+						m_Position.x = probe.x;
+
+						m_FaceRight = !m_FaceRight;
+						m_budget = m_strideRandom ? Random(m_strideMin, m_strideMax) : m_stride;
+						remaining -= step;
+					}
+				}
+			}
+			else {// 待機フェーズ
+				m_Speed = 0.0;
+				m_isRunning = false;
+			}
 		}
 	}
-
 	// ----------------------------
 	// --- 重力＆縦移動（Y）処理
 	// ----------------------------
@@ -255,43 +368,24 @@ void Enemy_2::update(Player& player, Game_Map& map)
 	}
 
 
-	
-
 	// デバッグ：クリックで敵にダメージ
 	if (eHurtBox.leftClicked()) {
-		takeDamage(1);
-		Print << U"pos" << m_Position;
+		die();
 	}
 
 	// --- プレイヤーの攻撃が敵に当たったか ---
 	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
-	if (playerAttackingThisFrame && RectToRect(pAttackBox, eHurtBox)) {
-		if (!m_takeDamage) {
-			takeDamage(1);
-		}
-	}
-
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame) || m_takeDamage;
-
 	if (gotHit) {//
-		if (m_state != AnimState_Enemy2::Hurt) {
-			setState(AnimState_Enemy2::Hurt);
-			m_Speed = 0.0f;
-		}
+		die();
 	}
 	else if (m_state == AnimState_Enemy2::Attack) {
 		// 攻撃中は動かない（そのまま）
 	}
-	else if (KeySpace.down() && !AttackFlag) {
-		// デバッグ用：スペースで攻撃開始
-		setState(AnimState_Enemy2::Attack);
-		AttackFlag = true;
-		m_Speed = 0.0f;
-	}
 	else {
 		// 通常巡回：vx がゼロでなければ Run
-		if (isRuning) {
+		if (m_isRunning) {
 			if (m_state != AnimState_Enemy2::Run) setState(AnimState_Enemy2::Run);
 		}
 		else {
@@ -299,9 +393,13 @@ void Enemy_2::update(Player& player, Game_Map& map)
 		}
 	}
 
+	updateBullets(dt, player, map);
+
 	// ----------------------------
 	// --- アニメーション更新
 	// ----------------------------
+
+
 	const auto& A = m_anims[m_state];
 	m_time += dt;
 	while (m_time >= A.frameTime) {
@@ -313,52 +411,78 @@ void Enemy_2::update(Player& player, Game_Map& map)
 		else {
 			if (m_frameIndex < (A.frames - 1)) {
 				++m_frameIndex;
+
+				if (m_state == AnimState_Enemy2::Attack
+			   && !m_firedThisAttack
+			   && (m_frameIndex >= m_fireFrame)) {
+					fireBullet();
+					m_firedThisAttack = true;
+				}
 			}
 			else {
 				// ノンループ終了後の後処理
-				if (m_state == AnimState_Enemy2::Hurt) {
-					m_takeDamage = false;
+				if (m_state == AnimState_Enemy2::Dead) {
+					m_pendingRemoval = true;
 				}
 				else if (m_state == AnimState_Enemy2::Attack) {// 攻撃アニメーション終了
-					if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-						player.takeDamage(1);
-						m_hasHitPlayer = true;
+					if (!m_firedThisAttack) {
+						fireBullet();
+						m_firedThisAttack = true;
 					}
 
-					AttackFlag = false;
+					m_attackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;
+					setState(AnimState_Enemy2::Idle);
 				}
-				setState(AnimState_Enemy2::Idle);
 				break;
 			}
 		}
 	}
 
-	if (m_state != AnimState_Enemy2::Attack && m_state != AnimState_Enemy2::Hurt) {// 攻撃中・被弾中以外は状態を速度に応じて更新
-		setState(isRuning ? AnimState_Enemy2::Run : AnimState_Enemy2::Idle);
+
+
+	if (m_state != AnimState_Enemy2::Attack && m_state != AnimState_Enemy2::Dead) {// 攻撃中・被弾中以外は状態を速度に応じて更新
+		setState(m_isRunning ? AnimState_Enemy2::Run : AnimState_Enemy2::Idle);
 	}
+
+	
 }
 
 void Enemy_2::draw(const Game_Map& map) const
 {
-	constexpr int ATLAS_COLS = 9;
-	constexpr int ATLAS_ROWS = 7;
+	constexpr int ATLAS_COLS = 5;
+	constexpr int ATLAS_ROWS = 5;
 	const Texture& atlas = TextureAsset(U"Enemy2");
 	const Size c= { atlas.width() / ATLAS_COLS, atlas.height() / ATLAS_ROWS };
 
-	const auto& R = m_anims.at(m_state);
 
-	int col = R.start + m_frameIndex;
-	int row = R.row;
+	const auto& R = m_anims.at(m_state);
+	int linear = R.start + m_frameIndex;
+	int row = R.row + linear / ATLAS_COLS;
+	int col = linear % ATLAS_COLS;
+
+	row = Clamp(row, 0, ATLAS_ROWS - 1);
+	col = Clamp(col, 0, ATLAS_COLS - 1);
 
 	const int32 sx = col * c.x;
 	const int32 sy = row * c.y;
 	const auto  reg = atlas(sx, sy, c);
 
+	double sxScale = m_Scale.x / c.x;
+	double syScale = m_Scale.y / c.y;
+
+	Vec2 center = m_Position - map.getCameraPos();
+	const double visualH = c.y * syScale;
+	center.y -= (visualH * 0.5 - m_hitBox.y * 0.5) - m_hitOffsetY;
+
 	(m_FaceRight ? reg : reg.mirrored())
-		.scaled(m_Scale.x, m_Scale.y)
-		.drawAt(m_Position - map.getCameraPos());
+		.scaled(sxScale, syScale)
+		.drawAt(center);
+
+	for (const auto& b : m_bullets) {
+		b.draw(map);
+	}
 
 	// ----------------------------
 	// --- デバッグ描画
@@ -367,8 +491,7 @@ void Enemy_2::draw(const Game_Map& map) const
 		hurtRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
 		attackRect(map.getCameraPos()).drawFrame(2.0, Palette::Blue);
 		chaseRect(map.getCameraPos()).drawFrame(2.0, Palette::White);
-		makeGroundProbeLine(map.getCameraPos()).draw(2, Palette::Yellow);
-		//footBox.drawFrame(1.5, Palette::Aqua);
+		makeGroundProbeLine(map.getCameraPos(),true).draw(2, Palette::Yellow);
 	}
 }
 
