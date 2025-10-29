@@ -2,7 +2,13 @@
 #include <Siv3D.hpp>
 #include "StateMode.hpp"
 #include "Game_Map.hpp"
+
 #define MAX_WEAPON (3)
+#define ATTACKSPEED (0.08)
+#define BERSARKATTACKSPEED (0.05)
+
+
+class Enemy;
 enum class HeartRateState
 {
 	Stun,          // スタン（60以下 or 140以上）
@@ -60,8 +66,17 @@ private:
 	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
 	double m_HeartTimer = 0.0;
 	bool   m_TheWorldFlg = 0.0;     //true=使用
-
+	bool   m_BersarkFlg = false;    //true=バーサーカーモード
+	double m_BersarkTimer = 0.0;    //クールタイムの経過時間 
+	double m_Bersarkdown = 1.0;     //クールタイム時間（秒）
 	double m_WallKickTimer = 0.0;
+	bool m_IsInvincible = false;       // 無敵フラグ
+	double m_AttackSpeedBoost = 1.0;   // 攻撃速度倍率
+	//double m_BersarkTimer = 0.0;       // 残り時間
+	//bool m_BersarkFlg = false;         // バーサーク状態中か
+
+
+
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 	// 各アニメーションのフレーム番号
@@ -230,10 +245,12 @@ public:
 
 
 	void takeDamage(int dmg);
+	RectF getAttackRectWorld()const;
 	RectF getAttackRect(const Vec2& camera) const;
 	RectF getHitRect(const Vec2& camera)const;
-	RectF getTheWorld(const Vec2& camera)const;
-	void PlayerAttack(const Vec2& camera);
+	RectF getHitRectWorld() const;
+	//RectF getTheWorld(const Vec2& camera)const;
+	void PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies);
 	void PlayerIdle();
 	void PlayerIdleToRun();
 	void PlayerIdleToAttack(const Vec2& camera);
@@ -246,8 +263,8 @@ public:
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
 	void PlayerMedecine();
-	void PlayerTheWorld();
+	void PlayerBerserk();
 	void PlayerDead();
-	void update(Game_Map& map);
+	void update(Game_Map& map, Array<Enemy>& m_enemies);
 	void draw(const Game_Map& CameraPos) const;
 };
