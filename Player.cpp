@@ -82,21 +82,6 @@ RectF Player::getHitRect(const Vec2& camera) const
 	};
 }
 
-RectF Player::getHitRectWorld() const
-{
-	const SizeF sz = {
-		m_HitBox.x * m_Scale.x / 10,
-		m_HitBox.y * m_Scale.y / 10
-	};
-
-	const Vec2 center = m_Position + Vec2{ 0, -40 };
-
-	return RectF{
-		Arg::center = center,
-		sz
-	};
-}
-
 
 
 
@@ -136,14 +121,41 @@ void Player::takeDamage(int dmg)
 	m_HeartCoolFlg = true;
 }
 
+// ワールド座標での当たり判定取得（カメラ補正なし）
 RectF Player::getAttackRectWorld() const
 {
-	return RectF();
+	const SizeF hitSize = GetPlayerHitBox();
+	const double attackWidth = hitSize.x * 12;
+	const double attackHeight = hitSize.y * 10;
+	const SizeF attackSize{ attackWidth, attackHeight };
+
+	// ★★★ カメラ補正なし ★★★
+	Vec2 center = GetPlayerPosition();
+
+	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 50 : -hitSize.x * 0.6 - 50);
+	center.x += offsetX;
+	center.y -= hitSize.y + 30;
+
+	return RectF{
+		Arg::center = center,
+		attackSize
+	};
 }
 
-// ============================================
-// Player.cpp の修正部分
-// ============================================
+RectF Player::getHitRectWorld() const
+{
+	const SizeF sz = {
+		m_HitBox.x * m_Scale.x / 10,
+		m_HitBox.y * m_Scale.y / 10
+	};
+
+	const Vec2 center = m_Position + Vec2{ 0, -40 };
+
+	return RectF{
+		Arg::center = center,
+		sz
+	};
+}
 
 void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 {
@@ -165,12 +177,12 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 		// 攻撃判定フレーム（3〜5）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			//  カメラ座標を渡さない（ワールド座標で判定） 
+			// ★★★ カメラ座標を渡さない（ワールド座標で判定） ★★★
 			const RectF pBox = getAttackRect(Vec2{ 0, 0 });
 
 			for (auto& e : m_enemies)
 			{
-				//  敵もワールド座標で取得 
+				// ★★★ 敵もワールド座標で取得 ★★★
 				RectF eBox = e.hurtRect(Vec2{ 0, 0 });
 
 				if (RectToRect(pBox, eBox))
@@ -187,8 +199,6 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
-			// ★ ここが重要！ 攻撃後の状態を決める
-
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				SetPlayerState(StateMode::Run);
@@ -201,6 +211,7 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 		}
 	}
 }
+
 void Player::PlayerIdle()
 {
 	const double idleFrameDuration = 0.15;
@@ -281,6 +292,7 @@ void Player::PlayerHurt()
 		}
 	}
 }
+
 
 void Player::PlayerJumpAttack()
 {
@@ -371,7 +383,6 @@ void Player::PlayerMedecine()
 		m_frameIndex++;
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
-
 			m_frameIndex = 0;
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
@@ -606,16 +617,13 @@ void Player::PlayerFall()
 void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 {
 
-	//行動するたびにFlgをTrueにし減少処理を遮断
-	//行動終了後にタイマー開始
-	//タイマーが指定時間に達したらFlgをFalseに変更し減少処理を開始
 
 
 
-	animTime += Scene::DeltaTime();
-	m_DogelstTimer += Scene::DeltaTime();
+	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
+	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
-	m_HeartTimer += Scene::DeltaTime(); // 
+	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
 	{
@@ -631,6 +639,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		m_HeartCoolFlg = false;
 	}
 
+
 	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
 	{
 		if (m_HeartTimer >= 1.0) // 1秒経過ごと
@@ -639,7 +648,8 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			m_HeartTimer = 0.0;
 		}
 	}
-	// ===== Player::update の中から抜粋 =====
+
+	
 
 // バーサークモード突入条件
 	if (GetPlayerBPM() >= 120 && !m_BersarkFlg)
@@ -668,6 +678,9 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			Print << U"バーサーク解除";
 		}
 	}
+
+
+
 
 	UpdateHeartState();
 	ApplyHeartEffects();
@@ -724,6 +737,11 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	{
 		SetPlayerFaceRight(input.x > 0);
 	}
+	//-----------------------------------
+	// 🔹 時止めスケールを適用した移動更新
+	//-----------------------------------
+	double dt = Scene::DeltaTime() * TimeStopManager::GetPlayerScale();
+
 
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
@@ -775,9 +793,8 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		}
 		else
 		{
-			//  通常の横移動処理 
-			velocity.x = input.x * GetPlayerSpeed();
-			Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
+			velocity.x = input.x * GetPlayerSpeed() * TimeStopManager::GetPlayerScale();
+			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
 
 			RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
 
@@ -835,7 +852,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	//-----------------------------------
 	if (!m_onGround)
 	{
-		velocity.y += m_gravity * Scene::DeltaTime() * 400;
+		velocity.y += m_gravity * Scene::DeltaTime() * 400 * TimeStopManager::GetPlayerScale();
 	}
 
 	//-----------------------------------
@@ -902,7 +919,8 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	//-----------------------------------
 	// 縦方向移動処理
 	//-----------------------------------
-	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
+
+	Vec2 nextPosY = pos + Vec2(0, velocity.y * dt);
 	RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
 
 	bool hitGround = false;
@@ -1032,9 +1050,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::JumpAttack);
 			SetPlayerBPM(GetPlayerBPM() + 8);
 		}
-		m_HeartTimer = 0.0;
-		m_HeartCoolTimer = m_HeartCooldown;
-		m_HeartCoolFlg = true; // ★ クールタイム中は減少を止める
 	}
 
 
@@ -1078,17 +1093,15 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::Medecine);
 			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
-
-		if (KeyT.pressed())
+		if (KeyT.down())
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
 		}
-		if (KeyT.up())
-		{
-			TimeStopManager::Stop(); // ザ・ワールド発動
-		}
-		TimeStopManager::Update(); // ザ・ワールド発動
+
+
 	}
+	TimeStopManager::Update();
+
 	//-----------------------------------
 	// 走行中の心拍数上昇（時間経過で強くなる）
 	//-----------------------------------
@@ -1101,7 +1114,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		runDuration += Scene::DeltaTime();
 
 		// BPM上昇間隔を徐々に短くする（走り続けるほど疲れる）
-		double interval = Max(0.2, 2.0 - runDuration * 0.2); // 最短0.5秒まで
+		double interval = Max(0.2, 2.0 - runDuration * 0.2); // 最短0.2秒まで
 
 		if (runHeartTimer >= interval)
 		{
