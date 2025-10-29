@@ -575,10 +575,7 @@ void Player::PlayerFall()
 void Player::update(Game_Map& map)
 {
 
-	//行動するたびにFlgをTrueにし減少処理を遮断
-	//行動終了後にタイマー開始
-	//タイマーが指定時間に達したらFlgをFalseに変更し減少処理を開始
-
+	
 
 
 	animTime += Scene::DeltaTime();
