@@ -52,6 +52,8 @@ namespace Collision
 		return line.intersects(circle);
 	}
 
+	
+
 	//===------------------------------------------------------
 	// 任意オブジェクト vs 任意オブジェクト
 	// Object が getRect() / getCircle() を持つことを前提
