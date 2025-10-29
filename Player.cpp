@@ -181,12 +181,12 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 		// 攻撃判定フレーム（3〜5）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			// ★★★ カメラ座標を渡さない（ワールド座標で判定） ★★★
+			//  カメラ座標を渡さない（ワールド座標で判定） 
 			const RectF pBox = getAttackRect(Vec2{ 0, 0 });
 
 			for (auto& e : m_enemies)
 			{
-				// ★★★ 敵もワールド座標で取得 ★★★
+				//  敵もワールド座標で取得 
 				RectF eBox = e.hurtRect(Vec2{ 0, 0 });
 
 				if (RectToRect(pBox, eBox))
@@ -385,6 +385,7 @@ void Player::PlayerMedecine()
 		m_frameIndex++;
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
+
 			m_frameIndex = 0;
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
@@ -1095,9 +1096,13 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::Medecine);
 			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
-		if (KeyT.down())
+		if (KeyT.pressed())
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
+		}
+		if (KeyT.up())
+		{
+			TimeStopManager::Stop(); // ザ・ワールド発動
 		}
 
 
