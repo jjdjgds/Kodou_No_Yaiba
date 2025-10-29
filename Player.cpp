@@ -1093,11 +1093,14 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::Medecine);
 			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
-		if (KeyT.down())
+		if (KeyT.pressed())
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
 		}
-
+		if (KeyT.up())
+		{
+			TimeStopManager::Stop(); // ザ・ワールド発動
+		}
 
 	}
 	TimeStopManager::Update();
