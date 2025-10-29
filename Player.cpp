@@ -1094,6 +1094,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::Medecine);
 			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
+
 		if (KeyT.pressed())
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
@@ -1102,8 +1103,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		{
 			TimeStopManager::Stop(); // ザ・ワールド発動
 		}
-
-
 
 	}
 	//-----------------------------------
@@ -1364,6 +1363,6 @@ void Player::draw(const Game_Map& CameraPos) const
 	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
-	//Print << U"" << m_BPM;
+	Print << U"" << m_BPM;
 	
 }
