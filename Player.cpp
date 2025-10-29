@@ -1229,7 +1229,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
 	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
-	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
+	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
 	Print << U"" << m_BPM;

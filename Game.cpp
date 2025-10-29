@@ -53,7 +53,17 @@ void Game::update()
 	if (player.IsPlayerTheWorldFlg())
 	{
 		RectF  pBox=  player.getTheWorld(map.getCameraPos());
-		//for()
+		for (auto& e : m_enemies)
+		{
+			
+			if (RectToRect(pBox, e.hurtRect(map.getCameraPos())))
+			{
+
+				Print << U"the world";
+
+			}
+
+		}
 
 	}
 	
@@ -70,7 +80,7 @@ void Game::draw() const
 	player.draw(map);             // ← プレイヤーを描画
 
 	for (const auto& e : m_enemies) e.draw(map); //敵描画
-
+	RectF  pBox = player.getTheWorld(map.getCameraPos()).drawFrame(5, ColorF{ 0, 0.5, 1, 0.5 });
 	Ui.draw(player,map);
 
 }

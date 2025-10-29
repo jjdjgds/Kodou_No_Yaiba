@@ -29,7 +29,7 @@ private:
 	Vec2 m_Acceleration;	  //加速度
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	Vec2 m_HitBox;          //当たり判定矩形
-	Vec2 m_TheWorldBox = {10,10};//時止めの時の範囲矩形
+	Vec2 m_TheWorldBox = {8000,50};//時止めの時の範囲矩形
 	int m_HP;				  //体力
 	int m_MaxHP;
 	int m_BPM;				  //心拍数
