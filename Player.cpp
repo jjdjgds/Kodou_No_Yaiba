@@ -1108,6 +1108,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			TimeStopManager::Stop(); // ザ・ワールド発動
 		}
 
+		TimeStopManager::Update(); // ザ・ワールド発動
 	}
 	//-----------------------------------
     // 走行中の心拍数上昇（時間経過で強くなる）
