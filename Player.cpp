@@ -1016,7 +1016,10 @@ void Player::update(Game_Map& map)
 			SetPlayerState(StateMode::Medecine);
 			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
-
+		if (KeyT.down())
+		{
+			TimeStopManager::Start(); // ザ・ワールド発動
+		}
 
 
 	}
