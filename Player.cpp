@@ -207,6 +207,7 @@ void Player::PlayerDoge()
 	// アニメ更新
 	animTime += Scene::DeltaTime();
 	const double dogeFrameDuration = 0.08;
+	
 	if (animTime >= dogeFrameDuration)
 	{
 		animTime -= dogeFrameDuration;
@@ -995,6 +996,7 @@ void Player::update(Game_Map& map)
 		if (KeyT.pressed())
 		{
 			SetPlayerTheWorldFlag(true);
+			TimeStopManager::Start(); // Tキーで時止め開始
 		}
 
 
@@ -1220,7 +1222,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	// === スプライト描画 ===
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(scaleX, scaleY)
-		.drawAt(drawPos + offset + dogeOffset);
+		.drawAt(drawPos + offset + dogeOffset, ColorF{ 1.0, 0.5 });
 
 	// === デバッグ表示 ===
 	RectF hitBox = getHitRect(CameraPos.getCameraPos());

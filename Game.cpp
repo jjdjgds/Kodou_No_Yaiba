@@ -2,6 +2,7 @@
 #include "Player.hpp"
 #include "Enemy.hpp"
 #include "Collision.hpp"
+#include "TimeStopManager.h"
 using namespace Collision;
 
 
@@ -49,23 +50,7 @@ void Game::update()
 	player.update(map);
 
 
-	//ここから
-	if (player.IsPlayerTheWorldFlg())
-	{
-		RectF  pBox=  player.getTheWorld(map.getCameraPos());
-		for (auto& e : m_enemies)
-		{
-			
-			if (RectToRect(pBox, e.hurtRect(map.getCameraPos())))
-			{
-
-				Print << U"the world";
-
-			}
-
-		}
-
-	}
+	
 	
 
 	for (auto& e : m_enemies) e.update(player,map);
