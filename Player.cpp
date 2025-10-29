@@ -82,21 +82,6 @@ RectF Player::getHitRect(const Vec2& camera) const
 	};
 }
 
-RectF Player::getHitRectWorld() const
-{
-	const SizeF sz = {
-		m_HitBox.x * m_Scale.x / 10,
-		m_HitBox.y * m_Scale.y / 10
-	};
-
-	const Vec2 center = m_Position + Vec2{ 0, -40 };
-
-	return RectF{
-		Arg::center = center,
-		sz
-	};
-}
-
 
 
 
@@ -157,9 +142,20 @@ RectF Player::getAttackRectWorld() const
 	};
 }
 
-// ============================================
-// Player.cpp の修正部分
-// ============================================
+RectF Player::getHitRectWorld() const
+{
+	const SizeF sz = {
+		m_HitBox.x * m_Scale.x / 10,
+		m_HitBox.y * m_Scale.y / 10
+	};
+
+	const Vec2 center = m_Position + Vec2{ 0, -40 };
+
+	return RectF{
+		Arg::center = center,
+		sz
+	};
+}
 
 void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 {
@@ -181,12 +177,12 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 		// 攻撃判定フレーム（3〜5）
 		if (m_frameIndex >= 3 && m_frameIndex <= 5)
 		{
-			//  カメラ座標を渡さない（ワールド座標で判定） 
+			// ★★★ カメラ座標を渡さない（ワールド座標で判定） ★★★
 			const RectF pBox = getAttackRect(Vec2{ 0, 0 });
 
 			for (auto& e : m_enemies)
 			{
-				//  敵もワールド座標で取得 
+				// ★★★ 敵もワールド座標で取得 ★★★
 				RectF eBox = e.hurtRect(Vec2{ 0, 0 });
 
 				if (RectToRect(pBox, eBox))
@@ -217,6 +213,7 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 		}
 	}
 }
+
 void Player::PlayerIdle()
 {
 	const double idleFrameDuration = 0.15;
@@ -297,6 +294,7 @@ void Player::PlayerHurt()
 		}
 	}
 }
+
 
 void Player::PlayerJumpAttack()
 {
@@ -387,7 +385,6 @@ void Player::PlayerMedecine()
 		m_frameIndex++;
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
-
 			m_frameIndex = 0;
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
@@ -655,7 +652,8 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			m_HeartTimer = 0.0;
 		}
 	}
-	// ===== Player::update の中から抜粋 =====
+
+	
 
 // バーサークモード突入条件
 	if (GetPlayerBPM() >= 120 && !m_BersarkFlg)
@@ -740,6 +738,11 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	{
 		SetPlayerFaceRight(input.x > 0);
 	}
+	//-----------------------------------
+	// 🔹 時止めスケールを適用した移動更新
+	//-----------------------------------
+	double dt = Scene::DeltaTime() * TimeStopManager::GetPlayerScale();
+
 
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
@@ -799,7 +802,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 
 			bool mapColli = map.CheckCollision(rectX);
 			bool enemyColli = false;
-			if (GetPlayerState() != StateMode::Doge )
+			if (GetPlayerState() != StateMode::Doge)
 			{
 				enemyColli = RectToRect(rectX, enemyRect);
 
@@ -818,7 +821,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 				int maxIterations = 100;
 				int iterations = 0;
 				while ((map.CheckCollision(rectX) ||
-					(GetPlayerState() != StateMode::Doge &&RectToRect(rectX, enemyRect)))&& iterations < maxIterations)
+					(GetPlayerState() != StateMode::Doge && RectToRect(rectX, enemyRect))) && iterations < maxIterations)
 				{
 					if (input.x > 0)
 					{
@@ -918,7 +921,8 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	//-----------------------------------
 	// 縦方向移動処理
 	//-----------------------------------
-	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
+
+	Vec2 nextPosY = pos + Vec2(0, velocity.y * dt);
 	RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
 
 	bool hitGround = false;
@@ -1103,7 +1107,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		{
 			TimeStopManager::Stop(); // ザ・ワールド発動
 		}
-		TimeStopManager::Update(); // ザ・ワールド発動
+
 	}
 	//-----------------------------------
     // 走行中の心拍数上昇（時間経過で強くなる）
