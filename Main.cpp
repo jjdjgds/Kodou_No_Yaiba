@@ -25,6 +25,7 @@ void Main()
 
 
 	{
+		TextureAsset::Register(U"Enemy1", U"example/spritesheet/Enemy1.png");
 		TextureAsset::Register(U"EnemyIdle", U"example/spritesheet/Enemy_IDLE.png");
 		TextureAsset::Register(U"EnemyRun", U"example/spritesheet/Enemy_RUN.png");
 		TextureAsset::Register(U"EnemyHurt", U"example/spritesheet/HURT.png");

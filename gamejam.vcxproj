@@ -123,7 +123,6 @@
     <ClCompile Include="Game_BG.cpp" />
     <ClCompile Include="Game_Map.cpp" />
     <ClCompile Include="Game_UI.cpp" />
-    <ClCompile Include="jokeClass.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MapLoader.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -348,7 +347,6 @@
     <ClInclude Include="Game_BG.hpp" />
     <ClInclude Include="Game_Map.hpp" />
     <ClInclude Include="Game_UI.hpp" />
-    <ClInclude Include="jokeClass.h" />
     <ClInclude Include="MapLoader.hpp" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="StateMode.hpp" />

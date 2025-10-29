@@ -3,6 +3,15 @@
 #include "Enemy_Boss.hpp"
 #include "Game_Map.hpp"
 
+struct SpawnPoint
+{
+	Vec2 position;
+	int type;
+	double stride;
+	bool faceRight;
+	bool used = false;
+};
+
 class EnemySpawner
 {
 private:
@@ -11,7 +20,7 @@ public:
 	EnemySpawner() = default;
 	~EnemySpawner() { delete m_boss; }
 
-	void spawnBoss(const Vec2& pos, double stride = 0.0, bool faceRight = true, Vec2 scale = Vec2{ 1,1 });
+	void spawnBoss(const Vec2& pos);
 	void loadFromMap(const Array<Block>& blocks, double chipWidth, double chipHeight);
 	void update(Player& player, Game_Map& map);
 	void draw(const Game_Map& map) const;
