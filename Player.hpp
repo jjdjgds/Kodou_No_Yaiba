@@ -29,6 +29,7 @@ private:
 	Vec2 m_Acceleration;	  //加速度
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	Vec2 m_HitBox;          //当たり判定矩形
+	Vec2 m_TheWorldBox = {10,10};//時止めの時の範囲矩形
 	int m_HP;				  //体力
 	int m_MaxHP;
 	int m_BPM;				  //心拍数
@@ -58,7 +59,7 @@ private:
 	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
 	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
 	double m_HeartTimer = 0.0;
-
+	bool   m_TheWorldFlg = 0.0;     //true=使用
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
@@ -103,6 +104,7 @@ private:
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
 	HeartRateState m_HeartRateState = HeartRateState::Berserk;
+
 public:
 	
 	//Player();
@@ -147,6 +149,7 @@ public:
 		, m_gravity(9.8)
 		, m_PlayerState(StateMode::Idle)
 		, m_HeartRateState(HeartRateState::Dead)
+		, m_TheWorldFlg(false)
 	
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
@@ -176,6 +179,7 @@ public:
 	 bool  IsPlayerFacingRight() const { return m_FaceRight; }
 	 bool  IsPlayerInvincible() const { return m_Invincible; }
 	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
+	 bool  IsPlayerTheWorldFlg()const { return m_TheWorldFlg; }
 	 float GetPlayerDefoSpeed() const { return NormalPlayerSpeed; }
 	 StateMode GetPlayerState() const { return m_PlayerState; }
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
@@ -203,6 +207,7 @@ public:
 	bool SetPlayerjumpFlag(bool flag) { return m_Jump = flag; }
 	float SetPlayerJumpSpeed(float jumpSpeed) { return m_JumpSpeed = jumpSpeed; }
 	bool SetPlayerAttackFlag(bool flag) { return m_AttackFlag = flag; }
+	bool SetPlayerTheWorldFlag(bool flg) { return m_TheWorldFlg = flg; }
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	HeartRateState SetPlayerHeartState(HeartRateState a) { return m_HeartRateState = a; }
 	void UpdateHeartState();
@@ -226,6 +231,7 @@ public:
 	void takeDamage(int dmg);
 	RectF getAttackRect(const Vec2& camera) const;
 	RectF getHitRect(const Vec2& camera)const;
+	RectF getTheWorld(const Vec2& camera)const;
 	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();

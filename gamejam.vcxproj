@@ -351,6 +351,7 @@
     <ClInclude Include="StateMode.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Title.hpp" />
+    <ClInclude Include="TimeStopManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App\example\obj\blacksmith.obj">

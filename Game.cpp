@@ -47,6 +47,15 @@ void Game::update()
 	map.update();
 	Ui.update(player, map);
 	player.update(map);
+
+
+	//ここから
+	if (player.IsPlayerTheWorldFlg())
+	{
+		RectF  pBox=  player.getTheWorld(map.getCameraPos());
+		//for()
+
+	}
 	
 
 	for (auto& e : m_enemies) e.update(player,map);

@@ -82,6 +82,25 @@ RectF Player::getHitRect(const Vec2& camera) const
 	};
 }
 
+RectF Player::getTheWorld(const Vec2& camera) const
+{
+	// === 実際の当たり判定サイズ（スケール反映） ===
+	const SizeF sz = {
+		m_TheWorldBox.x * m_Scale.x / 10,
+		m_TheWorldBox.y * m_Scale.y / 10
+	};
+
+	// === 中心をスプライトと一致させる（体中心基準） ===
+	// m_Position がキャラ中心座標なのでそのまま使用
+	const Vec2 center = m_Position
+		.movedBy(-camera + Vec2{ 0,-40 }); // カメラ補正
+
+	return RectF{
+		Arg::center = center,
+		sz
+	};
+}
+
 
 
 
@@ -973,7 +992,10 @@ void Player::update(Game_Map& map)
 		{
 			SetPlayerState(StateMode::Medecine);
 		}
-
+		if (KeyT.pressed())
+		{
+			SetPlayerTheWorldFlag(true);
+		}
 
 
 	}
@@ -1023,16 +1045,16 @@ void Player::update(Game_Map& map)
 
 		PlayerMedecine();
 		break;
-	case StateMode::TheWorld:
-
-		PlayerTheWorld();
-
-		break;
+	
 	case StateMode::Dead:
 		PlayerDead();
 		break;
 	default:
 		break;
+	}
+	if (IsPlayerTheWorldFlg())
+	{
+		PlayerTheWorld();
 	}
 
 	//-----------------------------------
