@@ -48,6 +48,7 @@ void  EnemySpawner::update(Player& player, Game_Map& map)
 void  EnemySpawner::draw(const Game_Map& map) const
 {
 	if (m_boss)
-		m_boss->draw(map.getCameraPos(), { map.getChipWidth() * 3.5,map.getChipHeight() * 3.5 });
+		m_boss->draw(m_boss->GetPosition()-map.getCameraPos(), { map.getChipWidth() * 3.5,map.getChipHeight() * 3.5 });
+
 }
 

@@ -48,13 +48,14 @@ private :
 
 	int m_boss_hp = 50;
 	int m_boss_bpm = 100;
+	bool m_isAttacking = false;
 	int m_boss_atk = 10;
-	int m_boss_range = 400.0f;
-	float chaseRange = 600.0f;
+	int m_boss_range = 600.0f;
+	float chaseRange = 700.0f;
 
 	float tex_offsetY = 45.0f;
 	float dist = 0;
-	float m_boss_speed = 500.0f;
+	float m_boss_speed = 550.0f;
 
 	Vec2 m_hitBox = { 75.0  ,100.0 };
 
@@ -63,13 +64,15 @@ private :
 
 	// Attack / pattern management
 	double m_attackTimer = 0.0;
-	double m_attackCooldown = 3.0; // seconds between attacks
+	double m_attackCooldown = 2.0; // seconds between attacks
 
 	bool m_isDying = false;
 	int m_deathPatternCounter = 0;  // Counts how many times we've cycled
 
 	void handleAttackPattern(Player& player, Game_Map& map);
 	void executePattern(Player& player, Game_Map& map, Boss_Pattern pattern);
+
+	void Pattern_5(Player& player ,Vec2 cam_pos);
 
 	AnimState_Boss m_state{ AnimState_Boss::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState_Boss, AnimDesc_Boss> m_anims{	// アニメーションの説明
@@ -125,7 +128,9 @@ public:
 	void SetSpeed(float speed) { m_boss_speed = speed; }
 	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
 
-	Enemy_Boss& GetEnemy_Boss() { return *this; }
+
+	RectF attackRect(const Vec2& cam) const; // 攻撃判定矩形を取得
+	RectF chaseRect(const Vec2& cam) const;
 };
 
 //->boss no hp (bpm)

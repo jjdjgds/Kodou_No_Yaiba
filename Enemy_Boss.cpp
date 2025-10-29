@@ -11,6 +11,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	const Vec2 camPos = map.getCameraPos();
 	Vec2 playerPos = player.GetPlayerPosition();
 
+
 	m_FaceRight = (playerPos.x >= m_boss_pos.x);
 
 	float dx = playerPos.x - m_boss_pos.x;
@@ -31,9 +32,14 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		m_deathPatternCounter = 0;
 	}
 
+	if (m_isAttacking) {
+		return; // Exit early to prevent state change
+	}
+
 	switch (m_behavior)
 	{
 	case Boss_Behavior::idle:
+		Print << U"Idle";
 		m_vel.x = 0.0f;
 
 		if (!m_isDying && dist < chaseRange)
@@ -42,28 +48,23 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		}
 		break;
 	case Boss_Behavior::Chase:
-		if (dist < chaseRange)
+		Print << U"Chase";
+		m_vel.x = (dx / dist) * m_boss_speed;
+
+		if (dist < m_boss_range)
 		{
-			m_vel.x = (dx / dist) * m_boss_speed;
-			
-			if (dist < m_boss_range)
-			{
-				m_behavior = Boss_Behavior::Attack;
-			}
+			m_behavior = Boss_Behavior::Attack;
 		}
-		else
-		{
-			m_behavior = Boss_Behavior::idle;
-			m_vel.x = 0.0f;
-		}
+
 		break;
 	case Boss_Behavior::Attack:
+		Print << U"Attack";
 		m_vel.x = 0.0f;
 		m_attackTimer += dt;
 		if (m_attackTimer >= m_attackCooldown)
 		{
 			// Perform current attack pattern
-			handleAttackPattern(player, map);
+			//handleAttackPattern(player, map);
 			m_attackTimer = 0.0; // Reset cooldown
 		}
 		// Return to chase if player moves out of attack range
@@ -168,7 +169,6 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 void Enemy_Boss::draw(Vec2 pos, Vec2 size) const
 {
-	Vec2 screenPos = m_boss_pos - pos;// Apply camera offset only for drawing
 
 	const auto& A = m_anims.at(m_state);
 	const Texture& tex = TextureAsset(A.asset);
@@ -180,11 +180,11 @@ void Enemy_Boss::draw(Vec2 pos, Vec2 size) const
 	auto reg = tex(sx, 0, frameW, frameH);
 	(m_FaceRight ? reg : reg.mirrored())
 		.resized(size)
-		.drawAt(screenPos);
+		.drawAt(pos);
 
 	RectF (
-	screenPos.x - m_hitBox.x / 2,
-	screenPos.y - m_hitBox.y / 2 + tex_offsetY,
+	pos.x - m_hitBox.x / 2,
+	pos.y - m_hitBox.y / 2 + tex_offsetY,
 	m_hitBox.x,
 	m_hitBox.y
 	).drawFrame(2, Palette::Blue); // 🔵 screen-space hitbox (for visual alignment)
@@ -194,7 +194,7 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 {
 	if (!m_isDying)
 	{
-		executePattern(player, map, m_pattern);
+		executePattern(player, map, Boss_Pattern::PATTERN_5);
 	}
 	else
 	{
@@ -258,8 +258,8 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 		break;
 
 	case Boss_Pattern::PATTERN_5:
-		// Example: charge toward player
-		Print << U"Boss uses PATTERN_5 (charge)";
+		Print << U"Boss uses PATTERN_5 ";
+		Pattern_5(player,map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_6:
@@ -270,4 +270,60 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 	default:
 		break;
 	}
+}
+
+void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
+{
+	m_isAttacking = true;
+
+	Vec2 dir = player.GetPlayerPosition() - (m_boss_pos - cam_pos);
+	float dist = dir.length();
+	dir /= dist;
+	// Face the player
+	m_FaceRight = (dir.x >= 0.0f);
+
+	float dashStopDistance = 100.0f;
+	float dashDistance = std::max(dist - dashStopDistance, 0.0f);
+
+	Vec2 dashPosition = m_boss_pos;
+	dashPosition.x += dir.x * dashDistance;  // Only move along the X axis
+
+	m_boss_pos = dashPosition;
+
+	// Attack hitbox range (half of the width of the boss hitbox)
+	float attackHitboxRange = m_hitBox.x / 2.0f;  // Adjust if needed
+
+	RectF attackHitbox;
+
+	// If the boss is moving towards the right, create the hitbox to the right of the boss
+	if (m_FaceRight)
+	{
+		attackHitbox = RectF(
+			m_boss_pos.x + m_hitBox.x / 2.0f - cam_pos.x, // Right of the boss
+			m_boss_pos.y - m_hitBox.y / 2.0f + tex_offsetY - cam_pos.y, // Vertical position
+			m_hitBox.x, // Width of the attack hitbox
+			m_hitBox.y  // Height of the attack hitbox
+		);
+	}
+	else
+	{
+		attackHitbox = RectF(
+			m_boss_pos.x - m_hitBox.x / 2.0f - m_hitBox.x - cam_pos.x, // Left of the boss
+			m_boss_pos.y - m_hitBox.y / 2.0f + tex_offsetY - cam_pos.y, // Vertical position
+			m_hitBox.x, // Width of the attack hitbox
+			m_hitBox.y  // Height of the attack hitbox
+		);
+	}
+	// --- Visualize the Attack Hitbox ---
+	attackHitbox.drawFrame(2, Palette::Black);  // Red frame to visualize the hitbox
+
+	// Check if the player's hitbox intersects with the attack hitbox
+	const RectF playerRect = player.getHitRect(cam_pos);
+
+	if (attackHitbox.intersects(playerRect))
+	{
+		Print << U"PATTERN_5 Hit";
+	}
+
+	m_isAttacking = false;
 }
