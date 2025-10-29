@@ -578,10 +578,10 @@ void Player::update(Game_Map& map)
 
 
 
-	animTime += Scene::DeltaTime();
-	m_DogelstTimer += Scene::DeltaTime();
+	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
+	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
-	m_HeartTimer += Scene::DeltaTime(); // 
+	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
 	{
@@ -662,7 +662,12 @@ void Player::update(Game_Map& map)
 	{
 		SetPlayerFaceRight(input.x > 0);
 	}
+	//-----------------------------------
+	// 🔹 時止めスケールを適用した移動更新
+	//-----------------------------------
+	double dt = Scene::DeltaTime() * TimeStopManager::GetPlayerScale();
 
+	
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
 	Vec2 velocity = GetPlayerVelocity();
@@ -713,9 +718,8 @@ void Player::update(Game_Map& map)
 		}
 		else
 		{
-			//  通常の横移動処理 
-			velocity.x = input.x * GetPlayerSpeed();
-			Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
+			velocity.x = input.x * GetPlayerSpeed() * TimeStopManager::GetPlayerScale();
+			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
 
 			RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
 
@@ -772,7 +776,7 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	if (!m_onGround)
 	{
-		velocity.y += m_gravity * Scene::DeltaTime() * 400;
+		velocity.y += m_gravity * Scene::DeltaTime() * 400 * TimeStopManager::GetPlayerScale();
 	}
 
 	//-----------------------------------
@@ -839,7 +843,8 @@ void Player::update(Game_Map& map)
 	//-----------------------------------
 	// 縦方向移動処理
 	//-----------------------------------
-	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
+
+	Vec2 nextPosY = pos + Vec2(0, velocity.y * dt);
 	RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
 
 	bool hitGround = false;
@@ -1023,6 +1028,8 @@ void Player::update(Game_Map& map)
 
 
 	}
+	TimeStopManager::Update();
+
 	//-----------------------------------
 	// 走行中の心拍数上昇（時間経過で強くなる）
 	//-----------------------------------
