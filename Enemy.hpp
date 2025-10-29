@@ -47,6 +47,7 @@ private:
 
 	bool isRuning = false;
 
+	bool m_isFrozen = false;
 	Behavior m_mode = Behavior::Patrol;
 	PatrolPhase m_phase = PatrolPhase::Wait;
 
@@ -152,6 +153,7 @@ public:
 
 	Line makeGroundProbeLine(const Vec2& cam) const;
 
+	
 
 };
 

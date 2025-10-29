@@ -72,7 +72,7 @@ Line Enemy::makeGroundProbeLine(const Vec2& cam) const
 
 void Enemy::update(Player& player, Game_Map& map)
 {
-	const double dt = Scene::DeltaTime();
+	double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	const Vec2 camPos = map.getCameraPos();
 
 	if (m_attackCooldown > 0.0) m_attackCooldown = Max(0.0, m_attackCooldown - dt);// 攻撃クールダウン減少

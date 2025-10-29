@@ -2,6 +2,7 @@
 #include "Player.hpp"
 #include "Enemy.hpp"
 #include "Collision.hpp"
+#include "TimeStopManager.h"
 using namespace Collision;
 
 
@@ -47,6 +48,9 @@ void Game::update()
 	map.update();
 	Ui.update(player, map);
 	player.update(map);
+
+
+	
 	
 
 	for (auto& e : m_enemies) e.update(player,map);
@@ -61,7 +65,6 @@ void Game::draw() const
 	player.draw(map);             // ← プレイヤーを描画
 
 	for (const auto& e : m_enemies) e.draw(map); //敵描画
-
 	Ui.draw(player,map);
 
 }
