@@ -64,9 +64,6 @@ private:
 	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
 	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
 	double m_HeartTimer = 0.0;
-<<<<<<< HEAD
-	double m_WallKickTimer = 0.0;
-=======
 	bool   m_TheWorldFlg = 0.0;     //true=使用
 	bool   m_BersarkFlg = false;    //true=バーサーカーモード
 	double m_BersarkTimer = 0.0;    //クールタイムの経過時間 
@@ -76,9 +73,6 @@ private:
 	double m_AttackSpeedBoost = 1.0;   // 攻撃速度倍率
 	//double m_BersarkTimer = 0.0;       // 残り時間
 	//bool m_BersarkFlg = false;         // バーサーク状態中か
-
-
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
@@ -247,13 +241,10 @@ public:
 	RectF getAttackRectWorld()const;
 	RectF getAttackRect(const Vec2& camera) const;
 	RectF getHitRect(const Vec2& camera)const;
-<<<<<<< HEAD
 	void PlayerAttack(const Vec2& camera);
-=======
 	RectF getHitRectWorld() const;
 	//RectF getTheWorld(const Vec2& camera)const;
 	void PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies);
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 	void PlayerIdle();
 	void PlayerIdleToRun();
 	void PlayerIdleToAttack(const Vec2& camera);
@@ -266,10 +257,8 @@ public:
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
 	void PlayerMedecine();
-<<<<<<< HEAD
-=======
 	void PlayerBerserk();
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
+
 	void PlayerDead();
 	void update(Game_Map& map, Array<Enemy>& m_enemies);
 	void draw(const Game_Map& CameraPos) const;

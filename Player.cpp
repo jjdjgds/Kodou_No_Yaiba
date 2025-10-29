@@ -203,13 +203,8 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
-<<<<<<< HEAD
-			
-
-
 			// ★ ここが重要！ 攻撃後の状態を決める
-=======
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
+
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				SetPlayerState(StateMode::Run);
@@ -221,10 +216,6 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 			m_HeartTimer = 0.0;
 		}
 	}
-<<<<<<< HEAD
-	
-=======
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 }
 void Player::PlayerIdle()
 {
@@ -655,10 +646,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		m_HeartCoolFlg = false;
 	}
 	
-<<<<<<< HEAD
-=======
-
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
 	{
 		if (m_HeartTimer >= 1.0) // 1秒経過ごと
@@ -667,9 +654,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			m_HeartTimer = 0.0;
 		}
 	}
-	
-<<<<<<< HEAD
-=======
 	// ===== Player::update の中から抜粋 =====
 
 // バーサークモード突入条件
@@ -699,10 +683,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			Print << U"バーサーク解除";
 		}
 	}
-
-
-
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 
 	UpdateHeartState();
 	ApplyHeartEffects();
@@ -1066,15 +1046,10 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		{
 			SetPlayerState(StateMode::JumpAttack);
 			SetPlayerBPM(GetPlayerBPM() + 8);
-		}
-<<<<<<< HEAD
-
-		
+		}	
 		m_HeartTimer = 0.0;
 		m_HeartCoolTimer = m_HeartCooldown;
 		m_HeartCoolFlg = true; // ★ クールタイム中は減少を止める
-=======
->>>>>>> 15117fc532b9b14f4459295c5af5f37c121a3685
 	}
 
 
