@@ -61,6 +61,7 @@ private:
 	double m_HeartTimer = 0.0;
 	bool   m_TheWorldFlg = 0.0;     //true=使用
 
+	double m_WallKickTimer = 0.0;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 	// 各アニメーションのフレーム番号

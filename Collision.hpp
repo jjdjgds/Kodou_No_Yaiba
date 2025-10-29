@@ -52,13 +52,7 @@ namespace Collision
 		return line.intersects(circle);
 	}
 
-	//===------------------------------------------------------
-	// Rect vs Rect
-	//===------------------------------------------------------
-	inline bool TheWorldRectToRect(const RectF& a, const RectF& b)
-	{
-		return a.intersects(b) || a.contains(b);
-	}
+	
 
 	//===------------------------------------------------------
 	// 任意オブジェクト vs 任意オブジェクト
