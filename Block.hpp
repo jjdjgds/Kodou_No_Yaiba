@@ -7,8 +7,6 @@ enum BLOCK_TYPE
 	BLOCK_SOLID = 1,
 	BLOCK_GOAL = 2,
 	BLOCK_BOSS = 3,
-	BLOCK_ENEMY_1 = 4,
-	BLOCK_ENEMY_2 = 5,
 };
 
 class Block

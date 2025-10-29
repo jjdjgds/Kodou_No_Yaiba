@@ -16,35 +16,6 @@ void  EnemySpawner::spawnBoss(const Vec2& pos, double stride, bool faceRight, Ve
 	}
 }
 
-void  EnemySpawner::spawnEnemy_1(const Vec2& pos, double stride, bool faceRight, Vec2 scale)
-{
-	if (!m_enemy1)
-	{
-		m_enemy1 = new Enemy_1(pos, stride);
-	}
-	else
-	{
-		m_enemy1->setPosition(pos); // move existing boss
-
-	}
-}
-
-
-void  EnemySpawner::spawnEnemy_2(const Vec2& pos, double stride, bool faceRight, Vec2 scale)
-{
-	if (!m_enemy2)
-	{
-		m_enemy2 = new Enemy_2(pos, stride);
-	}
-	else
-	{
-		m_enemy2->setPosition(pos); // move existing boss
-
-	}
-}
-
-
-
 // Load all spawns from the map's blocks
 void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, double chipHeight)
 {
@@ -58,12 +29,6 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 		switch (block.getType())
 		{
 		case BLOCK_BOSS:
-			spawnBoss(pos);
-			break;
-		case BLOCK_ENEMY_1:
-			spawnBoss(pos);
-			break;
-		case BLOCK_ENEMY_2:
 			spawnBoss(pos);
 			break;
 		default:

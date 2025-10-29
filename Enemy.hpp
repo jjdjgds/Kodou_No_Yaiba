@@ -2,36 +2,37 @@
 #include <Siv3D.hpp>
 #include "Player.hpp"
 
-enum class AnimState_Enemy1 { Idle, Run, Dead, Attack, };// アニメーション状態列挙型
-enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
-enum class PatrolPhase_Enemy1 { Move, Wait, };// 巡回フェーズ列挙型
+enum class AnimState {// アニメーション状態列挙型
+	Idle,
+	Run,
+	Hurt,
+	Attack,
+};
 
-struct AnimDesc_Enemy1 {// アニメーションの説明構造体
-	int   row;
-	int   start;
-	int  frames;
+enum class Behavior { Patrol, Chase, Attack };// 行動パターン列挙型
+enum class PatrolPhase { Move, Wait, };// 巡回フェーズ列挙型
+
+struct AnimDesc {// アニメーションの説明構造体
+	String asset;
+	int32  frames;
 	double frameTime;
 	bool   loop = true;
 };
 
-class Enemy_1
+class Enemy
 {
 private:
 	bool m_debugDraw = true; //デバッグ描画フラグ
 
-	Vec2 m_Position;		  //位置
 
+	Vec2 m_Position;		  //位置
+	Vec2 m_Scale;			  //大きさ
 	bool m_FaceRight;		  //向き
 	float m_Speed = 150.0f;	  //移動速度
+	int m_HP;				  //体力
 
-
-	bool   m_dead = false;              // 已进入死亡流程
-	bool   m_pendingRemoval = false;
-
-	double m_hitOffsetY = 0.0;// 当たり判定Y
-
-	Vec2 m_Scale = { 140.0 ,120.0 };// 大きさ
-	Vec2 m_hitBox = { 70.0 ,100.0 };// 当たり判定サイズ
+	double m_hitOffsetY = 16.0;// 当たり判定Y
+	Vec2 m_hitBox = { 22.0 ,35.0 };// 当たり判定サイズ
 
 
 	float m_gravity = 1800.0;// 重力
@@ -44,16 +45,11 @@ private:
 	double m_strideMax = m_stride + 100.0;// 巡回範囲最大値
 	double m_budget = m_stride;// 巡回予算
 
-	bool m_isRunning = false;
+	bool isRuning = false;
 
-<<<<<<< HEAD:Enemy.hpp
 	bool m_isFrozen = false;
 	Behavior m_mode = Behavior::Patrol;
 	PatrolPhase m_phase = PatrolPhase::Wait;
-=======
-	Behavior_Enemy1 m_mode = Behavior_Enemy1::Patrol;
-	PatrolPhase_Enemy1 m_phase = PatrolPhase_Enemy1::Wait;
->>>>>>> a4d6bcfc95eb3e97ac70f83ac478f6249b4aa514:Enemy_1.hpp
 
 	double m_phaseTimer = 0.0;// 巡回フェーズタイマー
 
@@ -62,9 +58,9 @@ private:
 	double m_moveMin = 1.5;// 移動フェーズ時間範囲
 	double m_moveMax = 3.5;// 移動フェーズ時間範囲
 
-	void enterPhase(PatrolPhase_Enemy1 p) {
+	void enterPhase(PatrolPhase p) {
 		m_phase = p;
-		if (p == PatrolPhase_Enemy1::Wait) m_phaseTimer = Random(m_waitMin, m_waitMax);
+		if (p == PatrolPhase::Wait) m_phaseTimer = Random(m_waitMin, m_waitMax);
 		else                        m_phaseTimer = Random(m_moveMin, m_moveMax);
 	}
 
@@ -75,39 +71,27 @@ private:
 	bool m_takeDamage = false; // ダメージを受けたかどうか
 
 
-	bool m_attackFlag = false; // 攻撃フラグ
+	bool AttackFlag = false; // 攻撃フラグ
 	int m_Attack;			  //攻撃力
 	double m_attackCooldown = 0.0;
 	double m_attackCooldownMax = 0.6; // 可调
 	float m_AttackRange;	  //攻撃範囲
 	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
 
-	bool   m_engaged = false;         // 是否处于交战（进入过 chaseRect 即置 true）
-	double m_yLoseTimer = 0.0;        // 玩家在不同Y轴的累计时长
-	double m_yLoseThresholdSec = 5.0; // 满足该秒数才允许脱战
-
-	// 纵向判定阈值（像素）：|player.y - enemy.y| 超过才算“不同Y轴”
-	double m_ySepThreshold = 48.0;    // 按你素材调，常用=半个身位~1格
-
-	double m_flipThreshold = 12.0;     // 水平方向改向阈值(px)
-	double m_yFacingGate = 48.0;     // 仅当 |dy| <= 该值才允许改向（同层判定）
-	double m_faceFlipCooldownMax = 0.30; // 改向冷却(s)
-	double m_faceFlipCooldown = 0.0;  // 当前冷却
 
 
-
-	AnimState_Enemy1 m_state{ AnimState_Enemy1::Idle };	// 現在のアニメーション状態
-	HashTable<AnimState_Enemy1, AnimDesc_Enemy1> m_anims{	// アニメーションの説明
-		{ AnimState_Enemy1::Idle, {0, 0, 8, 0.09, true } },
-		{ AnimState_Enemy1::Run,  { 1, 3, 9, 0.10, true } },
-		{ AnimState_Enemy1::Dead,  { 4, 1, 3, 0.25, false } },
-		{ AnimState_Enemy1::Attack,  { 3,2, 4, 0.20, false } },
+	AnimState m_state{ AnimState::Idle };	// 現在のアニメーション状態
+	HashTable<AnimState, AnimDesc> m_anims{	// アニメーションの説明
+		{ AnimState::Idle, { U"EnemyIdle", 10, 0.12, true } },
+		{ AnimState::Run,  { U"EnemyRun",  16, 0.07, true } },
+		{ AnimState::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
+		{ AnimState::Attack,  { U"EnemyAttack", 7, 0.08, false } },
 
 	};
 	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
 	double m_time{ 0.0 };		// アニメーション時間管理用
 
-	void setState(AnimState_Enemy1 s) {	// アニメーション状態を設定
+	void setState(AnimState s) {	// アニメーション状態を設定
 		if (m_state != s)
 		{
 			m_state = s;
@@ -118,9 +102,12 @@ private:
 
 
 public:
-	Enemy_1(Vec2 pos, double stride)
+	Enemy(Vec2 pos, double stride,
+			 bool faceRight, Vec2 scale)
 		: m_Position(pos)
-		, m_stride(stride) {
+		, m_stride(stride)
+		, m_FaceRight(faceRight)
+		, m_Scale(scale) {
 	}// コンストラクタ
 
 	//getter 
@@ -129,7 +116,7 @@ public:
 	float getSpeed() const { return m_Speed; }
 	bool isFacingRight() const { return m_FaceRight; }
 
-
+	int getHP() const { return m_HP; }
 	int getAttack() const { return m_Attack; }
 	float getAttackRange() const { return m_AttackRange; }
 	Vec2 getHitbox() const { return m_hitBox; }
@@ -142,35 +129,31 @@ public:
 	void setFaceRight(bool faceRight) { m_FaceRight = faceRight; }
 
 
+
+	void setHP(int hp) { m_HP = hp; }
 	void setAttack(int attack) { m_Attack = attack; }
 	void setAttackRange(float range) { m_AttackRange = range; }
 
 	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
 
-	Enemy_1& GetEnemy() { return *this; }
+
+	Enemy& GetEnemy() { return *this; }
 
 	void update(Player& player, Game_Map& map);
 
 	void draw(const Game_Map& CameraPos) const;
 
-	void die();// 死亡処理
-	bool IsPendingRemoval() const { return m_pendingRemoval; }
-	bool IsDead() const { return m_dead; }
+	void takeDamage(int damage);
 
 	RectF hurtRect(const Vec2& cam) const; // ダメージ判定矩形を取得
 	RectF hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 
 	RectF attackRect(const Vec2& cam) const; // 攻撃判定矩形を取得
-<<<<<<< HEAD:Enemy.hpp
 	RectF chaseRect(const Vec2& cam) const;
 
 	Line makeGroundProbeLine(const Vec2& cam) const;
 
 	
-=======
-	RectF chaseRect(const Vec2& cam) const;// 追跡判定矩形を取得
->>>>>>> a4d6bcfc95eb3e97ac70f83ac478f6249b4aa514:Enemy_1.hpp
 
-	Line makeGroundProbeLine(const Vec2& cam, bool debug) const;// 地面探査用の線分を作成
 };
 
