@@ -5,7 +5,6 @@
 
 void Enemy_Boss::update(Player& player, Game_Map& map)
 {
-
 	const double dt = Scene::DeltaTime();
 
 	Vec2 playerPos = player.GetPlayerPosition();
@@ -13,43 +12,55 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	float dy = playerPos.y - m_boss_pos.y;
 	dist = std::sqrt(dx * dx + dy * dy);
 
-	switch (m_behavior)
+	if (dist > 1.0f) // avoid divide-by-zero
 	{
-	//case Boss_Behavior::Attack:
-	//	m_boss_speed = 0.0f;
-	//	break;
-
-	case Boss_Behavior::Chase:
-	{
-		bool inRange = (dist >= 0.0f && dist < 400.0f);
 		m_FaceRight = (playerPos.x >= m_boss_pos.x);
-
-		if (inRange)
-		{
-			float vx = (dx / dist) * m_boss_speed;
-			m_vel.x = vx;
-		}
-		break;
+		m_vel.x = (dx / dist) * m_boss_speed;
 	}
-
-	case Boss_Behavior::idle:
+	else
+	{
 		m_vel.x = 0.0f;
-		break;
 	}
+
+	//switch (m_behavior)
+	//{
+	////case Boss_Behavior::Attack:
+	////	m_boss_speed = 0.0f;
+	////	break;
+
+	//case Boss_Behavior::Chase:
+	//{
+	//	bool inRange = (dist >= 0.0f && dist < 400.0f);
+	//	m_FaceRight = (playerPos.x >= m_boss_pos.x);
+
+	//	if (inRange)
+	//	{
+	//		float vx = (dx / dist) * m_boss_speed;
+	//		m_vel.x = vx;
+	//	}
+	//	break;
+	//}
+
+	//case Boss_Behavior::idle:
+	//	m_vel.x = 0.0f;
+	//	break;
+	//}
 
 	
 	m_vel.y += m_gravity * dt;
+
+
 	Vec2 tryPosX = m_boss_pos;
 	tryPosX.x += m_vel.x * dt;
 
-	RectF bossRect(
+	RectF bossRectX(
 		tryPosX.x - m_hitBox.x / 2,
 		tryPosX.y - m_hitBox.y / 2 + tex_offsetY,
 		m_hitBox.x,
 		m_hitBox.y
 	);
 	// --- X
-	if (!map.CheckCollision_RecF(bossRect))
+	if (!map.CheckCollision_RecF(bossRectX))
 	{
 		m_boss_pos.x = tryPosX.x;
 	}
@@ -62,7 +73,14 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	Vec2 tryPosY = m_boss_pos;
 	tryPosY.y += m_vel.y * dt;
 
-	if (!map.CheckCollision_RecF(bossRect))
+	RectF bossRectY(
+	tryPosY.x - m_hitBox.x / 2,
+	tryPosY.y - m_hitBox.y / 2 + tex_offsetY,
+	m_hitBox.x,
+	m_hitBox.y
+	);
+
+	if (!map.CheckCollision_RecF(bossRectY))
 	{
 		m_boss_pos.y = tryPosY.y;
 	}

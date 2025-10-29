@@ -40,7 +40,7 @@ class Enemy_Boss
 private :
 	Vec2 m_boss_pos = { 0,0 };
 	Vec2 m_boss_scale = { 75,75 };
-	Vec2 m_vel = { 0,0 };
+	Vec2 m_vel = { 1,1 };
 	bool m_FaceRight = true;
 	float m_gravity = 1000.0f;
 
@@ -50,7 +50,7 @@ private :
 	int m_boss_rang = 100;
 	float tex_offsetY = 45.0f;
 	float dist = 0;
-	float m_boss_speed = 1.0f;
+	float m_boss_speed = 500.0f;
 
 	Vec2 m_hitBox = { 75.0  ,100.0 };
 
