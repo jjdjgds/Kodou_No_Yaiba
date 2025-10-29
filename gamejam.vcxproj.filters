@@ -174,7 +174,11 @@
     <ClCompile Include="Game_BG.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="Enemy_2.cpp">
+=======
+    <ClCompile Include="Enemy_Boss.cpp">
+>>>>>>> eff4d359d0ddbe948c6d9997c1a8a27d223deacd
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -881,7 +885,11 @@
     <ClInclude Include="Game_BG.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="Enemy_2.hpp">
+=======
+    <ClInclude Include="Enemy_Boss.hpp">
+>>>>>>> eff4d359d0ddbe948c6d9997c1a8a27d223deacd
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -25,23 +25,7 @@ void Block::UpdateBlock(void)
 }
 void Block::DrawBlock(const Vec2& cameraOffset) const
 {
-	if (!m_use) return;
 
-	Vec2 drawPos = m_pos - cameraOffset;
-
-	switch (m_type)
-	{
-	case BLOCK_EMPTY:// emty
-		break;
-
-	case BLOCK_SOLID: // wall
-		TextureAsset(U"Wall").resized(m_size).draw(drawPos);
-		//RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
-		break;
-	default:
-		RectF(m_pos, m_size).draw(ColorF(0.8, 0.2, 0.2)); // red for debug
-		break;
-	}
 }
 
 bool Block::IsUsed() const

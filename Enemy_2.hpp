@@ -1,7 +1,6 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
 #include "Player.hpp"
-#include "Game_Map.hpp"
 
 enum class AnimState_Enemy2 {Idle,Run,Hurt,Attack,};// アニメーション状態列挙型
 enum class Behavior_Enemy2 { Patrol, Chase, Attack, };// 行動パターン列挙型

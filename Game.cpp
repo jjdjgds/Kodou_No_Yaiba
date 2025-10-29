@@ -15,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
-		100,
+		150,
 		3,
 		1.0f,
 		0.5f,
@@ -28,11 +28,12 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt"))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage1.txt"))
 	{
 		Print << U"Failed to load stage1";
 		return;
 	}
+	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
 
 	// 敵初期化
 	m_enemies1.clear();
@@ -50,8 +51,9 @@ void Game::update()
 	bg.update();
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
+	Ui.update(player, map);
 	player.update(map);
-	
+	Boss_spawner.update(player, map);
 
 	for (auto& e : m_enemies1) e.update(player, map);
 	for (auto& e : m_enemies2) e.update(player, map);
@@ -64,11 +66,16 @@ void Game::draw() const
 	bg.draw();
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
+<<<<<<< HEAD
 
 	for (const auto& e : m_enemies1) e.draw(map); //敵描画
 	for (const auto& e : m_enemies2) e.draw(map); //敵描画
 
 	Ui.draw(player);
+=======
+	Boss_spawner.draw(map);
+	Ui.draw(player,map);
+>>>>>>> eff4d359d0ddbe948c6d9997c1a8a27d223deacd
 
 }
 

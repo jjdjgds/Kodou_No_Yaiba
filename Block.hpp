@@ -5,6 +5,8 @@ enum BLOCK_TYPE
 {
 	BLOCK_EMPTY = 0,
 	BLOCK_SOLID = 1,
+	BLOCK_GOAL = 2,
+	BLOCK_BOSS = 3,
 };
 
 class Block
