@@ -203,6 +203,8 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
 
+			// ★ ここが重要！ 攻撃後の状態を決める
+
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				SetPlayerState(StateMode::Run);
@@ -620,13 +622,16 @@ void Player::PlayerFall()
 void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 {
 
+	//行動するたびにFlgをTrueにし減少処理を遮断
+	//行動終了後にタイマー開始
+	//タイマーが指定時間に達したらFlgをFalseに変更し減少処理を開始
 
 
 
-	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
-	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
+	animTime += Scene::DeltaTime();
+	m_DogelstTimer += Scene::DeltaTime();
 
-	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
+	m_HeartTimer += Scene::DeltaTime(); // 
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
 	{
@@ -641,7 +646,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	else {
 		m_HeartCoolFlg = false;
 	}
-	
 
 	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
 	{
@@ -651,7 +655,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			m_HeartTimer = 0.0;
 		}
 	}
-	
 	// ===== Player::update の中から抜粋 =====
 
 // バーサークモード突入条件
@@ -681,9 +684,6 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			Print << U"バーサーク解除";
 		}
 	}
-
-
-
 
 	UpdateHeartState();
 	ApplyHeartEffects();
@@ -740,12 +740,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	{
 		SetPlayerFaceRight(input.x > 0);
 	}
-	//-----------------------------------
-	// 🔹 時止めスケールを適用した移動更新
-	//-----------------------------------
-	double dt = Scene::DeltaTime() * TimeStopManager::GetPlayerScale();
 
-	
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
 	Vec2 velocity = GetPlayerVelocity();
@@ -796,14 +791,15 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		}
 		else
 		{
-			velocity.x = input.x * GetPlayerSpeed() * TimeStopManager::GetPlayerScale();
-			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
+			//  通常の横移動処理 
+			velocity.x = input.x * GetPlayerSpeed();
+			Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
 
 			RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
 
 			bool mapColli = map.CheckCollision(rectX);
 			bool enemyColli = false;
-			if (GetPlayerState() != StateMode::Doge )
+			if (GetPlayerState() != StateMode::Doge)
 			{
 				enemyColli = RectToRect(rectX, enemyRect);
 
@@ -822,7 +818,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 				int maxIterations = 100;
 				int iterations = 0;
 				while ((map.CheckCollision(rectX) ||
-					(GetPlayerState() != StateMode::Doge &&RectToRect(rectX, enemyRect)))&& iterations < maxIterations)
+					(GetPlayerState() != StateMode::Doge && RectToRect(rectX, enemyRect))) && iterations < maxIterations)
 				{
 					if (input.x > 0)
 					{
@@ -855,7 +851,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	//-----------------------------------
 	if (!m_onGround)
 	{
-		velocity.y += m_gravity * Scene::DeltaTime() * 400 * TimeStopManager::GetPlayerScale();
+		velocity.y += m_gravity * Scene::DeltaTime() * 400;
 	}
 
 	//-----------------------------------
@@ -922,8 +918,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 	//-----------------------------------
 	// 縦方向移動処理
 	//-----------------------------------
-
-	Vec2 nextPosY = pos + Vec2(0, velocity.y * dt);
+	Vec2 nextPosY = pos + Vec2(0, velocity.y * Scene::DeltaTime());
 	RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
 
 	bool hitGround = false;
@@ -1053,6 +1048,9 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::JumpAttack);
 			SetPlayerBPM(GetPlayerBPM() + 8);
 		}
+		m_HeartTimer = 0.0;
+		m_HeartCoolTimer = m_HeartCooldown;
+		m_HeartCoolFlg = true; // ★ クールタイム中は減少を止める
 	}
 
 
@@ -1096,6 +1094,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 			SetPlayerState(StateMode::Medecine);
 			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
+
 		if (KeyT.pressed())
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
@@ -1104,11 +1103,8 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		{
 			TimeStopManager::Stop(); // ザ・ワールド発動
 		}
-
-
+		TimeStopManager::Update(); // ザ・ワールド発動
 	}
-	TimeStopManager::Update();
-
 	//-----------------------------------
 	// 走行中の心拍数上昇（時間経過で強くなる）
 	//-----------------------------------
@@ -1121,7 +1117,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		runDuration += Scene::DeltaTime();
 
 		// BPM上昇間隔を徐々に短くする（走り続けるほど疲れる）
-		double interval = Max(0.2, 2.0 - runDuration * 0.2); // 最短0.2秒まで
+		double interval = Max(0.2, 2.0 - runDuration * 0.2); // 最短0.5秒まで
 
 		if (runHeartTimer >= interval)
 		{
