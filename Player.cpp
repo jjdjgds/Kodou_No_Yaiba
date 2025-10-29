@@ -136,25 +136,9 @@ void Player::takeDamage(int dmg)
 	m_HeartCoolFlg = true;
 }
 
-// ワールド座標での当たり判定取得（カメラ補正なし）
 RectF Player::getAttackRectWorld() const
 {
-	const SizeF hitSize = GetPlayerHitBox();
-	const double attackWidth = hitSize.x * 12;
-	const double attackHeight = hitSize.y * 10;
-	const SizeF attackSize{ attackWidth, attackHeight };
-
-	// ★★★ カメラ補正なし ★★★
-	Vec2 center = GetPlayerPosition();
-
-	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 50 : -hitSize.x * 0.6 - 50);
-	center.x += offsetX;
-	center.y -= hitSize.y + 30;
-
-	return RectF{
-		Arg::center = center,
-		attackSize
-	};
+	return RectF();
 }
 
 // ============================================
