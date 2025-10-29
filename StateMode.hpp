@@ -16,7 +16,8 @@ enum class StateMode {
 	Doge,    		// 11: 回避状態
 	Medecine,       // 12: 薬決め状態
 	Pareise,		// 13: 防御状態
-	Dead			// 14: 死亡状態
+	TheWorld,       // 14: 時止め状態
+	Dead			// 15: 死亡状態
 };
 /*
 enum class PlayerState { Idle, Jump, Attack };

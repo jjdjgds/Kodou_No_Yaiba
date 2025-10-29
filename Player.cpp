@@ -363,6 +363,18 @@ void Player::PlayerMedecine()
 
 }
 
+void Player::PlayerTheWorld()
+{
+	//継続時間は5秒くらい？＜-定数にして変更可能にする
+	//クールタイム10秒くらい？＜-定数にして変更可能にする
+	//なんらかのFlgをつかってTrueの時にPlayerを中心に範囲円を展開描写＜-イメージは領域展開、範囲も定数にして変更可能に
+	//範囲内に入った全ての物の移動速度、攻撃速度をとても遅くする、それとも停止？
+	//残りコンマ秒でPlayerを中心に収縮
+
+
+
+}
+
 void Player::PlayerDead()
 {
 	// Dead 状態のときのみ処理
@@ -609,6 +621,12 @@ void Player::update(Game_Map& map)
 		(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
 		0.0
 	};
+	if (KeyJ.pressed())
+	{
+		SetPlayerState(StateMode::TheWorld);
+	}
+
+
 
 	// Dodge入力受付
 	if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
@@ -1005,7 +1023,11 @@ void Player::update(Game_Map& map)
 
 		PlayerMedecine();
 		break;
+	case StateMode::TheWorld:
 
+		PlayerTheWorld();
+
+		break;
 	case StateMode::Dead:
 		PlayerDead();
 		break;
@@ -1185,7 +1207,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
 	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
-	enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
+	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
 	Print << U"" << m_BPM;

@@ -239,6 +239,7 @@ public:
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
 	void PlayerMedecine();
+	void PlayerTheWorld();
 	void PlayerDead();
 	void update(Game_Map& map);
 	void draw(const Game_Map& CameraPos) const;
