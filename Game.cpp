@@ -66,16 +66,15 @@ void Game::draw() const
 	bg.draw();
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
-<<<<<<< HEAD
 
 	for (const auto& e : m_enemies1) e.draw(map); //敵描画
 	for (const auto& e : m_enemies2) e.draw(map); //敵描画
 
-	Ui.draw(player);
-=======
+	Ui.draw(player,map);
+
 	Boss_spawner.draw(map);
 	Ui.draw(player,map);
->>>>>>> eff4d359d0ddbe948c6d9997c1a8a27d223deacd
+
 
 }
 
