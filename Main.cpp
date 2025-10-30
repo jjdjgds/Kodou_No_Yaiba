@@ -21,15 +21,12 @@ void Main()
 	{
 		TextureAsset::Register(U"Player", U"example/spritesheet/samurai.png");
 		TextureAsset::Register(U"HeatBeat", U"example/spritesheet/HEARTBEAT.png");
+		TextureAsset::Register(U"AttackEffect", U"example/spritesheet/AttackEffect.png");
 	}
 
-
-	{
-		TextureAsset::Register(U"EnemyIdle", U"example/spritesheet/Enemy_IDLE.png");
-		TextureAsset::Register(U"EnemyRun", U"example/spritesheet/Enemy_RUN.png");
-		TextureAsset::Register(U"EnemyHurt", U"example/spritesheet/HURT.png");
-		TextureAsset::Register(U"EnemyAttack", U"example/spritesheet/ATTACK_1.png");
-	}
+	TextureAsset::Register(U"Enemy1", U"example/spritesheet/Enemy1.png");
+	TextureAsset::Register(U"Enemy2", U"example/spritesheet/Enemy2.png");
+	TextureAsset::Register(U"Enemy2Bullet", U"example/spritesheet/BULLET.png");
 
 	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
 	//ATTACK_1.png

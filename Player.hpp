@@ -2,13 +2,16 @@
 #include <Siv3D.hpp>
 #include "StateMode.hpp"
 #include "Game_Map.hpp"
+#include "Enemy_1.hpp"
+#include "Enemy_2.hpp"
 
 #define MAX_WEAPON (3)
 #define ATTACKSPEED (0.08)
 #define BERSARKATTACKSPEED (0.05)
+#define BERSARKEMOVESPEED (100) //バーサーカーモード中の移動速度
 
-
-class Enemy;
+class Enemy_1;
+class Enemy_2;
 enum class HeartRateState
 {
 	Stun,          // スタン（60以下 or 140以上）
@@ -40,6 +43,7 @@ private:
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
 	bool m_AttackFlag;		  //攻撃フラグ
+	bool m_AttackStart;      //攻撃開始フラグ
 	int m_Weapon[MAX_WEAPON]; //武器種別
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
@@ -195,6 +199,9 @@ public:
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	 HeartRateState GetPlayerHeartState()const { return m_HeartRateState; }
 	 HeartRateState GetHeartRateState(int bpm);
+	 bool GetIsInvincible() const { return m_IsInvincible; }
+
+
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
@@ -220,6 +227,7 @@ public:
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	HeartRateState SetPlayerHeartState(HeartRateState a) { return m_HeartRateState = a; }
 	void UpdateHeartState();
+	bool SetIsInvincible(bool invincible) { return m_IsInvincible = invincible; }
 
 
 	// 状態設定
@@ -244,7 +252,12 @@ public:
 	void PlayerAttack(const Vec2& camera);
 	RectF getHitRectWorld() const;
 	//RectF getTheWorld(const Vec2& camera)const;
-	void PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies);
+	///*
+	//Array<Enemy_1> m_enemies1
+	//Array<Enemy_2> m_enemies2
+
+	//*/
+	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();
 	void PlayerIdleToAttack(const Vec2& camera);
@@ -260,6 +273,6 @@ public:
 	void PlayerBerserk();
 
 	void PlayerDead();
-	void update(Game_Map& map, Array<Enemy>& m_enemies);
+	void update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2);
 	void draw(const Game_Map& CameraPos) const;
 };

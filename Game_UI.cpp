@@ -6,7 +6,7 @@ void Game_UI::UIStun()
 {
 	// スタン用のアニメーション処理
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 1.0;
+	const double NomalFrameDuration = STUN;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -26,7 +26,7 @@ void Game_UI::UIStun()
 void Game_UI::UIWarning()
 {
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.015;
+	const double NomalFrameDuration = WARNING;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -47,7 +47,7 @@ void Game_UI::UITimeControl()
 {
 	// タイムコントロール用のアニメーション処理
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.8;
+	const double NomalFrameDuration = TIMECONTROL;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -67,7 +67,7 @@ void Game_UI::UITimeControl()
 void Game_UI::UINormal()
 {
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.045;
+	const double NomalFrameDuration = NORMAL;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -89,7 +89,7 @@ void Game_UI::UIDead()
 
 
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.1;
+	const double NomalFrameDuration = DEAD;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -116,7 +116,7 @@ void Game_UI::UIBerserk()
 {
 	// バーサーカー用のアニメーション処理
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.12;
+	const double NomalFrameDuration = BERSERK;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -135,7 +135,7 @@ void Game_UI::UIBerserk()
 
 void Game_UI::update(Player player, const Game_Map& CameraPos)
 {
-	HeatanimTime += Scene::DeltaTime();
+	HeatanimTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
 	const auto state = player.GetPlayerHeartState();
 
@@ -229,5 +229,12 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 	BeatTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
 		.drawAt(drawPos);
+
+	Print << U"Heart Rate State: " << (state == HeartRateState::Stun ? U"Stun" :
+		state == HeartRateState::Warning ? U"Warning" :
+		state == HeartRateState::Berserk ? U"Berserk" :
+		state == HeartRateState::TimeControl ? U"TimeControl" :
+		state == HeartRateState::Normal ? U"Normal" :
+		state == HeartRateState::Dead ? U"Dead" : U"Unknown");
 }
 
