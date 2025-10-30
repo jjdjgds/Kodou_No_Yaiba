@@ -2,7 +2,8 @@
 #include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
-#include "Enemy.hpp"
+#include "Enemy_1.hpp"
+#include "Enemy_2.hpp"
 using namespace Collision;
 
 RectF enemyRect{ 0, 0, 0, 0 };
@@ -161,7 +162,7 @@ RectF Player::getAttackRectWorld() const
 // Player.cpp の修正部分
 // ============================================
 
-void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
+void Player::PlayerAttack(const Vec2& camera, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
 	double attackFrameDuration = ATTACKSPEED;
 
@@ -185,7 +186,7 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 			// ★★★ カメラ座標を渡さない（ワールド座標で判定） ★★★
 			const RectF pBox = getAttackRect(Vec2{ 0, 0 });
 
-			for (auto& e : m_enemies)
+			for (auto& e : m_enemies1)
 			{
 				// ★★★ 敵もワールド座標で取得 ★★★
 				RectF eBox = e.hurtRect(Vec2{ 0, 0 });
@@ -194,6 +195,7 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 				{
 					Print << U"攻撃ヒット！";
 					e.takeDamage(10);
+					
 				}
 			}
 		}
@@ -634,7 +636,7 @@ void Player::PlayerFall()
 
 
 
-void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
+void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
 
 

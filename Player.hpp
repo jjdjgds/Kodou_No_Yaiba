@@ -250,7 +250,12 @@ public:
 	RectF getHitRect(const Vec2& camera)const;
 	RectF getHitRectWorld() const;
 	//RectF getTheWorld(const Vec2& camera)const;
-	void PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies);
+	/*
+	Array<Enemy_1> m_enemies1
+	Array<Enemy_2> m_enemies2
+
+	*/
+	void PlayerAttack(const Vec2& camera, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2);
 	void PlayerIdle();
 	void PlayerIdleToRun();
 	void PlayerIdleToAttack(const Vec2& camera);
@@ -265,6 +270,6 @@ public:
 	void PlayerMedecine();
 	void PlayerBerserk();
 	void PlayerDead();
-	void update(Game_Map& map, Array<Enemy>& m_enemies);
+	void update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2);
 	void draw(const Game_Map& CameraPos) const;
 };

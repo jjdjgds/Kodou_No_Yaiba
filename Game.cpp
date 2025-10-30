@@ -53,7 +53,7 @@ void Game::update()
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 	Ui.update(player, map);
-	player.update(map,m_enemies);
+	player.update(map, m_enemies1,m_enemies2);
 	Boss_spawner.update(player, map);
 
 	for (auto& e : m_enemies1) e.update(player, map);
