@@ -138,7 +138,15 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	HeatanimTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
 	const auto state = player.GetPlayerHeartState();
-
+	const int bpm = player.GetPlayerBPM();
+	if (bpm <= 60 || bpm >= 140)
+	{
+		m_RedAutoFlag = true;
+	}
+	else
+	{
+		m_RedAutoFlag = false;
+	}
 	switch (state)
 	{
 	case HeartRateState::Stun:
@@ -221,7 +229,10 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 			y = row * frameHeight;
 		}
 	}
-
+	if( m_RedAutoFlag)
+	{
+		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 1,0,0,0.1 });
+	}
 	// === 描画位置 ===
 	Vec2 drawPos = Vec2{ 200, 200 };
 

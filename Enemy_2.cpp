@@ -43,8 +43,9 @@ void Enemy_2::updateBullets(double dt, Player& player, Game_Map& map)// 弾丸�
 	for (auto& b : m_bullets) {
 		if (!b.isAlive()) continue;
 
-		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, pAttackBoxScreen, cam,player.IsPlayerAttacking());// 弾の更新とプレイヤーへの命中判定
-		if (hit) {
+		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, pAttackBoxScreen, cam,player.IsPlayerAttacking(),player.IsDogeging());// 弾の更新とプレイヤーへの命中判定
+		if (hit && player.GetPlayerState() != StateMode::Doge) {
+			
 			player.takeDamage(1);
 		}
 	}

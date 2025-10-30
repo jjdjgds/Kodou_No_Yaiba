@@ -47,6 +47,7 @@ private:
 	int m_Weapon[MAX_WEAPON]; //武器種別
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
+
 	float m_Speed;			  //移動速度
 	float m_DamageTimeOut;	  //ダメージ受けた後の無敵時間
 	bool m_Jump;			  //ジャンプ状態
@@ -55,7 +56,7 @@ private:
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
-	Vec2 m_HitRect = { 5.0 ,5.0 };          //当たり判定矩形
+	Vec2 m_HitRect = { 6.0 ,5.0 };          //当たり判定矩形
 	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
@@ -63,6 +64,7 @@ private:
 	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間
 	double m_DogeCooldown = 1.0;    // クールタイム時間（秒）
 	bool   m_isDodging = false;     // 現在ドッジ中か
+
 	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
 	bool   m_HeartCoolFlg = false;  // 行動後の心拍数低下時間  Trueでカウントダウン開始
 	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
@@ -200,7 +202,7 @@ public:
 	 HeartRateState GetPlayerHeartState()const { return m_HeartRateState; }
 	 HeartRateState GetHeartRateState(int bpm);
 	 bool GetIsInvincible() const { return m_IsInvincible; }
-
+	 bool IsDogeging() const { return m_isDodging; }
 
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
@@ -228,7 +230,7 @@ public:
 	HeartRateState SetPlayerHeartState(HeartRateState a) { return m_HeartRateState = a; }
 	void UpdateHeartState();
 	bool SetIsInvincible(bool invincible) { return m_IsInvincible = invincible; }
-
+	bool SetIsDodging(bool dodging) { return m_isDodging = dodging; }
 
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
@@ -249,7 +251,7 @@ public:
 	RectF getAttackRectWorld()const;
 	RectF getAttackRect(const Vec2& camera) const;
 	RectF getHitRect(const Vec2& camera)const;
-	void PlayerAttack(const Vec2& camera);
+	
 	RectF getHitRectWorld() const;
 	//RectF getTheWorld(const Vec2& camera)const;
 	///*
@@ -271,7 +273,7 @@ public:
 	void ApplyHeartEffects();
 	void PlayerMedecine();
 	void PlayerBerserk();
-
+	void PlayerStun();
 	void PlayerDead();
 	void update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2);
 	void draw(const Game_Map& CameraPos) const;

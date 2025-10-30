@@ -32,7 +32,8 @@ public:
         const RectF& pHitBoxScreen,
 		const RectF& pAttackBoxScreen,
 		const Vec2& cam,
-		bool flg
+		bool flg,
+		bool doge
 	);// 更新とプレイヤー命中判定
 
 private:

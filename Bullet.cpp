@@ -32,8 +32,8 @@ void Bullet::draw(const Game_Map& map) const
 
 bool Bullet::updateAndHit(double dt, const Game_Map& map,
 						  const RectF& pHitBoxScreen,
-							const RectF& pAttackBoxScreen,
-								const Vec2& cam, bool flg)
+						   const RectF& pAttackBoxScreen,
+							const Vec2& cam, bool flg,bool doge)
 {
 	if (!m_alive) return false;
 
@@ -77,8 +77,16 @@ bool Bullet::updateAndHit(double dt, const Game_Map& map,
 			m_faceRight = !m_faceRight; // 反転
 		}
 		if (rectScreen(cam).intersects(pHitBoxScreen)) {// プレイヤーに命中
-			m_alive = false;
-			return true;
+			if (doge)
+			{
+				// Dodge中は当たり判定無視・弾は生存
+				return false;
+			}
+			else
+			{
+				m_alive = false;
+				return true; // 当たり
+			}
 		}
 	}
 

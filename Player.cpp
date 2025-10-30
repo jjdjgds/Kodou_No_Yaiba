@@ -12,7 +12,7 @@ Player::~Player() {}
 HeartRateState Player::GetHeartRateState(int bpm)
 {
 	if (bpm <= 60 || bpm >= 140)
-		return HeartRateState::Dead;
+		return HeartRateState::Stun;
 
 	/*if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
 		return HeartRateState::Warning;*/
@@ -44,7 +44,7 @@ RectF Player::getAttackRect(const Vec2& camera) const
 	Vec2 center = GetPlayerPosition().movedBy(-camera);
 
 	// === 向きによって左右に矩形をオフセット ===
-	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 50 : -hitSize.x * 0.6 - 50);
+	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 60 : -hitSize.x * 0.6 - 60);
 	center.x += offsetX;
 
 	// === 少し上にオフセットして、胸〜腰あたりの高さに ===
@@ -76,20 +76,7 @@ RectF Player::getHitRect(const Vec2& camera) const
 	};
 }
 
-RectF Player::getHitRectWorld() const
-{
-	const SizeF sz = {
-		GetPlayerHitBox().x * m_Scale.x / 10,
-		GetPlayerHitBox().y * m_Scale.y / 10
-	};
 
-	const Vec2 center = m_Position + Vec2{ 0, -40 };
-
-	return RectF{
-		Arg::center = center,
-		sz
-	};
-}
 
 
 
@@ -194,7 +181,7 @@ void Player::PlayerAttack(const Vec2& camera)
 		m_frameIndex++;
 
 		// 攻撃判定フレーム（3〜5）
-		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		if (m_frameIndex >= 2 && m_frameIndex <= 5)
 		{
 			
 			m_AttackFlag = true;
@@ -661,7 +648,10 @@ void Player::PlayerFall()
 
 }
 
+void  Player::PlayerStun()
+{
 
+}
 
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
@@ -682,13 +672,18 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		return;        // 他の処理をスキップ
 	}
 
-	
-
-
 	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
 	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
+	if (GetPlayerHeartState() == HeartRateState::Stun)
+	{
+		// スタンアニメーション再生
+		PlayerStun();
+		return;
+	}
+
+	
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
 	{

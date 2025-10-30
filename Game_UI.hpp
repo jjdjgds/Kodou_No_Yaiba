@@ -32,6 +32,7 @@ private:
 	Array<int32> m_BeatPatterns{ 0,1,2,3,4,5,6,7,8,9,10 };
 	Array<int32> m_deadBeatPatterns{ 11,12,13,14,15 };
 	double HeatanimTime = 0.0;    //アニメーション時間管理用
+	bool m_RedAutoFlag = false;
 public:
 	void UIStun();
 	void UIWarning();
