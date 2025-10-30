@@ -96,7 +96,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	if (m_boss_hp <= 0 && !m_isDying)
 	{
 		m_isDying = true;
-		m_behavior = Boss_Behavior::Attack;
+		//m_behavior = Boss_Behavior::Attack;
 		m_attackTimer = m_attackCooldown;
 		m_deathPatternCounter = 0;
 	}
@@ -121,7 +121,11 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			Pattern_5(player, map.getCameraPos());
 			break;
 		case Boss_Pattern::PATTERN_6:
+<<<<<<< HEAD
+			Pattern_6(player, map.getCameraPos());
+=======
 			//Pattern_6(player, map.getCameraPos());
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 			break;
 		default:
 			break;
@@ -141,6 +145,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		}
 		break;
 	case Boss_Behavior::Chase:
+	{
 		//Print << U"Chase";
 		m_vel.x = (dx / dist) * m_boss_speed;
 		setState(AnimState_Boss::Run);
@@ -153,7 +158,9 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		}
 
 		break;
+	}
 	case Boss_Behavior::Attack:
+	{
 		//Print << U"Attack";
 		m_vel.x = 0.0f;
 		m_attackTimer += dt;
@@ -162,11 +169,15 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 		if (m_attackTimer >= m_attackCooldown)
 		{
+<<<<<<< HEAD
+			if (playerInAttackRange || m_pattern == Boss_Pattern::PATTERN_6)
+=======
 			if (m_pattern == Boss_Pattern::PATTERN_6)
 			{
 				Pattern_6(player, map.getCameraPos()); // Activate Pattern_6 regardless of distance
 			}
 			else if(playerInAttackRange)
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 			{
 				// Perform current attack pattern
 				handleAttackPattern(player, map);
@@ -180,9 +191,10 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			m_behavior = Boss_Behavior::Chase;
 		}
 		break;
+	}
 	default:
 		break;
-	}
+	};
 
 	// --- Animation Timer ---
 	const AnimDesc_Boss& anim = m_anims[m_state];
@@ -222,7 +234,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	probeX.x += m_vel.x * dt;
 
 	RectF boxX = BossRectAt(probeX - map.getCameraPos()); // world → screen adjustment for collision
-	
+
 	if (!map.CheckCollision_RecF(boxX))
 	{
 		m_boss_pos.x = probeX.x;
@@ -317,7 +329,7 @@ void Enemy_Boss::draw(const Game_Map& map) const
 		.scaled(sxScale, syScale)
 		.drawAt(center);
 
-	
+
 	if (m_debugDraw) {
 
 		BossRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
@@ -330,17 +342,41 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 {
 	if (!m_isDying)
 	{
+<<<<<<< HEAD
+		if (m_pattern == Boss_Pattern::PATTERN_5)
+		{
+			// Execute Pattern 5 first
+			executePattern(player, map, Boss_Pattern::PATTERN_5);
+			m_lastPattern = Boss_Pattern::PATTERN_5;
+
+			// Next pattern is always Pattern 6 after 5
+			m_pattern = Boss_Pattern::PATTERN_6;
+			return; // stop here to prevent double increment
+		}
+
+		// --- Handle Pattern 6 ---
+		if (m_pattern == Boss_Pattern::PATTERN_6)
+=======
 		if (m_lastPattern == Boss_Pattern::PATTERN_5)
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		{
 			executePattern(player, map, Boss_Pattern::PATTERN_6);
 			m_lastPattern = Boss_Pattern::PATTERN_6;
 
+<<<<<<< HEAD
+			// After Pattern 6, restart from Pattern 1
+			m_pattern = Boss_Pattern::PATTERN_1;
+			return;
+		}
+
+=======
 			int next = static_cast<int>(m_pattern) + 1;
 			if (next >= static_cast<int>(Boss_Pattern::PATTERN_MAX))
 				next = 0;
 			m_pattern = static_cast<Boss_Pattern>(next);
 		}
 		else
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		{
 			// Execute current pattern normally
 			executePattern(player, map, m_pattern);
@@ -348,8 +384,13 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 
 			// Move to next pattern
 			int next = static_cast<int>(m_pattern) + 1;
+<<<<<<< HEAD
+			if (next >= static_cast<int>(Boss_Pattern::PATTERN_5) + 1)
+				next = static_cast<int>(Boss_Pattern::PATTERN_1);
+=======
 			if (next >= static_cast<int>(Boss_Pattern::PATTERN_MAX))
 				next = 0;
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 			m_pattern = static_cast<Boss_Pattern>(next);
 		}
 	}
@@ -396,36 +437,56 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 	{
 	case Boss_Pattern::PATTERN_1:
 		// Example: simple melee attack
+<<<<<<< HEAD
+		Print << U"Boss uses PATTERN_1";
+=======
 		Print << U"Boss uses PATTERN_1 (melee slash)";
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		Pattern_1(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_2:
 		// Example: jump attack
+<<<<<<< HEAD
+		Print << U"Boss uses PATTERN_2";
+=======
 		Print << U"Boss uses PATTERN_2 (jump attack)";
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		Pattern_2(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_3:
 		// Example: projectile attack
+<<<<<<< HEAD
+		Print << U"Boss uses PATTERN_3";
+=======
 		Print << U"Boss uses PATTERN_3 (projectile)";
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		Pattern_3(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_4:
 		// Example: area of effect
+<<<<<<< HEAD
+		Print << U"Boss uses PATTERN_4";
+=======
 		Print << U"Boss uses PATTERN_4 (AOE)";
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		Pattern_4(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_5:
 		Print << U"Boss uses PATTERN_5 ";
-		Pattern_5(player,map.getCameraPos());
+		Pattern_5(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_6:
+<<<<<<< HEAD
+		Print << U"Boss uses PATTERN_6";
+=======
 		// Example: summon minions
 		Print << U"Boss uses PATTERN_6 (summon)";
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 		Pattern_6(player, map.getCameraPos());
 		break;
 
@@ -540,7 +601,11 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 		break;
 
 	}
+<<<<<<< HEAD
+
+=======
 		
+>>>>>>> b483a7f16a8781ee7d0db7e5bf53856e2a2b38d6
 	case 3:  // Cooldown phase
 	{
 		//Print << U"[Pattern_5] Attack phase.";
