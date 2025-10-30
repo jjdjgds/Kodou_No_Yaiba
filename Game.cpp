@@ -1,8 +1,8 @@
 ﻿#include "Game.hpp"
 #include "Player.hpp"
-#include "Enemy_1.hpp"
-#include "Enemy_2.hpp"
+#include "Enemy.hpp"
 #include "Collision.hpp"
+#include "TimeStopManager.h"
 using namespace Collision;
 
 
@@ -15,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
-		150,
+		90,
 		3,
 		1.0f,
 		0.5f,
@@ -28,14 +28,21 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt"))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage1.txt"))
 	{
 		Print << U"Failed to load stage1";
 		return;
 	}
 	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
 
+<<<<<<< HEAD
+=======
+	// 敵初期化
+	m_enemies.clear();
+	m_enemies.reserve(8);
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 
+	//m_enemies.emplace_back(Vec2{ 200,700 },100.0, true, Vec2{ 3,3 });
 }
 
 void Game::update()
@@ -44,9 +51,16 @@ void Game::update()
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 	Ui.update(player, map);
-	player.update(map);
+	player.update(map,m_enemies);
 	Boss_spawner.update(player, map);
 
+<<<<<<< HEAD
+=======
+	
+	
+
+	//for (auto& e : m_enemies) e.update(player,map);
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 
 }
 
@@ -57,12 +71,16 @@ void Game::draw() const
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
 
+<<<<<<< HEAD
 
 	Ui.draw(player,map);
 
+=======
+	//for (const auto& e : m_enemies) e.draw(map); //敵描画
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 	Boss_spawner.draw(map);
-	Ui.draw(player,map);
 
+	Ui.draw(player,map);
 
 }
 

@@ -1,9 +1,0 @@
-diff a/Game.cpp b/Game.cpp	(rejected hunks)
-@@ -1,6 +1,6 @@
- ﻿#include "Game.hpp"
- #include "Player.hpp"
--#include "Enemy.hpp"
-+#include "Enemy_1.hpp"
- #include "Collision.hpp"
- using namespace Collision;
- 

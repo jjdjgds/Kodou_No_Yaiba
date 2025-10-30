@@ -153,7 +153,7 @@
     <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Enemy_1.cpp">
+    <ClCompile Include="Enemy.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Block.cpp">
@@ -165,16 +165,10 @@
     <ClCompile Include="Game_UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="jokeClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MapLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Game_BG.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Enemy_2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Enemy_Boss.cpp">
@@ -183,7 +177,7 @@
     <ClCompile Include="EnemySpawner.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Bullet.cpp">
+    <ClCompile Include="TimeStopManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -863,7 +857,7 @@
     <ClInclude Include="Player.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Enemy_1.hpp">
+    <ClInclude Include="Enemy.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Block.hpp">
@@ -878,9 +872,6 @@
     <ClInclude Include="Game_UI.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jokeClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MapLoader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -890,16 +881,13 @@
     <ClInclude Include="Game_BG.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Enemy_2.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Enemy_Boss.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EnemySpawner.hpp">
+    <ClInclude Include="TimeStopManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Bullet.hpp">
+    <ClInclude Include="EnemySpawner.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

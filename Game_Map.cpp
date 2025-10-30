@@ -166,7 +166,7 @@ bool Game_Map::CheckCollision(const RectF& rect)
 	return false;
 }
 
-bool Game_Map::CheckCollision_Line(const Line& line) const
+bool Game_Map::CheckCollision_Line(const Line& line)
 {
 	for (const auto& block : m_blocks)
 	{
@@ -181,7 +181,7 @@ bool Game_Map::CheckCollision_Line(const Line& line) const
 	return false;
 }
 
-bool Game_Map::CheckCollision_RecF(const RectF& rect) const
+bool Game_Map::CheckCollision_RecF(const RectF& rect)
 {
 	for (const auto& block : m_blocks)
 	{

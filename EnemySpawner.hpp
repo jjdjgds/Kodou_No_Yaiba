@@ -2,9 +2,6 @@
 #include <Siv3D.hpp>
 #include "Enemy_Boss.hpp"
 #include "Game_Map.hpp"
-#include "Enemy_1.hpp"
-#include "Enemy_2.hpp"
-
 
 struct SpawnPoint
 {
@@ -15,11 +12,11 @@ struct SpawnPoint
 	bool used = false;
 };
 
-
 class EnemySpawner
 {
 private:
 	Enemy_Boss* m_boss = nullptr;
+<<<<<<< HEAD
 
 	Array<std::unique_ptr<Enemy_1>> m_enemy1;
 	Array<std::unique_ptr<Enemy_2>> m_enemy2;
@@ -32,10 +29,13 @@ public:
 	~EnemySpawner() {
 		clear();
 		 }
+=======
+public:
+	EnemySpawner() = default;
+	~EnemySpawner() { delete m_boss; }
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 
-	void spawnBoss(const Vec2& pos, double stride = 0.0, bool faceRight = true, Vec2 scale = Vec2{ 1,1 });
-	void  spawnEnemy_1(const Vec2& pos, double stride, bool faceRight, Vec2 scale);
-	void  spawnEnemy_2(const Vec2& pos, double stride, bool faceRight, Vec2 scale);
+	void spawnBoss(const Vec2& pos);
 	void loadFromMap(const Array<Block>& blocks, double chipWidth, double chipHeight);
 	void update(Player& player, Game_Map& map);
 	void draw(const Game_Map& map) const;

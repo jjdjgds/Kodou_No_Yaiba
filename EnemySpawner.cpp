@@ -8,21 +8,23 @@ void EnemySpawner::clear() {
 }
 
 // Spawn the boss at a position
-void  EnemySpawner::spawnBoss(const Vec2& pos, double stride, bool faceRight, Vec2 scale)
+void  EnemySpawner::spawnBoss(const Vec2& pos)
 {
 	if (!m_boss)
 	{
-		m_boss = new Enemy_Boss(pos, stride, faceRight, scale);
+		m_boss = new Enemy_Boss(pos);
 	}
 	else
 	{
 		m_boss->SetPosition(pos); // move existing boss
-		m_boss->SetScale(scale);
 	}
 }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 // Load all spawns from the map's blocks
 void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, double chipHeight)
 {
@@ -40,6 +42,7 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 		case BLOCK_BOSS:
 			spawnBoss(pos);
 			break;
+<<<<<<< HEAD
 		case BLOCK_ENEMY_1:
 		{
 			auto e = std::make_unique<Enemy_1>(pos, 600.0);
@@ -52,6 +55,8 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 			m_enemy2 << std::move(e);
 			break;
 		}
+=======
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 		default:
 			break;
 		}
@@ -80,9 +85,14 @@ void  EnemySpawner::update(Player& player, Game_Map& map)
 void  EnemySpawner::draw(const Game_Map& map) const
 {
 	if (m_boss)
+<<<<<<< HEAD
 		m_boss->draw(m_boss->GetPosition() - map.getCameraPos(), { map.getChipWidth() * 3.5,map.getChipHeight() * 3.5 });
 
 	for (const auto& e : m_enemy1) { if (e) e->draw(map); }
 	for (const auto& e : m_enemy2) { if (e) e->draw(map); }
+=======
+		m_boss->draw(map);
+
+>>>>>>> f43e84f90f86a93fec393bdf9d1b45c4ec9c3251
 }
 
