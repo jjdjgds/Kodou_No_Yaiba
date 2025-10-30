@@ -99,8 +99,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const RectF pHitBox(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox()); // プレイヤー本体
 	const RectF pAttackBox = player.getAttackRect(cam); // プレイヤーの攻撃矩形（Player の関数利用）
 
-
-
+	
 	const bool playerInChase = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡矩形内にいるか
 	const bool playerInAttack = RectToRect(eAttackBox, pHitBox);// プレイヤーが攻撃矩形内にいるか
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
@@ -177,7 +176,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	}
 	else {// 通常行動状態
 		if (m_engaged) {// 交戦モード
-			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround) {
+			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround && player.GetPlayerState() != StateMode::Dead) {
 				m_mode = Behavior_Enemy1::Attack;
 				setState(AnimState_Enemy1::Attack);
 				m_attackFlag = true;
@@ -337,7 +336,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	// --- プレイヤーの攻撃が敵に当たったか ---
 	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
-	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame) || m_takeDamage;
+	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
 		die();
 	}

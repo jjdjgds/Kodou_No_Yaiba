@@ -26,9 +26,14 @@ public:
 	RectF rectWorld() const;// ワールド座標系の矩形を取得
 
 	void draw(const Game_Map& map) const;
-	bool updateAndHit(double dt, const Game_Map& map,
-				  const s3d::RectF& pHitBoxScreen,
-				  const s3d::Vec2& cam);// 更新とプレイヤー命中判定
+	bool updateAndHit(
+		double dt,
+		const Game_Map& map,
+        const RectF& pHitBoxScreen,
+		const RectF& pAttackBoxScreen,
+		const Vec2& cam,
+		bool flg
+	);// 更新とプレイヤー命中判定
 
 private:
 	Vec2 faceApply(const s3d::Vec2& local) const {

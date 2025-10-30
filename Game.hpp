@@ -24,6 +24,7 @@ private:
 	Game_Map map;
 	Game_UI Ui;
 	Game_BG bg;
+
 	EnemySpawner Boss_spawner;
 	TimeStopManager tsm;
 };

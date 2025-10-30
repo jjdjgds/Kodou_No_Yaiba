@@ -1,11 +1,12 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
-#include "Player.hpp"
+#include "Game_Map.hpp"
 
 enum class AnimState_Enemy1 { Idle, Run, Dead, Attack, };// アニメーション状態列挙型
 enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
 enum class PatrolPhase_Enemy1 { Move, Wait, };// 巡回フェーズ列挙型
-
+// ↓ Player クラスの前方宣言を追加
+class Player;
 struct AnimDesc_Enemy1 {// アニメーションの説明構造体
 	int   row;
 	int   start;

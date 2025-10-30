@@ -5,6 +5,7 @@
 #include "Player.hpp"
 #include "Game_Map.hpp"
 #include "Bullet.hpp"
+#include "TimeStopManager.h"
 
 using namespace Collision;
 
@@ -38,11 +39,11 @@ void Enemy_2::updateBullets(double dt, Player& player, Game_Map& map)// 弾丸�
 {
 	const Vec2 cam = map.getCameraPos();
 	RectF pHitBoxScreen(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox());
-
+	RectF pAttackBoxScreen(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerAttackRengeBox());
 	for (auto& b : m_bullets) {
 		if (!b.isAlive()) continue;
 
-		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, cam);// 弾の更新とプレイヤーへの命中判定
+		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, pAttackBoxScreen, cam,player.IsPlayerAttacking());// 弾の更新とプレイヤーへの命中判定
 		if (hit) {
 			player.takeDamage(1);
 		}
@@ -126,8 +127,8 @@ Line Enemy_2::makeGroundProbeLine(const Vec2& cam,bool debug) const
 
 void Enemy_2::update(Player& player, Game_Map& map)
 {
-	const double dt = Scene::DeltaTime();
-	const Vec2 cam = map.getCameraPos();
+	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
+	const Vec2 cam = map.getCameraPos() *TimeStopManager::GetEnemyScale();
 
 	m_faceFlipCooldown = Max(0.0, m_faceFlipCooldown - dt);
 	m_attackCooldown = Max(0.0, m_attackCooldown - dt);
@@ -176,7 +177,7 @@ void Enemy_2::update(Player& player, Game_Map& map)
 
 		if (dx > m_flipThreshold && !m_FaceRight) { m_FaceRight = true;  m_faceFlipCooldown = m_faceFlipCooldownMax; }
 		else if (dx < -m_flipThreshold && m_FaceRight) { m_FaceRight = false; m_faceFlipCooldown = m_faceFlipCooldownMax; }
-		};
+	};
 
 
 
@@ -214,7 +215,7 @@ void Enemy_2::update(Player& player, Game_Map& map)
 	}
 	else {// 通常行動状態
 		if (m_engaged) {// 交戦モード
-			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround) {
+			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround && (player.GetPlayerState() != StateMode::Dead)) {
 				m_mode = Behavior_Enemy2::Attack;
 				setState(AnimState_Enemy2::Attack);
 				m_firedThisAttack = false;
@@ -491,6 +492,7 @@ void Enemy_2::draw(const Game_Map& map) const
 		hurtRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
 		attackRect(map.getCameraPos()).drawFrame(2.0, Palette::Blue);
 		chaseRect(map.getCameraPos()).drawFrame(2.0, Palette::White);
+		
 		makeGroundProbeLine(map.getCameraPos(),true).draw(2, Palette::Yellow);
 	}
 }
