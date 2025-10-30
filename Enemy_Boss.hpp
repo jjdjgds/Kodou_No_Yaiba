@@ -47,17 +47,20 @@ private :
 	bool   m_onGround = false;
 
 	int m_boss_hp = 50;
-	int m_boss_bpm = 100;
+	float m_boss_bpm = 100;
+	float m_base_bpm = 100;
 	bool m_isAttacking = false;
 	int m_boss_atk = 1;
-	int m_boss_range = 300.0f;
+	int m_boss_range = 400.0f;
 	double m_hitOffsetY = 0.0;// 当たり判定Y
 	float chaseRange = 700.0f;
 ;
 	float dist = 0;
-	float m_boss_speed = 550.0f;
+	float m_base_speed = 300.0f;
+	float m_boss_speed = 300.0f;
 
 	Boss_Behavior m_behavior = Boss_Behavior::idle;
+	Boss_Pattern m_lastPattern = Boss_Pattern::PATTERN_1;
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_1;
 
 	// Attack / pattern management
@@ -70,9 +73,15 @@ private :
 	void handleAttackPattern(Player& player, Game_Map& map);
 	void executePattern(Player& player, Game_Map& map, Boss_Pattern pattern);
 
+	void Pattern_1(Player& player, Vec2 cam_pos);
+	void Pattern_2(Player& player, Vec2 cam_pos);
+	void Pattern_3(Player& player, Vec2 cam_pos);
+	void Pattern_4(Player& player, Vec2 cam_pos);
 	void Pattern_5(Player& player ,Vec2 cam_pos);
 	int m_pattern5Phase = 0;
 	double m_pattern5Timer = 0.0;
+	void Pattern_6(Player& player, Vec2 cam_pos);
+	void updateSpeedByBPM();
 
 	AnimState_Boss m_state{ AnimState_Boss::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState_Boss, AnimDesc_Boss> m_anims{	// アニメーションの説明
