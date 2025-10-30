@@ -26,7 +26,7 @@ HeartRateState Player::GetHeartRateState(int bpm)
 	if (bpm >= 120 && bpm <= 129)
 		return HeartRateState::Berserk;
 
-	if (bpm >= 71 && bpm <= 80)
+	if (bpm >= 60 && bpm <= 80)
 		return HeartRateState::TimeControl;
 
 	if (bpm == 0)
