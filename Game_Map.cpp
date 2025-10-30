@@ -76,6 +76,8 @@ void Game_Map::loadNextStage()
 	{
 		Print << U"❌ Failed to load next stage: " << nextPath;
 	}
+
+
 }
 
 void Game_Map::update()

@@ -148,14 +148,15 @@ public:
 	void draw(const Game_Map& CameraPos) const;
 
 	void die();// 死亡処理
-	bool IsPendingRemoval() const { return m_pendingRemoval; }
+	bool pendingRemoval() const { return m_pendingRemoval; }
 	bool IsDead() const { return m_dead; }
 
 	RectF hurtRect(const Vec2& cam) const; // ダメージ判定矩形を取得
 	RectF hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 
-	RectF attackRect(const Vec2& cam) const; // 攻撃判定矩形を取得
-	RectF chaseRect(const Vec2& cam) const;// 追跡判定矩形を取得
+	double forwardClearance(const Game_Map& map, double baseW, double baseH, double lead, double maxForward, int dir) const;
+	RectF attackRect(const Game_Map& map) const; // 攻撃判定矩形を取得
+	RectF chaseRect(const Game_Map& map) const;// 追跡判定矩形を取得
 
 	Line makeGroundProbeLine(const Vec2& cam, bool debug) const;// 地面探査用の線分を作成
 };
