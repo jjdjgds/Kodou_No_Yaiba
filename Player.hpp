@@ -79,7 +79,12 @@ private:
 	double m_AttackSpeedBoost = 1.0;   // 攻撃速度倍率
 	//double m_BersarkTimer = 0.0;       // 残り時間
 	//bool m_BersarkFlg = false;         // バーサーク状態中か
-
+	bool m_ParrySuccess = false;   // 弾を跳ね返した瞬間だけtrue
+	double m_ParryTimer = 0.0;     // パリィ後の短時間クールダウン
+	// ノックバック関連
+	Vec2 m_KnockbackVelocity{ 650, -900 };
+	double m_KnockbackTimer = 0.35;
+	bool m_IsKnockback = false;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 	// 各アニメーションのフレーム番号
@@ -167,6 +172,9 @@ public:
 		, m_gravity(9.8)
 		, m_PlayerState(StateMode::Idle)
 		, m_HeartRateState(HeartRateState::Dead)
+		, m_IsKnockback(false)
+		, m_KnockbackTimer(0.0)
+		, m_KnockbackVelocity(Vec2{ 0, 0 })
 	
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
@@ -259,6 +267,7 @@ public:
 	//Array<Enemy_2> m_enemies2
 
 	//*/
+	void OnParrySuccess();
 	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();

@@ -35,23 +35,41 @@ void Enemy_2::fireBullet()// 弾丸発射処理
 	b.setHitBiasLocal(Vec2{ 0, +42 });// 衝突箱用の偏移を設定
 }
 
-void Enemy_2::updateBullets(double dt, Player& player, Game_Map& map)// 弾丸更新処理
+void Enemy_2::updateBullets(double dt, Player& player, Game_Map& map)
 {
 	const Vec2 cam = map.getCameraPos();
 	RectF pHitBoxScreen(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox());
 	RectF pAttackBoxScreen(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerAttackRengeBox());
-	for (auto& b : m_bullets) {
+
+	for (auto& b : m_bullets)
+	{
 		if (!b.isAlive()) continue;
 
-		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, pAttackBoxScreen, cam,player.IsPlayerAttacking(),player.IsDogeging());// 弾の更新とプレイヤーへの命中判定
-		if (hit && player.GetPlayerState() != StateMode::Doge) {
-			
+		const bool hit = b.updateAndHit(dt, map, pHitBoxScreen, pAttackBoxScreen, cam,
+			player.IsPlayerAttacking(), player.IsDogeging());
+
+		// 反射弾が敵に当たったら
+		if (b.IsRemoveFlag())
+		{
+			const RectF eBox = hurtRect(cam);
+			if (b.rectScreen(cam).intersects(eBox))
+			{
+				die();           // 敵にダメージ処理
+				b.SetRemoveFlag(false); // 弾を消す
+				continue;
+			}
+		}
+
+		// プレイヤーに命中
+		if (hit && player.GetPlayerState() != StateMode::Doge)
+		{
 			player.takeDamage(1);
 		}
 	}
 
-	m_bullets.remove_if([](const Bullet& b) { return !b.isAlive(); });// 死んだ弾丸を配列から削除
+	m_bullets.remove_if([](const Bullet& b) { return !b.isAlive(); });
 }
+
 
 RectF Enemy_2::hurtRect(const Vec2& cam) const
 {

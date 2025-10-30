@@ -335,6 +335,29 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 	// --- プレイヤーの攻撃が敵に当たったか ---
 	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
+	// --- パリィ判定 ---
+	bool parryOccurred =
+		(m_state == AnimState_Enemy1::Attack) &&                 // 敵が攻撃中
+		(player.GetPlayerState() == StateMode::Attack) &&        // プレイヤーも攻撃中
+		RectToRect(eAttackBox, pAttackBox);                      // 攻撃範囲が重なった
+
+	if (parryOccurred)
+	{
+		// パリィが成立したら攻撃をキャンセル
+		m_attackFlag = false;
+		m_hasHitPlayer = false;
+		m_attackCooldown = m_attackCooldownMax;
+		setState(AnimState_Enemy1::Idle);
+
+		// プレイヤー側にもパリィ処理を伝える（反動・エフェクトなど）
+		player.OnParrySuccess();  // Playerクラスに関数を作っておくと良い
+
+		
+		AudioAsset(U"ParrySound").play();
+
+		return; // このフレームは以降の処理をスキップ
+	}
+
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//

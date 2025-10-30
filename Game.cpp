@@ -39,11 +39,11 @@ Game::Game(const InitData& init)
 	// 敵初期化
 	m_enemies1.clear();
 	m_enemies1.reserve(8);
-	//m_enemies1.emplace_back(Vec2{ 200,700 },300.0);
+	m_enemies1.emplace_back(Vec2{ 200,700 },300.0);
 
 	m_enemies2.clear();
 	m_enemies2.reserve(8);
-	m_enemies2.emplace_back(Vec2{ 200,700 }, 600.0);
+	//m_enemies2.emplace_back(Vec2{ 200,700 }, 600.0);
 
 }
 

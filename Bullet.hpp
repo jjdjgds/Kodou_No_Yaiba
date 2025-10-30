@@ -36,6 +36,9 @@ public:
 		bool doge
 	);// 更新とプレイヤー命中判定
 
+	bool IsRemoveFlag() const { return m_RemoveFlag; }
+	bool SetRemoveFlag(bool flag) { return m_RemoveFlag = flag; }
+
 private:
 	Vec2 faceApply(const s3d::Vec2& local) const {
 		return m_faceRight ? local : s3d::Vec2{ -local.x, local.y };
@@ -47,7 +50,7 @@ private:
 	SizeF  m_hitSize{ 20,12 };
 	double m_life = 3.0;
 	bool   m_alive = true;
-
+	bool   m_RemoveFlag = false;
 	// 偏移量
 	Vec2   m_drawBiasLocal{ 0, 0 };// 描画用
 	Vec2   m_hitBiasLocal{ 0, 0 };// 衝突箱用

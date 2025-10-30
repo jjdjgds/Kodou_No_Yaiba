@@ -110,21 +110,32 @@ void Player::UpdateHeartState()
 
 void Player::takeDamage(int dmg)
 {
-	// ★無敵時は無視
-	if (GetIsInvincible())
-		return;
-
-	if (GetPlayerState() == StateMode::Hurt || GetPlayerState() == StateMode::Doge)
-		return;
+	if (GetIsInvincible()) return;
+	if (GetPlayerState() == StateMode::Hurt || GetPlayerState() == StateMode::Doge) return;
 
 	SetPlayerState(StateMode::Hurt);
 	SetPlayerHP(GetPlayerHP() - dmg);
-
 	SetPlayerBPM(GetPlayerBPM() - 8);
+
+	// クールタイム系
 	m_HeartTimer = 0.0;
 	m_HeartCoolTimer = m_HeartCooldown;
 	m_HeartCoolFlg = true;
+
+	// ==== ノックバック（強めにして可視化） ====
+	const double knockbackPowerX = 120000.0;  // 横の吹き飛びを2倍
+	const double knockbackPowerY = -80000.0;  // 上方向にも強く
+
+	m_KnockbackVelocity = Vec2(
+		IsPlayerFacingRight() ? -knockbackPowerX : knockbackPowerX,
+		knockbackPowerY
+	);
+
+	m_KnockbackTimer = 2;   // ノックバック時間を延長
+	m_IsKnockback = true;
 }
+
+
 
 // ワールド座標での当たり判定取得（カメラ補正なし）
 RectF Player::getAttackRectWorld() const
@@ -160,6 +171,17 @@ RectF Player::getHitRectWorld() const
 		Arg::center = center,
 		sz
 	};
+}
+
+void Player::OnParrySuccess()
+{
+	// 攻撃をキャンセルして少し硬直
+	m_AttackFlag = false;
+	m_ParrySuccess = true;
+	m_ParryTimer = 0.25; // 例：0.25秒間無敵や硬直
+	//m_AnimState = PlayerAnim::Parry; // パリィ用アニメーションに切り替え
+	Print << U"Parry Success!";
+	
 }
 
 void Player::PlayerAttack(const Vec2& camera)
@@ -286,18 +308,15 @@ void Player::PlayerHurt()
 			}
 			else
 			{
-				// ★ ここが重要！ 攻撃後の状態を決める
-				if (KeyA.pressed() || KeyD.pressed())
-				{
-					// まだ移動キーが押されている → Runへ
-					SetPlayerState(StateMode::Run);
-				}
+				// ★ノックバック開始
+				// 吹き飛ばす方向は敵の向きなどで決める
+				double direction = (IsPlayerFacingRight() ? -1.0 : 1.0); // 右向きなら左に吹っ飛ぶ
+				m_KnockbackVelocity = Vec2(direction * 800, -12000);
+				m_KnockbackTimer = 0.4;
+				m_IsKnockback = true;
 
-				else
-				{
-					// 押されていない → Idleへ
-					SetPlayerState(StateMode::Idle);
-				}
+				// ★ ここが重要！ 攻撃後の状態を決める（吹っ飛び中は無効）
+				// ノックバック中は update() で状態遷移を管理するのでここで Run/Idleに戻さない
 			}
 
 			animTime = 0.0;
@@ -570,7 +589,7 @@ void Player::PlayerJump()
 		if (m_frameIndex >= m_jumpPatterns.size())
 		{
 			m_frameIndex = 0;
-			// ★ ここが重要！ 攻撃後の状態を決める
+			//ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				// まだ移動キーが押されている → Runへ
@@ -656,6 +675,7 @@ void  Player::PlayerStun()
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
 
+	
 
 	// HPが0なら即死亡状態にしてアニメーション更新のみ行う
 	if (GetPlayerHP() <= 0)
@@ -702,6 +722,50 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
 	Vec2 velocity = GetPlayerVelocity();
+	if (m_IsKnockback)
+	{
+		double dt = Scene::DeltaTime();
+
+		// ノックバック中だけ重力を半分に
+		m_KnockbackVelocity.y += (m_gravity * 0.3) * dt * 400;
+
+		// 次の位置を計算
+		Vec2 nextPos = GetPlayerPosition() + m_KnockbackVelocity * dt;
+
+		// 壁・床衝突チェック
+		RectF hitRect(Arg::center = nextPos + Vec2{ 0, -40 }, GetPlayerHitBox());
+		if (!map.CheckCollision(hitRect))
+		{
+			SetPlayerPosition(nextPos);
+		}
+		else
+		{
+			// 壁・床にぶつかったら停止
+			m_KnockbackVelocity = Vec2{ 0, 0 };
+			m_IsKnockback = false;
+			m_KnockbackTimer = 0.0;
+			SetPlayerState(StateMode::Idle);
+			return;
+		}
+
+		// 徐々に減速
+		m_KnockbackVelocity.x *= 0.85;
+
+		// タイマー減少
+		m_KnockbackTimer -= dt;
+
+		// 終了条件
+		if (m_KnockbackTimer <= 0.0 || m_onGround)
+		{
+			m_IsKnockback = false;
+			m_KnockbackVelocity = Vec2{ 0, 0 };
+			m_KnockbackTimer = 0.0;
+			SetPlayerState(StateMode::Idle);
+		}
+
+		// ノックバック中は他の動作を無効化
+		return;
+	}
 	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
 	{
 		if (m_HeartTimer >= 1.0) // 1秒経過ごと
@@ -821,6 +885,9 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		bool isTouchingWallLeft = false;
 		bool isTouchingWallRight = false;
 
+
+
+
 		//-----------------------------------
 		// 横移動処理
 		//-----------------------------------
@@ -857,7 +924,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			{
 				if (m_BersarkFlg)
 				{
-					velocity.x = input.x * (GetPlayerSpeed() + BERSARKEMOVESPEED) * TimeStopManager::GetPlayerScale();
+ 					velocity.x = input.x * (GetPlayerSpeed() + BERSARKEMOVESPEED) * TimeStopManager::GetPlayerScale();
 				}
 				else
 				{
@@ -923,6 +990,13 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		{
 			velocity.y += m_gravity * Scene::DeltaTime() * 400 * TimeStopManager::GetPlayerScale();
 		}
+		//-----------------------------------
+        // === ノックバック中処理 ===
+        //-----------------------------------
+		
+
+
+
 
 		//-----------------------------------
 		// ジャンプ処理（地上 or 壁キック）
@@ -1111,6 +1185,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 				if (GetPlayerState() == StateMode::Idle)
 				{
 					SetPlayerState(StateMode::IdleToAttack);
+					SetPlayerBPM(GetPlayerBPM() + 2);
 				}
 				else
 				{
