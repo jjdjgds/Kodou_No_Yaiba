@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "Common.hpp"
 #include "Player.hpp"
-#include "Enemy.hpp"
+#include "Enemy_1.hpp"
+#include "Enemy_2.hpp"
 #include "Game_Map.hpp"
 #include "Game_UI.hpp"
 #include "Game_BG.hpp"
@@ -18,7 +19,8 @@ public:
 
 private:
 	Player player;  // ← これがないと Game.cpp 内で player が使えない！
-	Array<Enemy> m_enemies;//敵キャラクターの配列
+	Array<Enemy_1> m_enemies1;//敵キャラクターの配列
+	Array<Enemy_2> m_enemies2;//敵キャラクターの配列
 	Game_Map map;
 	Game_UI Ui;
 	Game_BG bg;
