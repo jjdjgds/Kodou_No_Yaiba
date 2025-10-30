@@ -1,6 +1,26 @@
 ﻿#pragma once
 # include <Siv3D.hpp>
 #include "Player.hpp"
+#define  STUN (0.9)
+#define  WARNING (0.035)
+#define  BERSERK (0.025)
+#define  TIMECONTROL (0.8)
+#define  NORMAL (0.12)
+#define  DEAD (0.1)
+
+/*
+
+
+
+Stun,
+Warning,
+Berserk,
+TimeControl,
+Normal,
+Dead
+
+
+*/
 
 class Game_UI
 {

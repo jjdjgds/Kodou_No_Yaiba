@@ -18,7 +18,7 @@ Player::~Player() {}
 HeartRateState Player::GetHeartRateState(int bpm)
 {
 	if (bpm <= 60 || bpm >= 140)
-		return HeartRateState::Stun;
+		return HeartRateState::Dead;
 
 	if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
 		return HeartRateState::Warning;
@@ -169,6 +169,7 @@ void Player::PlayerAttack(const Vec2& camera, Array<Enemy>& m_enemies)
 	if (m_BersarkFlg)
 	{
 		attackFrameDuration /= m_AttackSpeedBoost;
+	
 	}
 
 	if (!m_AttackFlag) return;
@@ -377,8 +378,24 @@ void Player::ApplyHeartEffects()
 void Player::PlayerMedecine()
 {
 
+	if (GetPlayerState() != StateMode::Medecine)
+	{
+		m_frameIndex = 0;
+		return;
+	}
 
 	const double medicineFrameDuration = 0.15;
+	//  ここが重要！ 攻撃後の状態を決める
+	if (KeyA.pressed() || KeyA.down() || KeyD.down() || KeyD.pressed())
+	{
+		// まだ移動キーが押されている → Runへ
+		SetPlayerState(StateMode::Run);
+	}
+	
+	if (KeySpace.down())
+	{
+		SetPlayerState(StateMode::Attack);
+	}
 	if (animTime >= medicineFrameDuration)
 	{
 		animTime -= medicineFrameDuration;
@@ -386,6 +403,7 @@ void Player::PlayerMedecine()
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
 			m_frameIndex = 0;
+			SetPlayerBPM(GetPlayerBPM() - 30);
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
@@ -674,7 +692,7 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		else
 		{
 			// 時間切れ → 通常状態に戻す
-			m_BersarkFlg = false;
+ 			m_BersarkFlg = false;
 			m_IsInvincible = false;        // ★無敵解除
 			m_AttackSpeedBoost = 1.0;      // ★攻撃速度戻す
 			Print << U"バーサーク解除";
@@ -795,7 +813,14 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		}
 		else
 		{
-			velocity.x = input.x * GetPlayerSpeed() * TimeStopManager::GetPlayerScale();
+			if(m_BersarkFlg)
+			{
+				velocity.x = input.x * (GetPlayerSpeed()+ BERSARKEMOVESPEED) * TimeStopManager::GetPlayerScale();
+			}
+			else
+			{
+				velocity.x = input.x * GetPlayerSpeed() * TimeStopManager::GetPlayerScale();
+			}
 			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
 
 			RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
@@ -1042,10 +1067,14 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		if (m_onGround)
 		{
 			if (GetPlayerState() == StateMode::Idle)
+			{
 				SetPlayerState(StateMode::IdleToAttack);
+			}
 			else
+			{
 				SetPlayerState(StateMode::Attack);
-			SetPlayerBPM(GetPlayerBPM() + 5);
+				SetPlayerBPM(GetPlayerBPM() + 3);
+			}
 		}
 		else
 		{
@@ -1093,11 +1122,14 @@ void Player::update(Game_Map& map, Array<Enemy>& m_enemies)
 		if (KeyL.down())
 		{
 			SetPlayerState(StateMode::Medecine);
-			SetPlayerBPM(GetPlayerBPM() - 30);//仮の数値、薬をブッキメの値を変えたかったらここ
 		}
-		if (KeyT.down())
+		if (KeyT.pressed())
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
+		}
+		if (KeyT.up())
+		{
+			TimeStopManager::Stop(); // ザ・ワールド発動
 		}
 
 

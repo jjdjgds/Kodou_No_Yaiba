@@ -6,7 +6,7 @@
 #define MAX_WEAPON (3)
 #define ATTACKSPEED (0.08)
 #define BERSARKATTACKSPEED (0.05)
-
+#define BERSARKEMOVESPEED (100) //バーサーカーモード中の移動速度
 
 class Enemy;
 enum class HeartRateState
