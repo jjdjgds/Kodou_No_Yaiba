@@ -21,6 +21,7 @@ void Main()
 	{
 		TextureAsset::Register(U"Player", U"example/spritesheet/samurai.png");
 		TextureAsset::Register(U"HeatBeat", U"example/spritesheet/HEARTBEAT.png");
+		TextureAsset::Register(U"AttackEffect", U"example/spritesheet/AttackEffect.png");
 	}
 
 

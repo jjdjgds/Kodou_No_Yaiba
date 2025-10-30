@@ -135,7 +135,7 @@ void Game_UI::UIBerserk()
 
 void Game_UI::update(Player player, const Game_Map& CameraPos)
 {
-	HeatanimTime += Scene::DeltaTime();
+	HeatanimTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
 	const auto state = player.GetPlayerHeartState();
 
