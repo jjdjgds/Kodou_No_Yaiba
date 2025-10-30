@@ -65,7 +65,7 @@ private :
 
 	// Attack / pattern management
 	double m_attackTimer = 0.0;
-	double m_attackCooldown = 2.0; // seconds between attacks
+	double m_attackCooldown = 0.5; // seconds between attacks
 
 	bool m_isDying = false;
 	int m_deathPatternCounter = 0;  // Counts how many times we've cycled
@@ -80,6 +80,7 @@ private :
 	void Pattern_5(Player& player ,Vec2 cam_pos);
 	int m_pattern5Phase = 0;
 	double m_pattern5Timer = 0.0;
+	bool m_pattern5End = false;
 	void Pattern_6(Player& player, Vec2 cam_pos);
 	void updateSpeedByBPM();
 

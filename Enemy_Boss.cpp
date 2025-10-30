@@ -14,14 +14,12 @@ RectF Enemy_Boss::BossRect(const Vec2& cam) const
 	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
 	return RectF{ Arg::center = m_boss_pos.movedBy(xOffset, m_hitOffsetY) - cam, m_hitBox };
 }
-
 RectF Enemy_Boss::BossRectAt(const Vec2& pos) const
 {
 	const double forwardOffset = m_hitBox.x * 1; // 調整可
 	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
 	return RectF{ Arg::center = pos.movedBy(xOffset , m_hitOffsetY), m_hitBox };
 }
-
 RectF Enemy_Boss::attackRect(const Vec2& cam) const
 {
 	// Base size of the boss hitbox
@@ -96,36 +94,15 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	if (m_boss_hp <= 0 && !m_isDying)
 	{
 		m_isDying = true;
-		m_behavior = Boss_Behavior::Attack;
+		//m_behavior = Boss_Behavior::Attack;
 		m_attackTimer = m_attackCooldown;
 		m_deathPatternCounter = 0;
 	}
 
 	if (m_isAttacking)
 	{
-		switch (m_pattern)
-		{
-		case Boss_Pattern::PATTERN_1:
-			//Pattern_1(player, map.getCameraPos());
-			break;
-		case Boss_Pattern::PATTERN_2:
-			//Pattern_2(player, map.getCameraPos());
-			break;
-		case Boss_Pattern::PATTERN_3:
-			//Pattern_3(player, map.getCameraPos());
-			break;
-		case Boss_Pattern::PATTERN_4:
-			//Pattern_4(player, map.getCameraPos());
-			break;
-		case Boss_Pattern::PATTERN_5:
-			Pattern_5(player, map.getCameraPos());
-			break;
-		case Boss_Pattern::PATTERN_6:
-			//Pattern_6(player, map.getCameraPos());
-			break;
-		default:
-			break;
-		}
+		executePattern(player, map, m_pattern);
+		
 		return;
 	}
 
@@ -141,6 +118,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		}
 		break;
 	case Boss_Behavior::Chase:
+	{
 		//Print << U"Chase";
 		m_vel.x = (dx / dist) * m_boss_speed;
 		setState(AnimState_Boss::Run);
@@ -153,7 +131,9 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		}
 
 		break;
+	}
 	case Boss_Behavior::Attack:
+	{
 		//Print << U"Attack";
 		m_vel.x = 0.0f;
 		m_attackTimer += dt;
@@ -162,11 +142,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 		if (m_attackTimer >= m_attackCooldown)
 		{
-			if (m_pattern == Boss_Pattern::PATTERN_6)
-			{
-				Pattern_6(player, map.getCameraPos()); // Activate Pattern_6 regardless of distance
-			}
-			else if(playerInAttackRange)
+			if (playerInAttackRange || m_pattern == Boss_Pattern::PATTERN_6)
 			{
 				// Perform current attack pattern
 				handleAttackPattern(player, map);
@@ -180,9 +156,10 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			m_behavior = Boss_Behavior::Chase;
 		}
 		break;
+	}
 	default:
 		break;
-	}
+	};
 
 	// --- Animation Timer ---
 	const AnimDesc_Boss& anim = m_anims[m_state];
@@ -221,8 +198,8 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	Vec2 probeX = m_boss_pos;
 	probeX.x += m_vel.x * dt;
 
-	RectF boxX = BossRectAt(probeX - map.getCameraPos()); // world → screen adjustment for collision
-	
+	RectF boxX = BossRectAt(probeX); // world → screen adjustment for collision
+
 	if (!map.CheckCollision_RecF(boxX))
 	{
 		m_boss_pos.x = probeX.x;
@@ -236,7 +213,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	Vec2 probeY = m_boss_pos;
 	probeY.y += m_vel.y * dt;
 
-	RectF boxY = BossRectAt(probeY - map.getCameraPos());
+	RectF boxY = BossRectAt(probeY);
 
 	if (!map.CheckCollision_RecF(boxY))
 	{
@@ -317,7 +294,7 @@ void Enemy_Boss::draw(const Game_Map& map) const
 		.scaled(sxScale, syScale)
 		.drawAt(center);
 
-	
+
 	if (m_debugDraw) {
 
 		BossRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
@@ -330,28 +307,46 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 {
 	if (!m_isDying)
 	{
-		if (m_lastPattern == Boss_Pattern::PATTERN_5)
+		if (m_pattern == Boss_Pattern::PATTERN_5)
+		{
+
+			
+
+			Print << U"[Pattern_5_End] " << m_pattern5End;
+			Print << U"[Pattern_5_Attack] " << m_isAttacking;
+			// Only switch to 6 when Pattern 5 has truly finished
+			if (m_pattern5End)
+			{
+				m_pattern = Boss_Pattern::PATTERN_6;
+				m_pattern5End = false;
+				Print << U"→ Pattern 6 begins!";
+			}
+			Pattern_5(player, map.getCameraPos());
+			
+			return;
+		}
+
+		// --- Handle Pattern 6 ---
+		if (m_pattern == Boss_Pattern::PATTERN_6)
 		{
 			executePattern(player, map, Boss_Pattern::PATTERN_6);
-			m_lastPattern = Boss_Pattern::PATTERN_6;
 
-			int next = static_cast<int>(m_pattern) + 1;
-			if (next >= static_cast<int>(Boss_Pattern::PATTERN_MAX))
-				next = 0;
-			m_pattern = static_cast<Boss_Pattern>(next);
-		}
-		else
-		{
-			// Execute current pattern normally
-			executePattern(player, map, m_pattern);
-			m_lastPattern = m_pattern;
+			//m_lastPattern = Boss_Pattern::PATTERN_6;
 
-			// Move to next pattern
-			int next = static_cast<int>(m_pattern) + 1;
-			if (next >= static_cast<int>(Boss_Pattern::PATTERN_MAX))
-				next = 0;
-			m_pattern = static_cast<Boss_Pattern>(next);
+			// After Pattern 6, restart from Pattern 1
+			m_pattern = Boss_Pattern::PATTERN_1;
+			return;
 		}
+
+		// Execute current pattern normally
+		executePattern(player, map, m_pattern);
+		//m_lastPattern = m_pattern;
+
+		// Move to next pattern
+		int next = static_cast<int>(m_pattern) + 1;
+		if (next >= static_cast<int>(Boss_Pattern::PATTERN_5) + 1)
+			next = static_cast<int>(Boss_Pattern::PATTERN_1);
+		m_pattern = static_cast<Boss_Pattern>(next);
 	}
 	else
 	{
@@ -380,14 +375,6 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 		return;
 	}
 
-	int next = static_cast<int>(m_pattern) + 1;
-
-	if (next >= static_cast<int>(Boss_Pattern::PATTERN_MAX))
-	{
-		next = 0; // loop back to PATTERN_1
-	}
-
-	m_pattern = static_cast<Boss_Pattern>(next);
 }
 
 void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern pattern)
@@ -396,36 +383,35 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 	{
 	case Boss_Pattern::PATTERN_1:
 		// Example: simple melee attack
-		Print << U"Boss uses PATTERN_1 (melee slash)";
+		Print << U"Boss uses PATTERN_1";
 		Pattern_1(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_2:
 		// Example: jump attack
-		Print << U"Boss uses PATTERN_2 (jump attack)";
+		Print << U"Boss uses PATTERN_2";
 		Pattern_2(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_3:
 		// Example: projectile attack
-		Print << U"Boss uses PATTERN_3 (projectile)";
+		Print << U"Boss uses PATTERN_3";
 		Pattern_3(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_4:
 		// Example: area of effect
-		Print << U"Boss uses PATTERN_4 (AOE)";
+		Print << U"Boss uses PATTERN_4";
 		Pattern_4(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_5:
 		Print << U"Boss uses PATTERN_5 ";
-		Pattern_5(player,map.getCameraPos());
+		Pattern_5(player, map.getCameraPos());
 		break;
 
 	case Boss_Pattern::PATTERN_6:
-		// Example: summon minions
-		Print << U"Boss uses PATTERN_6 (summon)";
+		Print << U"Boss uses PATTERN_6";
 		Pattern_6(player, map.getCameraPos());
 		break;
 
@@ -454,6 +440,9 @@ void Enemy_Boss::Pattern_4(Player& player, Vec2 cam_pos)
 void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 {
 	//Print << U"[Pattern_5]";
+	Print << U"[Pattern5] Phase=" << m_pattern5Phase
+		<< U", Timer=" << m_pattern5Timer
+		<< U", isAttacking=" << m_isAttacking;
 
 	const double dt = Scene::DeltaTime(); // Delta time per frame
 
@@ -469,11 +458,9 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 		m_isAttacking = true;
 		m_pattern5Phase = 0;  // Start at the wind-up phase
 		m_pattern5Timer = 0.0; // Reset timer
+		m_pattern5End = false;
 		//Print << U"[Pattern_5] Started Attack Sequence.";
 	}
-
-	// Debugging: Print the current phase and timer
-	//Print << U"[Pattern_5] Phase: " << m_pattern5Phase << U", Timer: " << m_pattern5Timer << U", DeltaTime: " << dt;
 
 	Vec2 playerPos = player.GetPlayerPosition();
 	Vec2 dir = playerPos - m_boss_pos;
@@ -512,7 +499,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 	case 1:  // Dash phase
 	{
 		//Print << U"[Pattern_5] Dash phase.";
-		const float dashSpeed = 1000.0f; // Adjust speed here
+		const float dashSpeed = 2000.0f; // Adjust speed here
 
 		m_boss_pos.x += dir.x * dashSpeed * dt;
 
@@ -540,7 +527,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 		break;
 
 	}
-		
+
 	case 3:  // Cooldown phase
 	{
 		//Print << U"[Pattern_5] Attack phase.";
@@ -567,7 +554,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 		const RectF playerRect = player.getHitRect(cam_pos);
 		if (attackHitbox.intersects(playerRect))
 		{
-			Print << U"[Boss] Pattern 5 Attack HIT!";
+			//Print << U"[Boss] Pattern 5 Attack HIT!";
 			// TODO: player.TakeDamage(m_boss_atk);
 		}
 		break;
@@ -577,11 +564,13 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 		if (m_pattern5Timer >= cooldownTime)
 		{
 			m_isAttacking = false;
-			setState(AnimState_Boss::Idle);
+			m_pattern5End = true;
 			m_pattern5Timer = 0.0;
 			m_pattern5Phase = 0;
+			setState(AnimState_Boss::Idle);
 			Print << U"[Boss] Cooldown complete → Idle";
 		}
+		
 		break;
 	}
 	}
@@ -593,6 +582,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 {
 	m_boss_bpm += 10;
+	m_isAttacking = false;
 }
 
 void Enemy_Boss::updateSpeedByBPM()
@@ -603,7 +593,6 @@ void Enemy_Boss::updateSpeedByBPM()
 	// Optional: clamp to prevent crazy speeds
 	m_boss_speed = Clamp(m_boss_speed, 300.0f, 1200.0f);
 
-	Print << U"[Boss_speed] : " << m_boss_speed;
-	Print << U"[BPM] : " << m_boss_bpm;
-
+	//Print << U"[Boss_speed] : " << m_boss_speed;
+	//Print << U"[BPM] : " << m_boss_bpm;
 }
