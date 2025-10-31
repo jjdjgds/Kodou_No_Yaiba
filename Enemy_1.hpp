@@ -34,7 +34,6 @@ private:
 	bool m_FaceRight;		  //向き
 	float m_Speed = 150.0f;	  //移動速度
 
-	bool m_hitWindowActive = false;// 攻撃判定ウィンドウがアクティブかどうか
 	bool   m_dead = false;              // 已进入死亡流程
 	bool   m_pendingRemoval = false;
 
