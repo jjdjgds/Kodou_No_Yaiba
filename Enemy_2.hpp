@@ -5,7 +5,7 @@
 class Bullet;
 
 enum class AnimState_Enemy2 {Idle,Run,Dead,Attack,};// アニメーション状態列挙型
-enum class Behavior_Enemy2 { Patrol, Chase, Attack, };// 行動パターン列挙型
+enum class Behavior_Enemy2 { Patrol, Chase, Attack,Elude };// 行動パターン列挙型
 enum class PatrolPhase_Enemy2 { Move, Wait, };// 巡回フェーズ列挙型
 
 struct AnimDesc_Enemy2 {// アニメーションの説明構造体
@@ -27,7 +27,8 @@ private:
 
 	bool m_FaceRight;		  //向き
 	float m_Speed = 150.0f;	  //移動速度
-
+	float m_speedBase = m_Speed;// 元の移動速度
+	double m_eludeSpeedMul = 1.0;
 
 	bool   m_dead = false;              // 已进入死亡流程
 	bool   m_pendingRemoval = false;
@@ -67,7 +68,6 @@ private:
 	}
 
 
-	float m_speedBase = m_Speed;// 元の移動速度
 
 
 	bool m_takeDamage = false; // ダメージを受けたかどうか
@@ -175,9 +175,18 @@ public:
 	RectF hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 
 	RectF attackRect(const Game_Map& map) const; // 攻撃判定矩形を取得
+	RectF eludeRect(const Game_Map& map) const; // 回避判定矩形を取得
 	RectF chaseRect(const Game_Map& map) const;// 追跡判定矩形を取得
 
 	Line makeGroundProbeLine(const Vec2& cam, bool debug) const;// 地面探査用の線分を作成
 
+	static bool groundBehind(const Enemy_2& self, const Game_Map& map)// 敵の背後に地面があるかどうか
+	{
+		const double back = 1.2 * self.m_hitBox.x;
+		const double down = 1.0 * self.m_hitBox.y;
+		const Vec2 dir = (self.m_FaceRight ? Vec2{ -back, +down }: Vec2{ +back, +down });
+		const Line line(self.m_Position, self.m_Position + dir);
+		return map.CheckCollision_Line(line);
+	};
 };
 

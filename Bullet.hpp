@@ -6,7 +6,7 @@ class Game_Map;
 class Bullet {
 public:
 	Bullet(const Vec2& worldPos, bool faceRight, double speed = 480.0,
-		   const SizeF& hitSize = SizeF{ 20,12 }, double lifeSec = 3.0)
+		   const SizeF& hitSize = SizeF{ 20,12 }, double lifeSec = 2.0)
 		: m_pos(worldPos)
 		, m_vel((faceRight ? +1.0 : -1.0)* speed, 0.0)
 		, m_faceRight(!faceRight)
@@ -39,7 +39,7 @@ private:
 	Vec2   m_vel;
 	bool   m_faceRight = true;
 	SizeF  m_hitSize{ 20,12 };
-	double m_life = 3.0;
+	double m_life = 2.0;
 	bool   m_alive = true;
 
 	// 偏移量
