@@ -356,6 +356,7 @@
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="StateMode.hpp" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TextShot.hpp" />
     <ClInclude Include="Title.hpp" />
   </ItemGroup>
   <ItemGroup>

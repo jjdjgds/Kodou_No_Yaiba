@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
 #include "Player.hpp"
+#include "TextShot.hpp"
 
 enum class AnimState_Enemy1 { Idle, Run, Dead, Attack, };// アニメーション状態列挙型
 enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
@@ -17,6 +18,12 @@ struct AnimDesc_Enemy1 {// アニメーションの説明構造体
 class Enemy_1
 {
 private:
+
+	TextShot text;
+	bool textChase = false;
+	bool textLoseCounting = false;
+	bool textallowLose = false;
+
 	bool m_debugDraw = true; //デバッグ描画フラグ
 
 	Vec2 m_Position;		  //位置
