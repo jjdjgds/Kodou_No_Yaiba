@@ -76,7 +76,7 @@ private:
 	bool   m_TheWorldFlg = 0.0;     //true=使用
 	bool   m_BersarkFlg = false;    //true=バーサーカーモード
 	double m_BersarkTimer = 0.0;    //クールタイムの経過時間 
-	double m_Bersarkdown = 1.0;     //クールタイム時間（秒）
+	double m_Bersarkdown = 2.0;     //クールタイム時間（秒）
 	double m_WallKickTimer = 0.0;
 	bool m_IsInvincible = false;       // 無敵フラグ
 	double m_AttackSpeedBoost = 1.0;   // 攻撃速度倍率
