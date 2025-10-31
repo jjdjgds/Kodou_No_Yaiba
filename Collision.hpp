@@ -17,7 +17,7 @@ namespace Collision
 	//===------------------------------------------------------
 	inline bool RectToRect(const RectF& a, const RectF& b)
 	{
-		return a.intersects(b);
+		return a.intersects(b) || a.contains(b);
 	}
 
 	//===------------------------------------------------------
@@ -51,6 +51,8 @@ namespace Collision
 	{
 		return line.intersects(circle);
 	}
+
+	
 
 	//===------------------------------------------------------
 	// 任意オブジェクト vs 任意オブジェクト

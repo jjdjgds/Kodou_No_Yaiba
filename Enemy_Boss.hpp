@@ -1,8 +1,8 @@
 ﻿#pragma once
-
 #include <Siv3D.hpp>
 
 class Player;
+class Game_Map;
 
 enum class AnimState_Boss {// アニメーション状態列挙型
 	Idle,
@@ -20,12 +20,14 @@ struct AnimDesc_Boss {// アニメーションの説明構造体
 
 enum class Boss_Pattern
 {
-	PATTERN_1,
+	PATTERN_1 = 0,
 	PATTERN_2,
 	PATTERN_3,
 	PATTERN_4,
 	PATTERN_5,
 	PATTERN_6,
+
+	PATTERN_MAX
 };
 
 enum class Boss_Behavior
@@ -39,19 +41,35 @@ class Enemy_Boss
 {
 private :
 	Vec2 m_boss_pos = { 0,0 };
-	Vec2 m_boss_scale = { 1,1 };
+	Vec2 m_boss_scale = { 75,75 };
+	Vec2 m_vel = { 0,0 };
 	bool m_FaceRight = true;
+	float m_gravity = 1000.0f;
 
 	int m_boss_hp = 50;
 	int m_boss_bpm = 100;
 	int m_boss_atk = 10;
-	int m_boss_rang = 100;
-	float m_boss_speed = 1.0f;
+	int m_boss_range = 400.0f;
+	float chaseRange = 600.0f;
 
-	Vec2 m_hitBox = { 22.0 ,35.0 };
+	float tex_offsetY = 45.0f;
+	float dist = 0;
+	float m_boss_speed = 500.0f;
+
+	Vec2 m_hitBox = { 75.0  ,100.0 };
 
 	Boss_Behavior m_behavior = Boss_Behavior::idle;
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_1;
+
+	// Attack / pattern management
+	double m_attackTimer = 0.0;
+	double m_attackCooldown = 3.0; // seconds between attacks
+
+	bool m_isDying = false;
+	int m_deathPatternCounter = 0;  // Counts how many times we've cycled
+
+	void handleAttackPattern(Player& player, Game_Map& map);
+	void executePattern(Player& player, Game_Map& map, Boss_Pattern pattern);
 
 	AnimState_Boss m_state{ AnimState_Boss::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState_Boss, AnimDesc_Boss> m_anims{	// アニメーションの説明
@@ -59,7 +77,6 @@ private :
 		{ AnimState_Boss::Run,  { U"EnemyRun",  16, 0.07, true } },
 		{ AnimState_Boss::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
 		{ AnimState_Boss::Attack,  { U"EnemyAttack", 7, 0.08, false } },
-
 	};
 
 	//For Drawing sprite sheet
@@ -85,7 +102,7 @@ public:
 	{
 	}
 
-	void update(Player& player);
+	void update(Player& player, Game_Map& map);
 
 
 	void draw(Vec2 pos , Vec2 size) const;
@@ -95,7 +112,7 @@ public:
 	int GetHP() const { return m_boss_hp; }
 	int GetBPM() const { return m_boss_bpm; }
 	int GetAttack() const { return m_boss_atk; }
-	int GetRange() const { return m_boss_rang; }
+	int GetRange() const { return m_boss_range; }
 	float GetSpeed() const { return m_boss_speed; }
 	Vec2 getHitbox() const { return m_hitBox; }
 
@@ -104,17 +121,13 @@ public:
 	void SetHP(int hp) { m_boss_hp = hp; }
 	void SetBPM(int bpm) { m_boss_bpm = bpm; }
 	void SetAttack(int atk) { m_boss_atk = atk; }
-	void SetRange(int range) { m_boss_rang = range; }
+	void SetRange(int range) { m_boss_range = range; }
 	void SetSpeed(float speed) { m_boss_speed = speed; }
 	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
 
 	Enemy_Boss& GetEnemy_Boss() { return *this; }
 };
 
-//->hp
 //->boss no hp (bpm)
-// boss hp = 50
 // player take damage when hit the boss
-// when hp == 0 -> closing to dead 1 -> 2 -> 5 (3 times)
-// when hp != 0 1 -> 2 -> 3 -> 4 -> 5 -> 6
 // bmp higher = higher speed
