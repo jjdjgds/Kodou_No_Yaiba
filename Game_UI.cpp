@@ -152,10 +152,8 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	case HeartRateState::Stun:
 		UIStun();
 		break;
-	case HeartRateState::HightWarning:
-	case HeartRateState::LowWarning:
-		UIWarning();
-		break;
+
+	
 	case HeartRateState::Berserk:
 		UIBerserk();
 		break;
