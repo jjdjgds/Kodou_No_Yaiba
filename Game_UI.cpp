@@ -152,7 +152,8 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	case HeartRateState::Stun:
 		UIStun();
 		break;
-	case HeartRateState::Warning:
+	case HeartRateState::HightWarning:
+	case HeartRateState::LowWarning:
 		UIWarning();
 		break;
 	case HeartRateState::Berserk:
@@ -171,6 +172,45 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	default:
 		break;
 	}
+	
+
+	// ここで音を制御（drawではなく）
+	if (m_WasState != state)
+	{
+		const Audio& pHbSound = AudioAsset(U"FastBeat");
+		const Audio& pLbSound = AudioAsset(U"SlowBeat");
+
+		// 一旦全部止める
+		pHbSound.stop();
+		pLbSound.stop();
+
+		// 新しい状態に応じて再生
+		switch (state)
+		{
+		case HeartRateState::Berserk:
+			pHbSound.setSpeed(1.0).play();
+			break;
+
+		case HeartRateState::Normal:
+			pHbSound.setSpeed(0.7).play();
+			break;
+
+		case HeartRateState::TimeControl:
+			pLbSound.setSpeed(1.0).play();
+			break;
+
+		default:
+			break;
+		}
+
+		m_WasState = state; // 状態更新
+	}
+	
+
+	
+	
+	
+
 }
 
 void Game_UI::draw(Player player, const Game_Map& CameraPos) const
@@ -178,18 +218,18 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 	const Texture& BeatTex = TextureAsset(U"HeatBeat");
 	const Texture& PlayerHP = TextureAsset(U"PlayerHP");
 	const Texture& PlayerMedicle = TextureAsset(U"Medicine");
-	const Audio& pHbSound = AudioAsset(U"FastBeat");
-	const Audio& PLbSound = AudioAsset(U"SlowBeat");
-
+	
 	const int32 frameWidth = 383;
 	const int32 frameHeight = 158;
 
 	const int32 medicleWidth = 400;
 	const int32 medicleHeidht = 1090;
-	const auto state = player.GetPlayerHeartState();
-
+	auto state = player.GetPlayerHeartState();
+	auto WasState = m_WasState;
 	int32 n = 0;
 	int32 y = 0;
+	
+	
 
 	// === Dead以外 ===
 	if (state != HeartRateState::Dead)
@@ -283,14 +323,17 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 
 	PlayerMedicle(medicleWidth*x, 0, medicleWidth, medicleHeidht).scaled(0.1).drawAt(100, 300);
 
-	pHbSound.play();
-	PLbSound.play();
+	
 
-	Print << U"Heart Rate State: " << (state == HeartRateState::Stun ? U"Stun" :
-			state == HeartRateState::Warning ? U"Warning" :
-			state == HeartRateState::Berserk ? U"Berserk" :
-			state == HeartRateState::TimeControl ? U"TimeControl" :
-			state == HeartRateState::Normal ? U"Normal" :
-			state == HeartRateState::Dead ? U"Dead" : U"Unknown");
+
+
+
+
+	//Print << U"Heart Rate State: " << (state == HeartRateState::Stun ? U"Stun" :
+	//		//state == HeartRateState::Warning ? U"Warning" :
+	//		state == HeartRateState::Berserk ? U"Berserk" :
+	//		state == HeartRateState::TimeControl ? U"TimeControl" :
+	//		state == HeartRateState::Normal ? U"Normal" :
+	//		state == HeartRateState::Dead ? U"Dead" : U"Unknown");
 }
 

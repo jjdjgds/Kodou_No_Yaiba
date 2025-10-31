@@ -15,10 +15,11 @@ class Enemy_2;
 enum class HeartRateState
 {
 	Stun,          // スタン（60以下 or 140以上）
-	Warning,       // 警告（61-70 or 130-139）
+	HightWarning,  // 警告（61-70 or 130-139）
 	Berserk,       // バーサーカー（120-129）
 	TimeControl,   // ザ・ワールド（71-80）
 	Normal,        // 通常（81-119）
+	LowWarning,    //警告（61-70 or 130-139）
 	Dead           // 死亡(000)
 
 };

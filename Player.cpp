@@ -16,8 +16,12 @@ HeartRateState Player::GetHeartRateState(int bpm)
 
 	/*if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
 		return HeartRateState::Warning;*/
-
-	if (bpm >= 120 && bpm <= 129)
+	if ((bpm >= 61 && bpm <= 70))
+	{
+		return HeartRateState::LowWarning;
+	}
+	
+	if (bpm >= 120 && bpm <= 139)
 		return HeartRateState::Berserk;
 
 	if (bpm >= 60 && bpm <= 80)
@@ -90,9 +94,10 @@ void Player::UpdateHeartState()
 		SetPlayerHeartState(HeartRateState::Stun);
 
 	
-	else if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
-		SetPlayerHeartState(HeartRateState::Warning);
-
+	else if ( (bpm >= 130 && bpm <= 139))
+		SetPlayerHeartState(HeartRateState::HightWarning);
+	else if ( (bpm >= 61 && bpm <= 70))
+		SetPlayerHeartState(HeartRateState::LowWarning);
 		
 	else if (bpm >= 120 && bpm <= 129)
 		SetPlayerHeartState(HeartRateState::Berserk);
@@ -100,9 +105,6 @@ void Player::UpdateHeartState()
 		
 	else if (bpm >= 71 && bpm <= 80)
 		SetPlayerHeartState(HeartRateState::TimeControl);
-
-		
-
 	else
 		SetPlayerHeartState(HeartRateState::Normal);
 		
@@ -390,7 +392,7 @@ void Player::ApplyHeartEffects()
 	{
 	case HeartRateState::Stun:
 		break;
-	case HeartRateState::Warning:
+	case HeartRateState::HightWarning:
 		break;
 	case HeartRateState::Berserk:
 		break;
@@ -436,7 +438,7 @@ void Player::PlayerMedecine()
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
 			m_frameIndex = 0;
-			//SetPlayerBPM(GetPlayerBPM() - 30);
+			SetPlayerBPM(GetPlayerBPM() - 10);
 			SetMedecine(GetMedecine() - 1);
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
@@ -1534,6 +1536,6 @@ void Player::draw(const Game_Map& CameraPos) const
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
-	//Print << U"" << static_cast<int>( GetPlayerState());
+	Print << U"" << GetPlayerBPM();
 
 }

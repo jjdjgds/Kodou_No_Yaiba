@@ -29,8 +29,8 @@ void Main()
 	}
 	{
 
-		AudioAsset::Register(U"FastBeat", U"example/Audio/Heartbeat-Fast-Loop.MP3");
-		AudioAsset::Register(U"SlowBeat", U"example/Audio/Heartbeat-Slow-Loop.MP3");
+		AudioAsset::Register(U"FastBeat", U"example/Audio/Heartbeat-Fast-Loop.MP3", Loop::Yes);
+		AudioAsset::Register(U"SlowBeat", U"example/Audio/Heartbeat-Slow-Loop.MP3", Loop::Yes);
 
 
 
