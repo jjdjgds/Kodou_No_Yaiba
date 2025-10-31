@@ -1,7 +1,7 @@
 ﻿#include <Siv3D.hpp>
 #include "Bullet.hpp"
 #include "Game_Map.hpp" 
-
+#include "Collision.hpp"
 
 RectF Bullet::rectScreen(const Vec2& cam) const {
 	const Vec2 center = (m_pos + faceApply(m_hitBiasLocal)) - cam;
@@ -24,13 +24,16 @@ void Bullet::draw(const Game_Map& map) const
 	(m_faceRight ? tex : tex.mirrored())
 		.resized(m_hitSize.x * 2.0, m_hitSize.y * 2.0)
 		.drawAt(center);
-
+	RectF(Arg::center = center, m_hitSize).drawFrame(1, Palette::Red);
+	
 
 }
 
 
 bool Bullet::updateAndHit(double dt, const Game_Map& map,
-						  const RectF& pHitBoxScreen, const Vec2& cam)
+						  const RectF& pHitBoxScreen,
+						   const RectF& pAttackBoxScreen,
+							const Vec2& cam, bool flg,bool doge)
 {
 	if (!m_alive) return false;
 
@@ -56,6 +59,8 @@ bool Bullet::updateAndHit(double dt, const Game_Map& map,
 
 		Print << U"bu {}" << box;
 
+		
+
 		if (map.CheckCollision_RecF(box)) {
 			m_alive = false;
 			return false;// 衝突したら終了
@@ -65,10 +70,24 @@ bool Bullet::updateAndHit(double dt, const Game_Map& map,
 		m_pos = probe;
 		remaining -= d;
 
-
+		if (Collision::RectToRect(rectScreen(cam), pAttackBoxScreen) && flg)
+		{
+			m_vel.x = -m_vel.x; // X反射
+			m_pos.x += (m_vel.x > 0 ? 1 : -1); // 少しずらす
+			m_faceRight = !m_faceRight; // 反転
+			m_RemoveFlag = true; // ★ ここを追加
+		}
 		if (rectScreen(cam).intersects(pHitBoxScreen)) {// プレイヤーに命中
-			m_alive = false;
-			return true;
+			if (doge)
+			{
+				// Dodge中は当たり判定無視・弾は生存
+				return false;
+			}
+			else
+			{
+				m_alive = false;
+				return true; // 当たり
+			}
 		}
 	}
 

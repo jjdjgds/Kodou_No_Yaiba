@@ -3,6 +3,7 @@
 #include "Enemy_1.hpp"
 #include "Enemy_2.hpp"
 #include "Collision.hpp"
+#include "TimeStopManager.h"
 using namespace Collision;
 
 
@@ -12,10 +13,10 @@ Game::Game(const InitData& init)
 	Vec2(800, 750), // 位置
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
-	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
+	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
-		150,
+		90,
 		3,
 		1.0f,
 		0.5f,
@@ -44,7 +45,7 @@ void Game::update()
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 	Ui.update(player, map);
-	player.update(map);
+	player.update(map, m_enemies1,m_enemies2);
 	Boss_spawner.update(player, map);
 
 
@@ -61,6 +62,7 @@ void Game::draw() const
 	Ui.draw(player,map);
 
 	Boss_spawner.draw(map);
+
 	Ui.draw(player,map);
 
 

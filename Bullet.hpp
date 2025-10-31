@@ -26,9 +26,18 @@ public:
 	RectF rectWorld() const;// ワールド座標系の矩形を取得
 
 	void draw(const Game_Map& map) const;
-	bool updateAndHit(double dt, const Game_Map& map,
-				  const s3d::RectF& pHitBoxScreen,
-				  const s3d::Vec2& cam);// 更新とプレイヤー命中判定
+	bool updateAndHit(
+		double dt,
+		const Game_Map& map,
+        const RectF& pHitBoxScreen,
+		const RectF& pAttackBoxScreen,
+		const Vec2& cam,
+		bool flg,
+		bool doge
+	);// 更新とプレイヤー命中判定
+
+	bool IsRemoveFlag() const { return m_RemoveFlag; }
+	bool SetRemoveFlag(bool flag) { return m_RemoveFlag = flag; }
 
 private:
 	Vec2 faceApply(const s3d::Vec2& local) const {
@@ -41,7 +50,7 @@ private:
 	SizeF  m_hitSize{ 20,12 };
 	double m_life = 2.0;
 	bool   m_alive = true;
-
+	bool   m_RemoveFlag = false;
 	// 偏移量
 	Vec2   m_drawBiasLocal{ 0, 0 };// 描画用
 	Vec2   m_hitBiasLocal{ 0, 0 };// 衝突箱用

@@ -120,8 +120,8 @@ Line Enemy_1::makeGroundProbeLine(const Vec2& cam, bool debug) const
 
 void Enemy_1::update(Player& player, Game_Map& map)
 {
-	const double dt = Scene::DeltaTime();
-	const Vec2 cam = map.getCameraPos();
+	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
+	const Vec2 cam = map.getCameraPos() * TimeStopManager::GetEnemyScale();
 
 	m_faceFlipCooldown = Max(0.0, m_faceFlipCooldown - dt);
 	m_attackCooldown = Max(0.0, m_attackCooldown - dt);
@@ -133,6 +133,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const RectF pHitBox(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox()); // プレイヤー本体
 	const RectF pAttackBox = player.getAttackRect(cam); // プレイヤーの攻撃矩形（Player の関数利用）
 
+	
 	const bool playerInChase = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡矩形内にいるか
 	const bool playerInAttack = RectToRect(eAttackBox, pHitBox);// プレイヤーが攻撃矩形内にいるか
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
@@ -225,13 +226,13 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		updateFacingStable();
 
 		if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-			player.takeDamage(1);
+			player.takeDamage(1, m_FaceRight);;
 			m_hasHitPlayer = true;
 		}
 	}
 	else {// 通常行動状態
 		if (m_engaged) {// 交戦モード
-			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround) {
+			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround && player.GetPlayerState() != StateMode::Dead) {
 				m_mode = Behavior_Enemy1::Attack;
 				setState(AnimState_Enemy1::Attack);
 				m_attackFlag = true;
@@ -390,8 +391,31 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 	// --- プレイヤーの攻撃が敵に当たったか ---
 	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
+	// ---  ---
+	bool parryOccurred =
+		(m_state == AnimState_Enemy1::Attack) &&                 // 敵が攻撃中
+		(player.GetPlayerState() == StateMode::Attack) &&        // プレイヤーも攻撃中
+		RectToRect(eAttackBox, pAttackBox);                      // 攻撃範囲が重なった
+
+	if (parryOccurred)
+	{
+		// パリィが成立したら攻撃をキャンセル
+		m_attackFlag = false;
+		m_hasHitPlayer = false;
+		m_attackCooldown = m_attackCooldownMax;
+		setState(AnimState_Enemy1::Idle);
+
+		// プレイヤー側にもパリィ処理を伝える（反動・エフェクトなど）
+		player.OnParrySuccess();  // Playerクラスに関数を作っておくと良い
+
+		
+		AudioAsset(U"ParrySound").play();
+
+		return; // このフレームは以降の処理をスキップ
+	}
+
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
-	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame) || m_takeDamage;
+	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
 		die();
 	}

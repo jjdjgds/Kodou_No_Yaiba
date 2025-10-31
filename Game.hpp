@@ -6,6 +6,7 @@
 #include "Game_Map.hpp"
 #include "Game_UI.hpp"
 #include "Game_BG.hpp"
+#include "TimeStopManager.h"
 #include "EnemySpawner.hpp"
 
 class Game : public App::Scene
@@ -23,5 +24,7 @@ private:
 	Game_Map map;
 	Game_UI Ui;
 	Game_BG bg;
+
 	EnemySpawner Boss_spawner;
+	TimeStopManager tsm;
 };
