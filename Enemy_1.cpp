@@ -39,36 +39,6 @@ RectF Enemy_1::hurtRectAt(const Vec2& pos) const
 }
 
 
-// 前方の障害物までの距離を測定(待定)
-//double Enemy_1::forwardClearance(const Game_Map& map, double baseW, double baseH, double lead, double maxForward, int dir) const
-//{
-//	const double step = 4.0;
-//	double tOK = 0.0;
-//
-//	for (double t = 0.0; t <= maxForward; t += step) {
-//		const Vec2 center = m_Position.movedBy(dir * (lead + t), m_hitOffsetY);
-//		const RectF probe(Arg::center = center, SizeF{ baseW, baseH }); // 世界坐标！
-//		if (map.CheckCollision_RecF(probe)) {
-//			break;
-//		}
-//		tOK = t;
-//	}
-//
-//	double lo = tOK, hi = Min(tOK + step, maxForward);
-//	for (int i = 0; i < 6; ++i) { // 2^-6 ≈ 0.015625 * step
-//		const double mid = (lo + hi) * 0.5;
-//		const Vec2 center = m_Position.movedBy(dir * (lead + mid), m_hitOffsetY);
-//		const RectF probe(Arg::center = center, SizeF{ baseW, baseH });
-//		if (!map.CheckCollision_RecF(probe)) {
-//			lo = mid;
-//		}
-//		else {
-//			hi = mid;
-//		}
-//	}
-//	return lo;
-//}
-
 RectF Enemy_1::attackRect(const Game_Map& map) const
 {
 	const Vec2 cam = map.getCameraPos();
@@ -117,6 +87,37 @@ Line Enemy_1::makeGroundProbeLine(const Vec2& cam, bool debug) const
 	}
 }
 
+// プレイヤーへの視線が通っているかを判定
+static bool hasLineOfSight(const Enemy_1& self, Game_Map& map, const RectF& playerBox)
+{
+	const Vec2 from = self.getPosition();
+	const Vec2 to = playerBox.center();
+	Vec2 dir = to - from;
+	const double dist = dir.length();
+	if (dist <= 0.0001) {
+		return true;
+	}
+	dir /= dist;
+
+
+	const double step = 6.0;// 探査ステップ
+	const SizeF  probeSize{ 8, 8 };// 视线探测用矩形サイズ
+	for (double t = 0.0; t <= dist; t += step) {
+		const Vec2 p = from + dir * t;// 探査点
+
+		if (playerBox.intersects(Circle{ p, 3.0 })) {// プレイヤーに到達
+			return true;
+		}
+
+		if (map.CheckCollision_RecF(RectF{ Arg::center = p, probeSize })) {// 障害物に当たった
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
 
 void Enemy_1::update(Player& player, Game_Map& map)
 {
@@ -133,11 +134,17 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const RectF pHitBox(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox()); // プレイヤー本体
 	const RectF pAttackBox = player.getAttackRect(cam); // プレイヤーの攻撃矩形（Player の関数利用）
 
-	
-	const bool playerInChase = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡矩形内にいるか
+
 	const bool playerInAttack = RectToRect(eAttackBox, pHitBox);// プレイヤーが攻撃矩形内にいるか
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
 
+
+	const bool playerInChaseCoarse = RectToRect(eChaseBox, pHitBox);
+	const RectF pHitBoxWorld(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox());
+	const bool playerInChase = playerInChaseCoarse
+		&& hasLineOfSight(*this, map, pHitBoxWorld);// プレイヤーが追跡矩形内にいるか（粗判定+视线判定）
+
+	
 	if (playerInChase) {// プレイヤーが追跡矩形内にいるなら交戦状態に移行
 		m_engaged = true;
 		m_yLoseTimer = 0.0;
@@ -430,7 +437,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 	// ----------------------------
 	// --- アニメーション更新
-	// ----------------------------
+	// ----------------------------d
 
 
 	const auto& A = m_anims[m_state];
@@ -451,16 +458,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 					m_pendingRemoval = true;
 				}
 				else if (m_state == AnimState_Enemy1::Attack) {// 攻撃アニメーション終了
-					m_hitWindowActive = (m_frameIndex >= 2 && m_frameIndex <= 3);
-
-					if (m_hitWindowActive && !m_hasHitPlayer)
-					{
-						if (RectToRect(eAttackBox, pHitBox)) {
-							player.takeDamage(1, m_FaceRight);
-							m_hasHitPlayer = true;
-						}
-					}
-
+					
 					m_attackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;
@@ -471,6 +469,17 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		}
 	}
 
+	if (m_state == AnimState_Enemy1::Attack)
+	{
+		m_hitWindowActive = (m_frameIndex >= 1 && m_frameIndex <= 2);
+		if (m_hitWindowActive && !m_hasHitPlayer)
+		{
+			if (RectToRect(eAttackBox, pHitBox)) {
+				player.takeDamage(1, m_FaceRight);
+				m_hasHitPlayer = true;
+			}
+		}
+	}
 
 	if (m_state != AnimState_Enemy1::Attack && m_state != AnimState_Enemy1::Dead) {// 攻撃中・被弾中以外は状態を速度に応じて更新
 		setState(m_isRunning ? AnimState_Enemy1::Run : AnimState_Enemy1::Idle);
