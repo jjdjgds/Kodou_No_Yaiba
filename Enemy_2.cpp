@@ -87,8 +87,42 @@ RectF Enemy_2::hurtRectAt(const Vec2& pos) const
 	return RectF{ Arg::center = pos.movedBy(xOffset , m_hitOffsetY  ), sz };
 }
 
-RectF Enemy_2::attackRect(const Vec2& cam) const
+
+// 前方の障害物までの距離を測定(待定)
+//double Enemy_2::forwardClearance(const Game_Map& map, double baseW, double baseH, double lead, double maxForward, int dir) const
+//{
+//	const double step = 4.0;
+//	double tOK = 0.0;
+//
+//	for (double t = 0.0; t <= maxForward; t += step) {
+//		const Vec2 center = m_Position.movedBy(dir * (lead + t), m_hitOffsetY);
+//		const RectF probe(Arg::center = center, SizeF{ baseW, baseH }); // 世界坐标！
+//		if (map.CheckCollision_RecF(probe)) {
+//			break;
+//		}
+//		tOK = t;
+//	}
+//
+//	double lo = tOK, hi = Min(tOK + step, maxForward);
+//	for (int i = 0; i < 6; ++i) { // 2^-6 ≈ 0.015625 * step
+//		const double mid = (lo + hi) * 0.5;
+//		const Vec2 center = m_Position.movedBy(dir * (lead + mid), m_hitOffsetY);
+//		const RectF probe(Arg::center = center, SizeF{ baseW, baseH });
+//		if (!map.CheckCollision_RecF(probe)) {
+//			lo = mid;
+//		}
+//		else {
+//			hi = mid;
+//		}
+//	}
+//	return lo;
+//}
+
+
+RectF Enemy_2::attackRect(const Game_Map& map) const
 {
+	const Vec2 cam = map.getCameraPos();
+
 	const double baseW = m_hitBox.x;
 	const double baseH = m_hitBox.y;
 
@@ -97,18 +131,21 @@ RectF Enemy_2::attackRect(const Vec2& cam) const
 
 	const int dir = (m_FaceRight ? +1 : -1);
 
+	//const double maxF = forwardClearance(map, baseW, baseH, lead, extraForward, dir);
+
+	//const double usedForward = Min(extraForward, maxF);
 	const Vec2 worldCenter = m_Position.movedBy(
 		dir * (lead + extraForward * 0.5),
 		m_hitOffsetY
 	);
-
 	const SizeF sz{ baseW + extraForward, baseH };
-
 	return RectF{ Arg::center = (worldCenter - cam), sz };
 }
 
-RectF Enemy_2::chaseRect(const Vec2& cam) const// プレイヤー追跡用矩形を作成
+RectF Enemy_2::chaseRect(const Game_Map& map) const// プレイヤー追跡用矩形を作成
 {
+	const Vec2 cam = map.getCameraPos();
+
 	const double baseW = m_hitBox.x ;
 	const double baseH = m_hitBox.y ;
 	
@@ -117,13 +154,13 @@ RectF Enemy_2::chaseRect(const Vec2& cam) const// プレイヤー追跡用矩形
 
 	const int dir = (m_FaceRight ? +1 : -1);
 
+	//const double maxF = forwardClearance(map, baseW, baseH, lead, extraForward, dir);
+	//const double usedForward = Min(extraForward, maxF);
 	const Vec2 worldCenter = m_Position.movedBy(
 		dir * (lead + extraForward * 0.5),
-		m_hitOffsetY 
+		m_hitOffsetY
 	);
-
 	const SizeF sz{ baseW + extraForward, baseH };
-
 	return RectF{ Arg::center = (worldCenter - cam), sz };
 }
 
@@ -153,8 +190,8 @@ void Enemy_2::update(Player& player, Game_Map& map)
 	m_attackCooldown = Max(0.0, m_attackCooldown - dt);
 
 	const RectF eHurtBox = hurtRect(cam);                               // 敵が被弾される矩形（現在位置）
-	const RectF eAttackBox = attackRect(cam);                           // 敵の攻撃矩形（前方オフセット）
-	const RectF eChaseBox = chaseRect(cam);// プレイヤー追跡矩形（広域前方オフセット）
+	const RectF eAttackBox = attackRect(map);                           // 敵の攻撃矩形（前方オフセット）
+	const RectF eChaseBox = chaseRect(map);// プレイヤー追跡矩形（広域前方オフセット）
 
 	const Line  eGroundProbeLine = makeGroundProbeLine(cam,false); // 敵の地面探査用線分
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
@@ -509,9 +546,8 @@ void Enemy_2::draw(const Game_Map& map) const
 	// ----------------------------
 	if (m_debugDraw) {
 		hurtRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
-		attackRect(map.getCameraPos()).drawFrame(2.0, Palette::Blue);
-		chaseRect(map.getCameraPos()).drawFrame(2.0, Palette::White);
-		
+		attackRect(map).drawFrame(2.0, Palette::Blue);
+		chaseRect(map).drawFrame(2.0, Palette::White);
 		makeGroundProbeLine(map.getCameraPos(),true).draw(2, Palette::Yellow);
 	}
 }
