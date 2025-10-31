@@ -116,7 +116,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Block.cpp" />
-    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Bullet.cpp" />
+    <ClCompile Include="Enemy_1.cpp" />
+    <ClCompile Include="Enemy_2.cpp" />
+    <ClCompile Include="EnemySpawner.cpp" />
     <ClCompile Include="Enemy_Boss.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Game_BG.cpp" />
@@ -130,6 +133,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="TimeStopManager.cpp" />
     <ClCompile Include="Title.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -337,9 +341,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Block.hpp" />
+    <ClInclude Include="Bullet.hpp" />
     <ClInclude Include="Collision.hpp" />
     <ClInclude Include="Common.hpp" />
-    <ClInclude Include="Enemy.hpp" />
+    <ClInclude Include="Enemy_1.hpp" />
+    <ClInclude Include="Enemy_2.hpp" />
+    <ClInclude Include="EnemySpawner.hpp" />
     <ClInclude Include="Enemy_Boss.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="Game_BG.hpp" />
@@ -350,7 +357,9 @@
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="StateMode.hpp" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="TextShot.hpp" />
     <ClInclude Include="Title.hpp" />
+    <ClInclude Include="TimeStopManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App\example\obj\blacksmith.obj">

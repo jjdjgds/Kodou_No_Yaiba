@@ -2,14 +2,24 @@
 #include <Siv3D.hpp>
 #include "StateMode.hpp"
 #include "Game_Map.hpp"
+#include "Enemy_1.hpp"
+#include "Enemy_2.hpp"
+
 #define MAX_WEAPON (3)
+#define ATTACKSPEED (0.08)
+#define BERSARKATTACKSPEED (0.05)
+#define BERSARKEMOVESPEED (100) //バーサーカーモード中の移動速度
+
+class Enemy_1;
+class Enemy_2;
 enum class HeartRateState
 {
 	Stun,          // スタン（60以下 or 140以上）
-	Warning,       // 警告（61-70 or 130-139）
+	HightWarning,  // 警告（61-70 or 130-139）
 	Berserk,       // バーサーカー（120-129）
 	TimeControl,   // ザ・ワールド（71-80）
 	Normal,        // 通常（81-119）
+	LowWarning,    //警告（61-70 or 130-139）
 	Dead           // 死亡(000)
 
 };
@@ -33,10 +43,14 @@ private:
 	int m_MaxHP;
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
+	int m_Medicle = 5;
+	int m_MaxMedicle = 5;
 	bool m_AttackFlag;		  //攻撃フラグ
+	bool m_AttackStart;      //攻撃開始フラグ
 	int m_Weapon[MAX_WEAPON]; //武器種別
 	float m_AttackRange;	  //攻撃範囲
 	float m_AttackSpeed;	  //攻撃速度
+
 	float m_Speed;			  //移動速度
 	float m_DamageTimeOut;	  //ダメージ受けた後の無敵時間
 	bool m_Jump;			  //ジャンプ状態
@@ -45,7 +59,7 @@ private:
 	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
-	Vec2 m_HitRect = { 5.0 ,5.0 };          //当たり判定矩形
+	Vec2 m_HitRect = { 6.0 ,5.0 };          //当たり判定矩形
 	float m_gravity = 9.8;  //重力
 	bool m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
@@ -53,52 +67,71 @@ private:
 	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間
 	double m_DogeCooldown = 1.0;    // クールタイム時間（秒）
 	bool   m_isDodging = false;     // 現在ドッジ中か
+
 	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
 	bool   m_HeartCoolFlg = false;  // 行動後の心拍数低下時間  Trueでカウントダウン開始
 	double m_HeartCoolTimer = 0.0;  //クールタイムの経過時間 
 	double m_HeartCooldown = 1.0;   //クールタイム時間（秒）
 	double m_HeartTimer = 0.0;
-
-
+	bool   m_TheWorldFlg = 0.0;     //true=使用
+	bool   m_BersarkFlg = false;    //true=バーサーカーモード
+	double m_BersarkTimer = 0.0;    //クールタイムの経過時間 
+	double m_Bersarkdown = 2.0;     //クールタイム時間（秒）
+	double m_WallKickTimer = 0.0;
+	bool m_IsInvincible = false;       // 無敵フラグ
+	double m_AttackSpeedBoost = 1.0;   // 攻撃速度倍率
+	//double m_BersarkTimer = 0.0;       // 残り時間
+	//bool m_BersarkFlg = false;         // バーサーク状態中か
+	bool m_ParrySuccess = false;   // 弾を跳ね返した瞬間だけtrue
+	double m_ParryTimer = 0.0;     // パリィ後の短時間クールダウン
+	// ノックバック関連
+	Vec2 m_KnockbackVelocity{ 650, -900 };
+	double m_KnockbackTimer = 0.35;
+	double m_InvincibleTimer = 0.0;
+	bool m_IsKnockback = false;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
+
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
-	Array<int32> m_idleToRunPatterns{ 0, 1, 2 ,3 };
+	Array<int32> m_idleToRunPatterns{ 0, 1, 2  };
 
 	
 
 	//走る状態のアニメーション
-	Array<int32> m_runPatterns{ 4, 5, 6, 7,8 };
+	Array<int32> m_runPatterns{ 0,1,2,3,4,5};
 
 	// 攻撃アニメーション（横8枚のうち、0〜6枚目を使う）
-	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
+	Array<int32> m_attackPatterns{ 0, 1, 2, 3,4};
+
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
-	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
+	Array<int32> m_hurtPatterns{  0,1,1,2 };
 
 	//Jumpアニメーション
-	Array<int32> m_jumpPatterns{5,5,5,5,5  };
+	Array<int32> m_jumpPatterns{1,1,1,1,1 };
 
-	Array<int32>m_jumpAttackPatterns{ 7,0,1,2,3,4 };
+	Array<int32>m_jumpAttackPatterns{ 0,1,2,3,4 };
 
 	//IDLEATTACK
-	Array<int32> m_IdleAttackPatterns{6,7,0,1,2,3};
+	Array<int32> m_IdleAttackPatterns{ 0, 1, 2, 3 };
 
 	//回避アニメーション
-	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
+	Array<int32> m_dogePatterns{ 0,0,0,0,0 };
 
 	//壁ズリアニメーション
-	Array<int32> m_onTheWallPatterns{2};
+	Array<int32> m_onTheWallPatterns{3};
 
 	//死亡アニメーション
-	Array<int32>m_deadPatterns{4,5,6,7,0,1};
+	Array<int32>m_deadPatterns{0,1,2,3,4,5};
 
 	//落下アニメーション
-	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
+	Array<int32> m_FallPatterns{2,2,2,2};
 
 	//薬ブッキメアニメーション
-	Array<int32> m_medecinePatterns{3,4,5,6};
+	Array<int32> m_medecinePatterns{0,1,2,3};
+	Array<int32> m_stunPatterns{0,1,2,3};
+
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -147,6 +180,9 @@ public:
 		, m_gravity(9.8)
 		, m_PlayerState(StateMode::Idle)
 		, m_HeartRateState(HeartRateState::Dead)
+		, m_IsKnockback(false)
+		, m_KnockbackTimer(0.0)
+		, m_KnockbackVelocity(Vec2{ 0, 0 })
 	
 		{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
@@ -181,6 +217,10 @@ public:
 	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
 	 HeartRateState GetPlayerHeartState()const { return m_HeartRateState; }
 	 HeartRateState GetHeartRateState(int bpm);
+	 bool GetIsInvincible() const { return m_IsInvincible; }
+	 bool IsDogeging() const { return m_isDodging; }
+	 int GetMedecine()const { return m_Medicle; }
+	 
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
@@ -206,8 +246,10 @@ public:
 	float SetPlayerGravity(float gravity) { return m_gravity = gravity; }
 	HeartRateState SetPlayerHeartState(HeartRateState a) { return m_HeartRateState = a; }
 	void UpdateHeartState();
-
-
+	bool SetIsInvincible(bool invincible) { return m_IsInvincible = invincible; }
+	bool SetIsDodging(bool dodging) { return m_isDodging = dodging; }
+	void SetMedecine(int med) { m_Medicle = med ; }
+	void SetMaxMedecine() { m_Medicle = m_MaxMedicle; }
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
@@ -222,10 +264,22 @@ public:
 	}
 	Player& GetPlayer() { return *this; }
 
+	// Player.hpp に追加
+	void takeDamage(int damage, bool fromRight);
 
 	void takeDamage(int dmg);
+	RectF getAttackRectWorld()const;
 	RectF getAttackRect(const Vec2& camera) const;
 	RectF getHitRect(const Vec2& camera)const;
+	
+	RectF getHitRectWorld() const;
+	//RectF getTheWorld(const Vec2& camera)const;
+	///*
+	//Array<Enemy_1> m_enemies1
+	//Array<Enemy_2> m_enemies2
+
+	//*/
+	void OnParrySuccess();
 	void PlayerAttack(const Vec2& camera);
 	void PlayerIdle();
 	void PlayerIdleToRun();
@@ -239,7 +293,9 @@ public:
 	void PlayerJumpAttack();
 	void ApplyHeartEffects();
 	void PlayerMedecine();
+	void PlayerBerserk();
+	void PlayerStun();
 	void PlayerDead();
-	void update(Game_Map& map);
+	void update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2);
 	void draw(const Game_Map& CameraPos) const;
 };
