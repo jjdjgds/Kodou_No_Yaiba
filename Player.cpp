@@ -94,12 +94,10 @@ void Player::UpdateHeartState()
 		SetPlayerHeartState(HeartRateState::Stun);
 
 	
-	else if ( (bpm >= 130 && bpm <= 139))
-		SetPlayerHeartState(HeartRateState::HightWarning);
-	else if ( (bpm >= 61 && bpm <= 70))
-		SetPlayerHeartState(HeartRateState::LowWarning);
+	
+	
 		
-	else if (bpm >= 120 && bpm <= 129)
+	else if (bpm >= 120 && bpm <= 139)
 		SetPlayerHeartState(HeartRateState::Berserk);
 
 		
@@ -147,7 +145,7 @@ RectF Player::getAttackRectWorld() const
 	const double attackHeight = hitSize.y * 10;
 	const SizeF attackSize{ attackWidth, attackHeight };
 
-	// ★★★ カメラ補正なし ★★★
+	//  カメラ補正なし 
 	Vec2 center = GetPlayerPosition();
 
 	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 50 : -hitSize.x * 0.6 - 50);

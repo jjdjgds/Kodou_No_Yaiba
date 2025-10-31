@@ -469,15 +469,35 @@ void Enemy_1::update(Player& player, Game_Map& map)
 				}
 				else if (m_state == AnimState_Enemy1::Attack) {// 攻撃アニメーション終了
 <<<<<<< HEAD
+<<<<<<< HEAD
 					
 =======
+=======
+<<<<<<< HEAD
+>>>>>>> 7bfa4b710c1adc88eca5401ca3e451f088399794
 					if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
 						player.takeDamage(1);
 						m_hasHitPlayer = true;
 						m_attackCooldown = m_attackCooldownMax; // ← ヒットしたら即クールダウン
+=======
+					m_hitWindowActive = (m_frameIndex >= 2 && m_frameIndex <= 3);
+
+					if (m_hitWindowActive && !m_hasHitPlayer)
+					{
+						if (RectToRect(eAttackBox, pHitBox)) {
+							player.takeDamage(1, m_FaceRight);
+							m_hasHitPlayer = true;
+						}
+>>>>>>> eb5b70a5ffd61a24c38ccb666f3dd37efea4ed9a
 					}
 
+<<<<<<< HEAD
 >>>>>>> 48b6426dc27bc1f181753d6bce6b3290eb1d9b5d
+=======
+=======
+					
+>>>>>>> d751988734a15b8978c284a195362b13e78e1995
+>>>>>>> 7bfa4b710c1adc88eca5401ca3e451f088399794
 					m_attackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;
