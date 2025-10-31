@@ -125,8 +125,8 @@ void Player::takeDamage(int dmg)
 	m_HeartCoolFlg = true;
 
 	// ==== ノックバック（強めにして可視化） ====
-	const double knockbackPowerX = 120000.0;  // 横の吹き飛びを2倍
-	const double knockbackPowerY = -80000.0;  // 上方向にも強く
+	const double knockbackPowerX = 120.0;  // 横の吹き飛びを2倍
+	const double knockbackPowerY = -800.0;  // 上方向にも強く
 
 	m_KnockbackVelocity = Vec2(
 		IsPlayerFacingRight() ? -knockbackPowerX : knockbackPowerX,
