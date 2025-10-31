@@ -225,10 +225,6 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		m_isRunning = false;
 		updateFacingStable();
 
-		if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-			player.takeDamage(1, m_FaceRight);;
-			m_hasHitPlayer = true;
-		}
 	}
 	else {// 通常行動状態
 		if (m_engaged) {// 交戦モード
@@ -455,9 +451,14 @@ void Enemy_1::update(Player& player, Game_Map& map)
 					m_pendingRemoval = true;
 				}
 				else if (m_state == AnimState_Enemy1::Attack) {// 攻撃アニメーション終了
-					if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-						player.takeDamage(1);
-						m_hasHitPlayer = true;
+					m_hitWindowActive = (m_frameIndex >= 2 && m_frameIndex <= 3);
+
+					if (m_hitWindowActive && !m_hasHitPlayer)
+					{
+						if (RectToRect(eAttackBox, pHitBox)) {
+							player.takeDamage(1, m_FaceRight);
+							m_hasHitPlayer = true;
+						}
 					}
 
 					m_attackFlag = false;
