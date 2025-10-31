@@ -4,23 +4,20 @@
 class Player;
 class Game_Map;
 
-enum class AnimState_Boss {// アニメーション状態列挙型
-	Idle,
-	Run,
-	Hurt,
-	Attack,
-};
+enum class AnimState_Boss { Idle, Run, Dead, Attack, };
 
-struct AnimDesc_Boss {// アニメーションの説明構造体
-	String asset;
-	int32  frames;
+struct AnimDesc_Boss {
+	int  row;
+	int  start;
+	int  frames;
 	double frameTime;
 	bool   loop = true;
 };
 
 enum class Boss_Pattern
 {
-	PATTERN_1 = 0,
+	PATTERN_0 = 0,
+	PATTERN_1,
 	PATTERN_2,
 	PATTERN_3,
 	PATTERN_4,
@@ -39,31 +36,36 @@ enum class Boss_Behavior
 
 class Enemy_Boss
 {
-private :
-	Vec2 m_boss_pos = { 0,0 };
-	Vec2 m_boss_scale = { 75,75 };
+private:
+	bool m_debugDraw = true;
+
+	Vec2 m_boss_pos;
+	Vec2 m_boss_scale = { 140.0 ,120.0 };
+	Vec2 m_hitBox = { 70.0  ,100.0 };
 	Vec2 m_vel = { 0,0 };
 	bool m_FaceRight = true;
 	float m_gravity = 1000.0f;
+	bool   m_onGround = false;
 
 	int m_boss_hp = 50;
-	int m_boss_bpm = 100;
-	int m_boss_atk = 10;
+	float m_boss_bpm = 100;
+	float m_base_bpm = 100;
+	bool m_isAttacking = false;
+	int m_boss_atk = 1;
 	int m_boss_range = 400.0f;
-	float chaseRange = 600.0f;
-
-	float tex_offsetY = 45.0f;
+	double m_hitOffsetY = 0.0;// 当たり判定Y
+	float chaseRange = 700.0f;
+	;
 	float dist = 0;
-	float m_boss_speed = 500.0f;
-
-	Vec2 m_hitBox = { 75.0  ,100.0 };
+	float m_base_speed = 300.0f;
+	float m_boss_speed = 300.0f;
 
 	Boss_Behavior m_behavior = Boss_Behavior::idle;
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_1;
 
 	// Attack / pattern management
 	double m_attackTimer = 0.0;
-	double m_attackCooldown = 3.0; // seconds between attacks
+	double m_attackCooldown = 2; // seconds between attacks
 
 	bool m_isDying = false;
 	int m_deathPatternCounter = 0;  // Counts how many times we've cycled
@@ -71,12 +73,54 @@ private :
 	void handleAttackPattern(Player& player, Game_Map& map);
 	void executePattern(Player& player, Game_Map& map, Boss_Pattern pattern);
 
+	void Pattern_1(Player& player, Vec2 cam_pos);
+	int m_pattern1Phase = 0;          // Phase tracker: 0=moveToTop, 1=attack, 2=return
+	double m_pattern1Timer = 0.0;     // Timer for transitions
+	bool m_pattern1End = false;
+	Vec2 m_startPos = Vec2{ 0, 0 };   // Starting position before moving to top
+	Vec2 m_projectilePos = Vec2{ 0, 0 }; // Current projectile position
+	Vec2 m_projectileDir = Vec2{ 0, 0 }; // Direction projectile travels
+	bool m_projectileActive = false;  // Whether projectile is currently active
+
+	void Pattern_2(Player& player, Vec2 cam_pos);
+	double m_pattern2Timer = 0.0;
+	int m_pattern2Phase = 0;
+	int m_pattern2Count = 0;
+	bool m_pattern2End = false;
+	Vec2 m_pattern2Dir = { 1.0, 0.0 };  // saved direction
+
+	void Pattern_3(Player& player, Vec2 cam_pos);
+	bool m_pattern3Done = false;
+	struct SmokeData
+	{
+		Vec2 position;
+		double lifetime = 0.0;
+		bool active = false;
+	};
+	SmokeData m_smoke; // one smoke instance
+	void UpdateSmoke(Vec2 cam_pos, Player& player); // manages smoke life/draw
+
+	void Pattern_4(Player& player, Vec2 cam_pos);
+	void executeCounterAttack(Player& player, Vec2 cam_pos);
+	bool m_counterReady = false;      // true when in counter stance
+	double m_pattern4Timer = 0.0;    // timer to exit counter stance
+
+	void Pattern_5(Player& player, Vec2 cam_pos);
+	int m_pattern5Phase = 0;
+	double m_pattern5Timer = 0.0;
+	bool m_pattern5End = false;
+
+	void Pattern_6(Player& player, Vec2 cam_pos);
+	void updateSpeedByBPM();
+	bool m_OverBPM = false;
+	double m_OverBPMTimer = 0.0;
+
 	AnimState_Boss m_state{ AnimState_Boss::Idle };	// 現在のアニメーション状態
 	HashTable<AnimState_Boss, AnimDesc_Boss> m_anims{	// アニメーションの説明
-		{ AnimState_Boss::Idle, { U"EnemyIdle", 10, 0.12, true } },
-		{ AnimState_Boss::Run,  { U"EnemyRun",  16, 0.07, true } },
-		{ AnimState_Boss::Hurt,  { U"EnemyHurt", 4, 0.15, false } },
-		{ AnimState_Boss::Attack,  { U"EnemyAttack", 7, 0.08, false } },
+		{ AnimState_Boss::Idle,   {0, 0, 8, 0.09, true  }  },
+		{ AnimState_Boss::Run,    { 1, 3, 9, 0.10, true }  },
+		{ AnimState_Boss::Dead,   { 4, 1, 3, 0.25, false } },
+		{ AnimState_Boss::Attack, { 3,2, 4, 0.20, false  } },
 	};
 
 	//For Drawing sprite sheet
@@ -94,18 +138,15 @@ private :
 
 public:
 	Enemy_Boss() = default;
-	Enemy_Boss(Vec2 pos, double stride,
-			 bool faceRight, Vec2 scale)
+	Enemy_Boss(Vec2 pos)
 		: m_boss_pos(pos)
-		, m_FaceRight(faceRight)
-		, m_boss_scale(scale)
 	{
 	}
 
 	void update(Player& player, Game_Map& map);
 
 
-	void draw(Vec2 pos , Vec2 size) const;
+	void draw(const Game_Map& map) const;
 
 	const Vec2& GetPosition() const { return m_boss_pos; }
 	const Vec2& GetScale() const { return m_boss_scale; }
@@ -115,6 +156,10 @@ public:
 	int GetRange() const { return m_boss_range; }
 	float GetSpeed() const { return m_boss_speed; }
 	Vec2 getHitbox() const { return m_hitBox; }
+	float GetTimeScale() const {
+		return m_base_speed / m_boss_speed;
+		// If m_boss_speed > base_speed → faster attacks (shorter time)
+	}
 
 	void SetPosition(const Vec2& pos) { m_boss_pos = pos; }
 	void SetScale(const Vec2& scale) { m_boss_scale = scale; }
@@ -125,9 +170,17 @@ public:
 	void SetSpeed(float speed) { m_boss_speed = speed; }
 	void setHitbox(Vec2 hitbox) { m_hitBox = hitbox; }
 
-	Enemy_Boss& GetEnemy_Boss() { return *this; }
+	RectF BossRect(const Vec2& cam) const;
+	RectF BossRectAt(const Vec2& pos) const;
+	RectF attackRect(const Vec2& cam) const;
+	RectF chaseRect(const Vec2& cam) const;
 };
 
-//->boss no hp (bpm)
-// player take damage when hit the boss
-// bmp higher = higher speed
+
+// collision when moving is weird
+// collision code is at the bottom so it didnt activate at the top of the update
+// pattern 1 and 4 (only player needed now)
+// animation
+
+// merge with player -> player take damage when hit the boss
+// check the death 
