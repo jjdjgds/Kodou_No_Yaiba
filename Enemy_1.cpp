@@ -234,6 +234,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 	}
 	else {// 通常行動状態
+
 		if (m_engaged) {// 交戦モード
 			if (playerInAttack && (m_attackCooldown <= 0.0) && m_onGround && player.GetPlayerState() != StateMode::Dead) {
 				m_mode = Behavior_Enemy1::Attack;
@@ -241,6 +242,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 				m_attackFlag = true;
 				m_hasHitPlayer = false;
 				m_Speed = 0.0;
+				m_hasHitPlayer = false; // ←ここでリセット！
 				updateFacingStable();
 			}
 			else {// 追跡モード
@@ -447,6 +449,14 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 		if (A.loop) {
 			m_frameIndex = (m_frameIndex + 1) % A.frames;
+			m_hitWindowActive = (m_frameIndex >= 2 && m_frameIndex <= 4);
+			if (m_hitWindowActive && !m_hasHitPlayer)
+			{
+				if (RectToRect(eAttackBox, pHitBox)) {
+					player.takeDamage(1, m_FaceRight);
+					m_hasHitPlayer = true;
+				}
+			}
 		}
 		else {
 			if (m_frameIndex < (A.frames - 1)) {
@@ -458,7 +468,16 @@ void Enemy_1::update(Player& player, Game_Map& map)
 					m_pendingRemoval = true;
 				}
 				else if (m_state == AnimState_Enemy1::Attack) {// 攻撃アニメーション終了
+<<<<<<< HEAD
 					
+=======
+					if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
+						player.takeDamage(1);
+						m_hasHitPlayer = true;
+						m_attackCooldown = m_attackCooldownMax; // ← ヒットしたら即クールダウン
+					}
+
+>>>>>>> 48b6426dc27bc1f181753d6bce6b3290eb1d9b5d
 					m_attackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;

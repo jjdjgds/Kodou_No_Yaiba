@@ -317,8 +317,7 @@ void Player::PlayerHurt()
 				m_KnockbackTimer = 0.4;
 				m_IsKnockback = true;
 
-				// ★ ここが重要！ 攻撃後の状態を決める（吹っ飛び中は無効）
-				// ノックバック中は update() で状態遷移を管理するのでここで Run/Idleに戻さない
+				
 			}
 
 			animTime = 0.0;
@@ -676,6 +675,8 @@ void  Player::PlayerStun()
 }
 void Player::takeDamage(int damage, bool fromRight)
 {
+
+
 	if (m_IsKnockback) return; // 連続ヒット防止など
 
 	m_HP -= damage;
@@ -1198,7 +1199,36 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerAttackFlag(true);
 			m_frameIndex = 0;
 			animTime = 0.0;
+			const Audio& AS1 = AudioAsset(U"Sowrd1");
+			const Audio& AS2 = AudioAsset(U"Sowrd2");
+			const Audio& AS3 = AudioAsset(U"Sowrd3");
+			const Audio& AS4 = AudioAsset(U"Sowrd4");
+			AS1.stop();
+			AS2.stop();
+			AS3.stop();
+			AS4.stop();
+			int a = Random(0,3);
+			switch (a)
+			{
 
+			case 0:
+
+				AS1.play();
+				break;
+
+			case 1:
+				AS2.play();
+				break;
+			case 2:
+				AS3.play();
+				break;
+			case 3:
+				AS4.play();
+				break;
+			default:
+				break;
+			}
+			
 			// 攻撃ステートへ
 			if (m_onGround)
 			{
