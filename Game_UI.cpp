@@ -289,11 +289,11 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 		.scaled(1.0)
 		.drawAt(drawPos);
 
-	/*for (int i = 0; i < player.GetPlayerHP(); i++)
+	for (int i = 0; i < player.GetPlayerHP(); i++)
 	{
 		PlayerHP(0, 0, 345, 300).scaled(0.3).drawAt(100 * i+100, 300);
 
-	}*/
+	}
 	int x = 0;
 	switch (player.GetMedecine())
 	{
