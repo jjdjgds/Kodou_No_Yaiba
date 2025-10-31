@@ -139,9 +139,9 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
 
 
-	const bool playerInChaseCoarse = RectToRect(eChaseBox, pHitBox);
+	const bool playerInChase = RectToRect(eChaseBox, pHitBox);
 	const RectF pHitBoxWorld(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox());
-	const bool playerInChase = playerInChaseCoarse
+	const bool playerInChaseWall = playerInChase
 		&& hasLineOfSight(*this, map, pHitBoxWorld);// プレイヤーが追跡矩形内にいるか（粗判定+视线判定）
 
 	
@@ -191,7 +191,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		{// 死亡時飛び出し
 			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);
 			const double base = (m_speedBase > 0 ? m_speedBase : 150.0);
-			m_Speed = 1000;
+			m_Speed = 100;
 
 			double remaining = m_Speed * dt;
 			const double unit = 2.0;
@@ -286,7 +286,9 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 			m_mode = Behavior_Enemy1::Patrol;
 			if (!groundAhead) {
-				m_FaceRight = !m_FaceRight;
+				if (m_onGround) {
+					m_FaceRight = !m_FaceRight;
+				}
 				m_isRunning = false;
 			}
 
@@ -460,8 +462,6 @@ void Enemy_1::update(Player& player, Game_Map& map)
 					m_pendingRemoval = true;
 				}
 				else if (m_state == AnimState_Enemy1::Attack) {// 攻撃アニメーション終了
-
-
 					m_attackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;
@@ -491,7 +491,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const bool inChase = playerInChase;
 	const bool engagedNow = m_engaged;
 
-	if (inChase && !textChase) {
+	if (!textallowLose && inChase && !textChase) {
 		text.trigger(U'!');
 		textallowLose = true;
 	}
@@ -532,7 +532,7 @@ void Enemy_1::draw(const Game_Map& map) const
 
 	Vec2 center = m_Position - map.getCameraPos();
 	const double visualH = c.y * syScale;
-	center.y -= (visualH * 0.5 - m_hitBox.y * 0.5) - m_hitOffsetY;
+	center.y -= (visualH * 0.5 - m_hitBox.y * 0.59) - m_hitOffsetY;
 
 	(m_FaceRight ? reg : reg.mirrored())
 		.scaled(sxScale, syScale)

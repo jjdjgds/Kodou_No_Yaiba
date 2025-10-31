@@ -412,7 +412,9 @@ void Enemy_2::update(Player& player, Game_Map& map)
 
 			m_mode = Behavior_Enemy2::Patrol;
 			if (!groundAhead) {
-				m_FaceRight = !m_FaceRight;
+				if (m_onGround) {
+					m_FaceRight = !m_FaceRight;
+				}
 				m_isRunning = false;
 			}
 
@@ -596,7 +598,7 @@ void Enemy_2::update(Player& player, Game_Map& map)
 	const bool inChase = playerInChase;
 	const bool engagedNow = m_engaged;
 
-	if (inChase && !textChase) {
+	if (!textallowLose&&inChase && !textChase) {
 		text.trigger(U'!');
 		textallowLose = true;
 	}
@@ -637,7 +639,7 @@ void Enemy_2::draw(const Game_Map& map) const
 
 	Vec2 center = m_Position - map.getCameraPos();
 	const double visualH = c.y * syScale;
-	center.y -= (visualH * 0.5 - m_hitBox.y * 0.5) - m_hitOffsetY;
+	center.y -= (visualH * 0.5 - m_hitBox.y * 0.59) - m_hitOffsetY;
 
 	(m_FaceRight ? reg : reg.mirrored())
 		.scaled(sxScale, syScale)

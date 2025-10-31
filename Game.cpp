@@ -36,11 +36,33 @@ Game::Game(const InitData& init)
 	}
 	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
 
+	if (auto spawn = map.findPlayerSpawn()) {
+		player.SetPlayerPosition(*spawn);
+	}
+	else {
+		player.SetPlayerPosition(Vec2{ 800, 750 });
+	}
 
 }
 
 void Game::update()
 {
+	const RectF pBoxWorld(Arg::center = player.GetPlayerPosition(),
+					  player.GetPlayerHitBox());
+
+	if (map.intersectsGoal(pBoxWorld)) {
+		map.loadNextStage();
+		Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
+
+		if (auto spawn = map.findPlayerSpawn()) {
+			player.SetPlayerPosition(*spawn);
+		}
+		else {
+			player.SetPlayerPosition({ 100, 100 });
+		}
+	}
+
+
 	bg.update();
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();

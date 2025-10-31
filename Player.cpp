@@ -1232,7 +1232,6 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			// 攻撃ステートへ
 			if (m_onGround)
 			{
-				Print << U"攻撃"<<int(GetPlayerState());
 				if (GetPlayerState() == StateMode::Idle)
 				{
 					SetPlayerState(StateMode::IdleToAttack);
@@ -1567,6 +1566,6 @@ void Player::draw(const Game_Map& CameraPos) const
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
 	
-	//Print << U"" << GetPlayerBPM();
+	Print << U"" << GetPlayerBPM();
 
 }
