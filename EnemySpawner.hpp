@@ -33,7 +33,7 @@ public:
 		clear();
 		 }
 
-	void spawnBoss(const Vec2& pos, double stride = 0.0, bool faceRight = true, Vec2 scale = Vec2{ 1,1 });
+	void spawnBoss(const Vec2& pos);
 	void  spawnEnemy_1(const Vec2& pos, double stride, bool faceRight, Vec2 scale);
 	void  spawnEnemy_2(const Vec2& pos, double stride, bool faceRight, Vec2 scale);
 	void loadFromMap(const Array<Block>& blocks, double chipWidth, double chipHeight);
