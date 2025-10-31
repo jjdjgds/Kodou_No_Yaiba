@@ -86,8 +86,8 @@ Line Enemy_1::makeGroundProbeLine(const Vec2& cam, bool debug) const
 
 void Enemy_1::update(Player& player, Game_Map& map)
 {
-	const double dt = Scene::DeltaTime();
-	const Vec2 cam = map.getCameraPos();
+	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
+	const Vec2 cam = map.getCameraPos() * TimeStopManager::GetEnemyScale();
 
 	m_faceFlipCooldown = Max(0.0, m_faceFlipCooldown - dt);
 	m_attackCooldown = Max(0.0, m_attackCooldown - dt);
@@ -170,7 +170,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		updateFacingStable();
 
 		if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-			player.takeDamage(1);
+			player.takeDamage(1, m_FaceRight);;
 			m_hasHitPlayer = true;
 		}
 	}
@@ -335,7 +335,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 	// --- プレイヤーの攻撃が敵に当たったか ---
 	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
-	// --- パリィ判定 ---
+	// ---  ---
 	bool parryOccurred =
 		(m_state == AnimState_Enemy1::Attack) &&                 // 敵が攻撃中
 		(player.GetPlayerState() == StateMode::Attack) &&        // プレイヤーも攻撃中

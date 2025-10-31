@@ -436,7 +436,8 @@ void Player::PlayerMedecine()
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
 			m_frameIndex = 0;
-			SetPlayerBPM(GetPlayerBPM() - 30);
+			//SetPlayerBPM(GetPlayerBPM() - 30);
+			SetMedecine(GetMedecine() - 1);
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
@@ -671,11 +672,74 @@ void  Player::PlayerStun()
 {
 
 }
+void Player::takeDamage(int damage, bool fromRight)
+{
+	if (m_IsKnockback) return; // 連続ヒット防止など
+
+	m_HP -= damage;
+
+	// ノックバック方向を敵の向きで決定
+	double knockbackPower = 600.0;
+	double knockbackUp = -400.0; // 上方向へ少し浮く感じ
+
+	if (fromRight)
+	{
+		m_KnockbackVelocity = Vec2{ +knockbackPower, knockbackUp };
+	}
+	else
+	{
+		m_KnockbackVelocity = Vec2{ -knockbackPower, knockbackUp };
+	}
+
+	m_IsKnockback = true;
+	m_KnockbackTimer = 0.5; // 継続時間
+	m_onGround = false;     // 空中に飛ぶので接地解除
+	SetPlayerState(StateMode::Hurt); // 被弾アニメ再生など
+}
 
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
 
 	
+	
+	//-----------------------------------
+    // ノックバック中
+    //-----------------------------------
+	if (m_IsKnockback)
+	{
+		double dt = Scene::DeltaTime();
+
+		// 移動予定
+		Vec2 nextPos = GetPlayerPosition() + m_KnockbackVelocity * dt;
+
+		// 衝突チェック
+		RectF nextRect(Arg::center = nextPos + Vec2{ 0, -40 }, GetPlayerHitBox());
+		if (!map.CheckCollision(nextRect))
+		{
+			SetPlayerPosition(nextPos);
+		}
+		else
+		{
+			// 壁 or 床にぶつかった → 即停止
+			m_KnockbackVelocity = Vec2{ 0, 0 };
+			m_IsKnockback = false;
+			SetPlayerState(StateMode::Idle);
+			m_onGround = true;
+			return;
+		}
+
+		// 減速処理（摩擦・空気抵抗っぽい感じ）
+		m_KnockbackVelocity *= 0.9;
+
+		// 終了条件：速度がほぼ0なら解除
+		if (m_KnockbackVelocity.length() < 10.0)
+		{
+			m_IsKnockback = false;
+			SetPlayerState(StateMode::Idle);
+		}
+
+		return;
+	}
 
 	// HPが0なら即死亡状態にしてアニメーション更新のみ行う
 	if (GetPlayerHP() <= 0)
@@ -722,50 +786,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	Vec2 pos = GetPlayerPosition();
 	Vec2 size = GetPlayerHitBox();
 	Vec2 velocity = GetPlayerVelocity();
-	if (m_IsKnockback)
-	{
-		double dt = Scene::DeltaTime();
-
-		// ノックバック中だけ重力を半分に
-		m_KnockbackVelocity.y += (m_gravity * 0.3) * dt * 400;
-
-		// 次の位置を計算
-		Vec2 nextPos = GetPlayerPosition() + m_KnockbackVelocity * dt;
-
-		// 壁・床衝突チェック
-		RectF hitRect(Arg::center = nextPos + Vec2{ 0, -40 }, GetPlayerHitBox());
-		if (!map.CheckCollision(hitRect))
-		{
-			SetPlayerPosition(nextPos);
-		}
-		else
-		{
-			// 壁・床にぶつかったら停止
-			m_KnockbackVelocity = Vec2{ 0, 0 };
-			m_IsKnockback = false;
-			m_KnockbackTimer = 0.0;
-			SetPlayerState(StateMode::Idle);
-			return;
-		}
-
-		// 徐々に減速
-		m_KnockbackVelocity.x *= 0.85;
-
-		// タイマー減少
-		m_KnockbackTimer -= dt;
-
-		// 終了条件
-		if (m_KnockbackTimer <= 0.0 || m_onGround)
-		{
-			m_IsKnockback = false;
-			m_KnockbackVelocity = Vec2{ 0, 0 };
-			m_KnockbackTimer = 0.0;
-			SetPlayerState(StateMode::Idle);
-		}
-
-		// ノックバック中は他の動作を無効化
-		return;
-	}
+	
 	if (!m_HeartCoolFlg && GetPlayerBPM() >= 90)
 	{
 		if (m_HeartTimer >= 1.0) // 1秒経過ごと
@@ -990,9 +1011,6 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		{
 			velocity.y += m_gravity * Scene::DeltaTime() * 400 * TimeStopManager::GetPlayerScale();
 		}
-		//-----------------------------------
-        // === ノックバック中処理 ===
-        //-----------------------------------
 		
 
 
@@ -1236,7 +1254,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 				SetPlayerState(StateMode::Dead);
 
 			}
-			if (KeyL.down())
+			if (KeyL.down() && GetMedecine()>0)
 			{
 				SetPlayerState(StateMode::Medecine);
 			}
@@ -1336,6 +1354,15 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	default:
 		break;
 	}
+	// 無敵時間の減少処理（末尾や毎フレーム更新の部分に）
+	if (m_IsInvincible)
+	{
+		m_InvincibleTimer -= Scene::DeltaTime();
+		if (m_InvincibleTimer <= 0.0)
+		{
+			m_IsInvincible = false;
+		}
+	}
 
 	//-----------------------------------
 	// 値を反映
@@ -1351,21 +1378,27 @@ void Player::draw(const Game_Map& CameraPos) const
 {
 	const Texture& PlayerTex = TextureAsset(U"Player");
 
-	const int32 frameWidth = 516;
-	const int32 frameHeight = 285;
-
+	const int32 frameWidth = 156;
+	 int32 frameHeight = 49;
 	const int32 idleY = 0;
-	const int32 runY = frameHeight * 1;
-	const int32 attackY = frameHeight * 2;
-	const int32 hurtY = frameHeight * 4;
-	const int32 IdleAttack = frameHeight * 4;
-	const int32 Doge = frameHeight * 4;
-	const int32 Jump = frameHeight * 4;
-	const int32 Fall = frameHeight * 4;
+	const int32 idleToRunY = frameHeight * 1;
+	const int32 IdleAttack = frameHeight * 3;
+	const int32 attackY = frameHeight * 5;
+
+	const int32 runY = frameHeight * 2;
+	
+	const int32 Jump = frameHeight * 6;
+	const int32 JumpAttack = frameHeight * 7;
+
+
+	const int32 Doge = frameHeight * 6;
+	const int32 Fall = frameHeight * 6;
 	const int32 OnTheWall = frameHeight * 6;
-	const int32 Dead = frameHeight * 5;
-	const int32 Dead2 = frameHeight * 6;
-	const int32 Medicine = frameHeight * 6;
+	const int32 Dead = frameHeight * 8;
+	const int32 Dead2 = frameHeight * 8;
+	const int32 Medicine = frameHeight * 8;
+	const int32 hurtY = frameHeight * 9;
+	const int32 Stun = frameHeight * 11;
 
 	int32 n = 0;
 	int32 y = idleY;
@@ -1379,94 +1412,66 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	case StateMode::IdleToRun:
 		n = m_idleToRunPatterns[m_frameIndex];
-		y = runY;
+		y = idleToRunY;
 		break;
 
 	case StateMode::Run:
 		n = m_runPatterns[m_frameIndex];
-		if (m_frameIndex == 4)
-		{
-			n = 0; y = attackY + 30;
-		}
-		else
-		{
-			y = runY;
-		}
+		y = runY;
+	
 		break;
 
 	case StateMode::Attack:
 		n = m_attackPatterns[m_frameIndex];
-		y = attackY + 30;
+		y = attackY-9;
 		break;
 
 	case StateMode::Jump:
 		n = m_jumpPatterns[m_frameIndex];
-		y = Jump + 65;
+		y = Jump-10;
 		break;
 
 	case StateMode::JumpAttack:
 		n = m_jumpAttackPatterns[m_frameIndex];
-		if (m_frameIndex >= 1)
-		{
-			//n = 0;
-			y = (frameHeight * 5) + 60;
-		}
-		else
-		{
-			y = (frameHeight * 4) + 60;
-		}
+		y = JumpAttack - 12;
 		break;
 
 	case StateMode::Fall:
 		n = m_FallPatterns[m_frameIndex];
-		y = Fall + 65;
+		y = Fall-10;
 		break;
 	case StateMode::OnTheWall:
 		n = m_onTheWallPatterns[m_frameIndex];
-		y = OnTheWall + 65;
+		y = OnTheWall-10;
 		break;
 
 	case StateMode::IdleToAttack:
 		n = m_IdleAttackPatterns[m_frameIndex];
-		if (m_frameIndex >= 2)
-		{
-			//n = 0;
-			y = (frameHeight * 4) + 50;
-		}
-		else
-		{
-			y = (frameHeight * 3) + 50;
-		}
+		y = IdleAttack - 5;
+
+
 		break;
-
-
-
 	case StateMode::Hurt:
 		n = m_hurtPatterns[m_frameIndex];
-		y = hurtY + 45;
+		y = hurtY +30;
+		frameHeight = 47;
 		break;
 
 	case StateMode::Doge:
 		n = m_dogePatterns[m_frameIndex];
-		y = Doge + 65;
+		y = Doge-10;
 		break;
 
 	case StateMode::Medecine:
 		n = m_medecinePatterns[m_frameIndex];
-		y = Medicine + 75;
+		y = Medicine+32;
+
 		break;
 
 	case StateMode::Dead:
 		n = m_deadPatterns[m_frameIndex];
-		if (m_frameIndex >= 4)
-		{
-			//n = 0;
-			y = Dead2 + 75;
-		}
-		else
-		{
-			y = Dead + 75;
-		}
+		y = Dead-15;
+		
 		break;
 
 
@@ -1483,7 +1488,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	const double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
 
 	// === オフセット ===
-	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 0 } : Vec2{ -10, 0 };
+	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 13 } : Vec2{ -10, 13 };
 
 	// === 当たり判定中心と一致 ===
 	// （スプライトの中心がキャラクターの中心に一致）
@@ -1496,6 +1501,23 @@ void Player::draw(const Game_Map& CameraPos) const
 	{
 		dogeOffset = IsPlayerFacingRight() ? Vec2{ -15, 0 } : Vec2{ 15, 0 };
 	}
+	if (GetPlayerState() == StateMode::IdleToRun)
+	{
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 3 } : Vec2{ 0, 3 };
+
+	}
+	if (GetPlayerState() == StateMode::Run)
+	{
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 3 } : Vec2{ 0, 3 };
+
+	}
+	if (GetPlayerState() == StateMode::OnTheWall)
+	{
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ 17,  0} : Vec2{ -15,0  };
+
+	}
+	
+	
 
 	// === スプライト描画 ===
 	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
@@ -1504,14 +1526,14 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	// === デバッグ表示 ===
 	RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
-
-	Print << U"" << m_BPM;
+	
+	//Print << U"" << static_cast<int>( GetPlayerState());
 
 }

@@ -42,6 +42,8 @@ private:
 	int m_MaxHP;
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
+	int m_Medicle = 5;
+	int m_MaxMedicle = 5;
 	bool m_AttackFlag;		  //攻撃フラグ
 	bool m_AttackStart;      //攻撃開始フラグ
 	int m_Weapon[MAX_WEAPON]; //武器種別
@@ -84,46 +86,51 @@ private:
 	// ノックバック関連
 	Vec2 m_KnockbackVelocity{ 650, -900 };
 	double m_KnockbackTimer = 0.35;
+	double m_InvincibleTimer = 0.0;
 	bool m_IsKnockback = false;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
+
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
-	Array<int32> m_idleToRunPatterns{ 0, 1, 2 ,3 };
+	Array<int32> m_idleToRunPatterns{ 0, 1, 2  };
 
 	
 
 	//走る状態のアニメーション
-	Array<int32> m_runPatterns{ 4, 5, 6, 7,8 };
+	Array<int32> m_runPatterns{ 0,1,2,3,4,5};
 
 	// 攻撃アニメーション（横8枚のうち、0〜6枚目を使う）
-	Array<int32> m_attackPatterns{ 0, 1, 2, 3};
+	Array<int32> m_attackPatterns{ 0, 1, 2, 3,4};
+
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
-	Array<int32> m_hurtPatterns{  4, 5, 6,7 };
+	Array<int32> m_hurtPatterns{  0,1,1,2 };
 
 	//Jumpアニメーション
-	Array<int32> m_jumpPatterns{5,5,5,5,5  };
+	Array<int32> m_jumpPatterns{1,1,1,1,1 };
 
-	Array<int32>m_jumpAttackPatterns{ 7,0,1,2,3,4 };
+	Array<int32>m_jumpAttackPatterns{ 0,1,2,3,4 };
 
 	//IDLEATTACK
-	Array<int32> m_IdleAttackPatterns{6,7,0,1,2,3};
+	Array<int32> m_IdleAttackPatterns{ 0, 1, 2, 3 };
 
 	//回避アニメーション
-	Array<int32> m_dogePatterns{ 4,4,4,4,4,4 };
+	Array<int32> m_dogePatterns{ 0,0,0,0,0 };
 
 	//壁ズリアニメーション
-	Array<int32> m_onTheWallPatterns{2};
+	Array<int32> m_onTheWallPatterns{3};
 
 	//死亡アニメーション
-	Array<int32>m_deadPatterns{4,5,6,7,0,1};
+	Array<int32>m_deadPatterns{0,1,2,3,4,5};
 
 	//落下アニメーション
-	Array<int32> m_FallPatterns{ 6,6,6,6,6,6 };
+	Array<int32> m_FallPatterns{2,2,2,2};
 
 	//薬ブッキメアニメーション
-	Array<int32> m_medecinePatterns{3,4,5,6};
+	Array<int32> m_medecinePatterns{0,1,2,3};
+	Array<int32> m_stunPatterns{0,1,2,3};
+
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -211,7 +218,8 @@ public:
 	 HeartRateState GetHeartRateState(int bpm);
 	 bool GetIsInvincible() const { return m_IsInvincible; }
 	 bool IsDogeging() const { return m_isDodging; }
-
+	 int GetMedecine()const { return m_Medicle; }
+	 
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
@@ -239,7 +247,8 @@ public:
 	void UpdateHeartState();
 	bool SetIsInvincible(bool invincible) { return m_IsInvincible = invincible; }
 	bool SetIsDodging(bool dodging) { return m_isDodging = dodging; }
-
+	void SetMedecine(int med) { m_Medicle = med ; }
+	void SetMaxMedecine() { m_Medicle = m_MaxMedicle; }
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
@@ -254,6 +263,8 @@ public:
 	}
 	Player& GetPlayer() { return *this; }
 
+	// Player.hpp に追加
+	void takeDamage(int damage, bool fromRight);
 
 	void takeDamage(int dmg);
 	RectF getAttackRectWorld()const;

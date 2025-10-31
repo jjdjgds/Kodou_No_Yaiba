@@ -176,10 +176,16 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 {
 	const Texture& BeatTex = TextureAsset(U"HeatBeat");
+	const Texture& PlayerHP = TextureAsset(U"PlayerHP");
+	const Texture& PlayerMedicle = TextureAsset(U"Medicine");
+	const Audio& pHbSound = AudioAsset(U"FastBeat");
+	const Audio& PLbSound = AudioAsset(U"SlowBeat");
 
 	const int32 frameWidth = 383;
 	const int32 frameHeight = 158;
 
+	const int32 medicleWidth = 400;
+	const int32 medicleHeidht = 1090;
 	const auto state = player.GetPlayerHeartState();
 
 	int32 n = 0;
@@ -229,6 +235,8 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 			y = row * frameHeight;
 		}
 	}
+
+
 	if( m_RedAutoFlag)
 	{
 		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 1,0,0,0.1 });
@@ -241,11 +249,48 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 		.scaled(1.0)
 		.drawAt(drawPos);
 
+	/*for (int i = 0; i < player.GetPlayerHP(); i++)
+	{
+		PlayerHP(0, 0, 345, 300).scaled(0.3).drawAt(100 * i+100, 300);
+
+	}*/
+	int x = 0;
+	switch (player.GetMedecine())
+	{
+	case 0:
+		x = 5;
+		break;
+
+	case 1:
+		x = 4;
+	    break;
+	case 2:
+		x = 3;
+	    break;
+	case 3:
+		x = 2;
+	    break;
+	case 4:
+		x =1;
+		break;
+	case 5:
+		x = 0;
+		break;
+
+	default:
+		break;
+	}
+
+	PlayerMedicle(medicleWidth*x, 0, medicleWidth, medicleHeidht).scaled(0.1).drawAt(100, 300);
+
+	pHbSound.play();
+	PLbSound.play();
+
 	Print << U"Heart Rate State: " << (state == HeartRateState::Stun ? U"Stun" :
-		state == HeartRateState::Warning ? U"Warning" :
-		state == HeartRateState::Berserk ? U"Berserk" :
-		state == HeartRateState::TimeControl ? U"TimeControl" :
-		state == HeartRateState::Normal ? U"Normal" :
-		state == HeartRateState::Dead ? U"Dead" : U"Unknown");
+			state == HeartRateState::Warning ? U"Warning" :
+			state == HeartRateState::Berserk ? U"Berserk" :
+			state == HeartRateState::TimeControl ? U"TimeControl" :
+			state == HeartRateState::Normal ? U"Normal" :
+			state == HeartRateState::Dead ? U"Dead" : U"Unknown");
 }
 
