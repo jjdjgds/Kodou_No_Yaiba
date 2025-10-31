@@ -1,11 +1,9 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
-<<<<<<< HEAD
 #include "Player.hpp"
 #include "TextShot.hpp"
-=======
 #include "Game_Map.hpp"
->>>>>>> 5df69d4dd1d4c8d0a2c7af23f5539c209f8daf88
+
 
 enum class AnimState_Enemy1 { Idle, Run, Dead, Attack, };// アニメーション状態列挙型
 enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
@@ -166,7 +164,7 @@ public:
 	RectF hurtRect(const Vec2& cam) const; // ダメージ判定矩形を取得
 	RectF hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 
-	double forwardClearance(const Game_Map& map, double baseW, double baseH, double lead, double maxForward, int dir) const;
+	//double forwardClearance(const Game_Map& map, double baseW, double baseH, double lead, double maxForward, int dir) const;
 	RectF attackRect(const Game_Map& map) const; // 攻撃判定矩形を取得
 	RectF chaseRect(const Game_Map& map) const;// 追跡判定矩形を取得
 
