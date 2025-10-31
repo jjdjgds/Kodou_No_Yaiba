@@ -180,6 +180,28 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		m_velY = 0.0;
 		m_onGround = true;
 
+
+		{// 死亡時飛び出し
+			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);
+			const double base = (m_speedBase > 0 ? m_speedBase : 150.0);
+			m_Speed = 1000;
+
+			double remaining = m_Speed * dt;
+			const double unit = 2.0;
+			int safety = 0;
+			m_isRunning = false;
+
+			while (remaining > 0.0 && safety++ < 400)
+			{
+				const double step = Min(remaining, unit);
+				Vec2 probe = m_Position;
+				probe.x += (m_FaceRight ? -step : +step);
+				m_Position.x = probe.x;
+				remaining -= step;
+			}
+		}
+
+
 		const auto& A = m_anims[m_state];
 		m_time += dt;
 		while (m_time >= A.frameTime) {
@@ -453,6 +475,23 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		setState(m_isRunning ? AnimState_Enemy1::Run : AnimState_Enemy1::Idle);
 	}
 
+	const bool inChase = playerInChase;
+	const bool engagedNow = m_engaged;
+
+	if (inChase && !textChase) {
+		text.trigger(U'!');
+		textallowLose = true;
+	}
+	if (textallowLose && m_mode == Behavior_Enemy1::Patrol && !textLoseCounting) {
+		text.trigger(U'?');
+		textallowLose = false;
+	}
+
+
+
+	text.update(false, dt);
+	textChase = inChase;
+	textLoseCounting = engagedNow;
 }
 
 void Enemy_1::draw(const Game_Map& map) const
@@ -486,6 +525,7 @@ void Enemy_1::draw(const Game_Map& map) const
 		.scaled(sxScale, syScale)
 		.drawAt(center);
 
+	text.draw(m_Position, m_FaceRight, map.getCameraPos(), ColorF{ 1.0 }, 32, Vec2(17, 90));
 	// ----------------------------
 	// --- デバッグ描画
 	// ----------------------------
