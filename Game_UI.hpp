@@ -1,6 +1,26 @@
 ﻿#pragma once
 # include <Siv3D.hpp>
 #include "Player.hpp"
+#define  STUN (0.9)
+#define  WARNING (0.035)
+#define  BERSERK (0.025)
+#define  TIMECONTROL (0.8)
+#define  NORMAL (0.12)
+#define  DEAD (0.1)
+
+/*
+
+
+
+Stun,
+Warning,
+Berserk,
+TimeControl,
+Normal,
+Dead
+
+
+*/
 
 class Game_UI
 {
@@ -12,6 +32,8 @@ private:
 	Array<int32> m_BeatPatterns{ 0,1,2,3,4,5,6,7,8,9,10 };
 	Array<int32> m_deadBeatPatterns{ 11,12,13,14,15 };
 	double HeatanimTime = 0.0;    //アニメーション時間管理用
+	bool m_RedAutoFlag = false;
+	HeartRateState m_WasState = HeartRateState::Normal;
 public:
 	void UIStun();
 	void UIWarning();

@@ -1,6 +1,7 @@
 ﻿#include "Game.hpp"
 #include "Player.hpp"
-#include "Enemy.hpp"
+#include "Enemy_1.hpp"
+#include "Enemy_2.hpp"
 #include "Collision.hpp"
 #include "TimeStopManager.h"
 using namespace Collision;
@@ -12,7 +13,7 @@ Game::Game(const InitData& init)
 	Vec2(800, 750), // 位置
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
-	Vec2(6.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
+	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
 		3,
 		3,
 		90,
@@ -36,10 +37,14 @@ Game::Game(const InitData& init)
 	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
 
 	// 敵初期化
-	m_enemies.clear();
-	m_enemies.reserve(8);
+	m_enemies1.clear();
+	m_enemies1.reserve(8);
+	m_enemies1.emplace_back(Vec2{ 200,700 },300.0);
 
-	m_enemies.emplace_back(Vec2{ 200,700 },100.0, true, Vec2{ 3,3 });
+	m_enemies2.clear();
+	m_enemies2.reserve(8);
+	//m_enemies2.emplace_back(Vec2{ 200,700 }, 600.0);
+
 }
 
 void Game::update()
@@ -48,13 +53,11 @@ void Game::update()
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 	Ui.update(player, map);
-	player.update(map,m_enemies);
+	player.update(map, m_enemies1,m_enemies2);
 	Boss_spawner.update(player, map);
 
-	
-	
-
-	for (auto& e : m_enemies) e.update(player,map);
+	for (auto& e : m_enemies1) e.update(player, map);
+	for (auto& e : m_enemies2) e.update(player, map);
 
 }
 
@@ -65,10 +68,15 @@ void Game::draw() const
 	map.draw();                // ← マップを描画
 	player.draw(map);             // ← プレイヤーを描画
 
-	for (const auto& e : m_enemies) e.draw(map); //敵描画
+	for (const auto& e : m_enemies1) e.draw(map); //敵描画
+	for (const auto& e : m_enemies2) e.draw(map); //敵描画
+
+	Ui.draw(player,map);
+
 	Boss_spawner.draw(map);
 
 	Ui.draw(player,map);
+
 
 }
 

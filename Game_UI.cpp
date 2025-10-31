@@ -6,7 +6,7 @@ void Game_UI::UIStun()
 {
 	// スタン用のアニメーション処理
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 1.0;
+	const double NomalFrameDuration = STUN;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -26,7 +26,7 @@ void Game_UI::UIStun()
 void Game_UI::UIWarning()
 {
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.015;
+	const double NomalFrameDuration = WARNING;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -47,7 +47,7 @@ void Game_UI::UITimeControl()
 {
 	// タイムコントロール用のアニメーション処理
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.8;
+	const double NomalFrameDuration = TIMECONTROL;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -67,7 +67,7 @@ void Game_UI::UITimeControl()
 void Game_UI::UINormal()
 {
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.045;
+	const double NomalFrameDuration = NORMAL;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -89,7 +89,7 @@ void Game_UI::UIDead()
 
 
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.1;
+	const double NomalFrameDuration = DEAD;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -116,7 +116,7 @@ void Game_UI::UIBerserk()
 {
 	// バーサーカー用のアニメーション処理
 	//心拍数のアニメーション再生速度はこの値をかえてねー
-	const double NomalFrameDuration = 0.12;
+	const double NomalFrameDuration = BERSERK;
 	if (HeatanimTime >= NomalFrameDuration)
 	{
 		HeatanimTime -= NomalFrameDuration;
@@ -135,16 +135,25 @@ void Game_UI::UIBerserk()
 
 void Game_UI::update(Player player, const Game_Map& CameraPos)
 {
-	HeatanimTime += Scene::DeltaTime();
+	HeatanimTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
 	const auto state = player.GetPlayerHeartState();
-
+	const int bpm = player.GetPlayerBPM();
+	if (bpm <= 60 || bpm >= 140)
+	{
+		m_RedAutoFlag = true;
+	}
+	else
+	{
+		m_RedAutoFlag = false;
+	}
 	switch (state)
 	{
 	case HeartRateState::Stun:
 		UIStun();
 		break;
-	case HeartRateState::Warning:
+	case HeartRateState::HightWarning:
+	case HeartRateState::LowWarning:
 		UIWarning();
 		break;
 	case HeartRateState::Berserk:
@@ -163,19 +172,64 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	default:
 		break;
 	}
+	
+
+	// ここで音を制御（drawではなく）
+	if (m_WasState != state)
+	{
+		const Audio& pHbSound = AudioAsset(U"FastBeat");
+		const Audio& pLbSound = AudioAsset(U"SlowBeat");
+
+		// 一旦全部止める
+		pHbSound.stop();
+		pLbSound.stop();
+
+		// 新しい状態に応じて再生
+		switch (state)
+		{
+		case HeartRateState::Berserk:
+			pHbSound.setSpeed(1.0).play();
+			break;
+
+		case HeartRateState::Normal:
+			pHbSound.setSpeed(0.7).play();
+			break;
+
+		case HeartRateState::TimeControl:
+			pLbSound.setSpeed(1.0).play();
+			break;
+
+		default:
+			break;
+		}
+
+		m_WasState = state; // 状態更新
+	}
+	
+
+	
+	
+	
+
 }
 
 void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 {
 	const Texture& BeatTex = TextureAsset(U"HeatBeat");
-
+	const Texture& PlayerHP = TextureAsset(U"PlayerHP");
+	const Texture& PlayerMedicle = TextureAsset(U"Medicine");
+	
 	const int32 frameWidth = 383;
 	const int32 frameHeight = 158;
 
-	const auto state = player.GetPlayerHeartState();
-
+	const int32 medicleWidth = 400;
+	const int32 medicleHeidht = 1090;
+	auto state = player.GetPlayerHeartState();
+	auto WasState = m_WasState;
 	int32 n = 0;
 	int32 y = 0;
+	
+	
 
 	// === Dead以外 ===
 	if (state != HeartRateState::Dead)
@@ -222,6 +276,11 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 		}
 	}
 
+
+	if( m_RedAutoFlag)
+	{
+		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 1,0,0,0.1 });
+	}
 	// === 描画位置 ===
 	Vec2 drawPos = Vec2{ 200, 200 };
 
@@ -229,5 +288,52 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 	BeatTex(n * frameWidth, y, frameWidth, frameHeight)
 		.scaled(1.0)
 		.drawAt(drawPos);
+
+	/*for (int i = 0; i < player.GetPlayerHP(); i++)
+	{
+		PlayerHP(0, 0, 345, 300).scaled(0.3).drawAt(100 * i+100, 300);
+
+	}*/
+	int x = 0;
+	switch (player.GetMedecine())
+	{
+	case 0:
+		x = 5;
+		break;
+
+	case 1:
+		x = 4;
+	    break;
+	case 2:
+		x = 3;
+	    break;
+	case 3:
+		x = 2;
+	    break;
+	case 4:
+		x =1;
+		break;
+	case 5:
+		x = 0;
+		break;
+
+	default:
+		break;
+	}
+
+	PlayerMedicle(medicleWidth*x, 0, medicleWidth, medicleHeidht).scaled(0.1).drawAt(100, 300);
+
+	
+
+
+
+
+
+	//Print << U"Heart Rate State: " << (state == HeartRateState::Stun ? U"Stun" :
+	//		//state == HeartRateState::Warning ? U"Warning" :
+	//		state == HeartRateState::Berserk ? U"Berserk" :
+	//		state == HeartRateState::TimeControl ? U"TimeControl" :
+	//		state == HeartRateState::Normal ? U"Normal" :
+	//		state == HeartRateState::Dead ? U"Dead" : U"Unknown");
 }
 
