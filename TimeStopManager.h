@@ -58,20 +58,20 @@ public:
 			s_transition = Min(s_transition + dt * 2.0, 1.0);
 
 			// 各タイプごとにスケール設定（Lerpで滑らかに）
-			s_playerScale = Math::Lerp(1.0, 0.4, s_transition);
-			s_friendScale = Math::Lerp(1.0, 0.4, s_transition);
-			s_enemyScale =  Math::Lerp(1.0, 0.4, s_transition);
-			s_effectScale = Math::Lerp(1.0, 0.4, s_transition);
+			s_playerScale = Math::Lerp(1.0, 0.3, s_transition);
+			s_friendScale = Math::Lerp(1.0, 0.3, s_transition);
+			s_enemyScale =  Math::Lerp(1.0, 0.3, s_transition);
+			s_effectScale = Math::Lerp(1.0, 0.3, s_transition);
 		}
 		else
 		{
 			// 再開（解除時も補間）
 			s_transition = Min(s_transition + dt * 2.0, 1.0);
 
-			s_playerScale = Math::Lerp(0.4, 1.0, s_transition);
-			s_friendScale = Math::Lerp(0.4, 1.0, s_transition);
-			s_enemyScale  = Math::Lerp(0.4, 1.0, s_transition);
-			s_effectScale = Math::Lerp(0.4, 1.0, s_transition);
+			s_playerScale = Math::Lerp(0.3, 1.0, s_transition);
+			s_friendScale = Math::Lerp(0.3, 1.0, s_transition);
+			s_enemyScale  = Math::Lerp(0.3, 1.0, s_transition);
+			s_effectScale = Math::Lerp(0.3, 1.0, s_transition);
 		}
 	}
 

@@ -16,10 +16,7 @@ HeartRateState Player::GetHeartRateState(int bpm)
 
 	/*if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
 		return HeartRateState::Warning;*/
-	if ((bpm >= 61 && bpm <= 70))
-	{
-		return HeartRateState::LowWarning;
-	}
+
 	
 	if (bpm >= 120 && bpm <= 139)
 		return HeartRateState::Berserk;
@@ -87,26 +84,57 @@ RectF Player::getHitRect(const Vec2& camera) const
 void Player::UpdateHeartState()
 {
 	auto bpm = GetPlayerBPM();
+
 	if (bpm == 0)
+	{
 		SetPlayerHeartState(HeartRateState::Dead);
-		
-	else if (bpm <= 60 || bpm >= 140)
+		return;
+	}
+
+	if (bpm <= 60 || bpm >= 140)
+	{
 		SetPlayerHeartState(HeartRateState::Stun);
 
-	
-	
-	
-		
-	else if (bpm >= 120 && bpm <= 139)
-		SetPlayerHeartState(HeartRateState::Berserk);
+		// 初回のみスタン状態に遷移
+		if (!m_IsStunned)
+		{
+			m_IsStunned = true;
+			m_StunTimer = 0.0;
+			SetPlayerState(StateMode::Stun); // アニメーション側もスタンに
+		}
 
-		
+		return;
+	}
+
+	// update内の頭の方に追加（他のreturnより前）
+	if (m_IsStunned)
+	{
+		m_StunTimer += Scene::DeltaTime();
+
+		// 2秒経過したら解除
+		if (m_StunTimer >= m_StunDuration)
+		{
+			m_IsStunned = false;
+			m_StunTimer = 0.0;
+			SetPlayerHeartState(HeartRateState::Normal);
+			SetPlayerState(StateMode::Idle);
+		}
+		else
+		{
+			// アニメーションのみ再生して入力など停止
+			PlayerStun();
+			return;
+		}
+	}
+
+	if (bpm >= 120 && bpm <= 139)
+		SetPlayerHeartState(HeartRateState::Berserk);
 	else if (bpm >= 71 && bpm <= 80)
 		SetPlayerHeartState(HeartRateState::TimeControl);
 	else
 		SetPlayerHeartState(HeartRateState::Normal);
-		
 }
+
 
 void Player::takeDamage(int dmg)
 {
@@ -667,10 +695,20 @@ void Player::PlayerFall()
 
 }
 
-void  Player::PlayerStun()
+void Player::PlayerStun()
 {
+	const double stunFrameDuration = 0.3;
+	animTime += Scene::DeltaTime();
 
+	if (animTime >= stunFrameDuration)
+	{
+		animTime -= stunFrameDuration;
+		m_frameIndex = (m_frameIndex + 1) % m_stunPatterns.size(); // スタン中のループアニメ
+	}
+
+	// 一切の操作・移動はなし
 }
+
 void Player::takeDamage(int damage, bool fromRight)
 {
 
@@ -702,7 +740,31 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 {
 
 	
+	// --- update() の冒頭付近 ---
+	if (m_IsStunned)
+	{
+		// タイマー進行
+		m_StunTimer += Scene::DeltaTime();
+
+		// スタンアニメだけ再生
+		PlayerStun();
+
+		// スタン解除判定
+		if (m_StunTimer >= m_StunDuration)
+		{
+			m_IsStunned = false;
+			m_StunTimer = 0.0;
+			SetPlayerBPM(80);
+			SetPlayerHeartState(HeartRateState::Normal);
+			SetPlayerState(StateMode::Idle);
+		}
+
+		return; // ← 最後に return 一回だけ
+	}
+
+
 	
+
 	//-----------------------------------
     // ノックバック中
     //-----------------------------------
@@ -759,15 +821,13 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
-
 	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
-	if (GetPlayerHeartState() == HeartRateState::Stun)
-	{
-		// スタンアニメーション再生
-		PlayerStun();
-		return;
-	}
 
+	if (m_StunTimer > 0.0)
+	{
+		m_StunTimer -= Scene::DeltaTime();
+		m_StunTimer = Max(0.0, m_StunTimer);
+	}
 	
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
@@ -808,7 +868,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_BersarkTimer = 8.0;             // バーサーク継続秒数
 			m_IsInvincible = true;            // ★無敵ON
 			m_AttackSpeedBoost = 1.5;         // ★攻撃速度倍率（1.5倍）
-			Print << U"🔥バーサークモード突入！🔥";
+			//Print << U"🔥バーサークモード突入！🔥";
 		}
 
 		// バーサーク継続処理
@@ -1288,7 +1348,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			{
 				SetPlayerState(StateMode::Medecine);
 			}
-			if (KeyT.pressed())
+			if (KeyT.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl)
 			{
 				TimeStopManager::Start(); // ザ・ワールド発動
 			}
@@ -1503,7 +1563,10 @@ void Player::draw(const Game_Map& CameraPos) const
 		y = Dead-15;
 		
 		break;
-
+	case StateMode::Stun:
+		n = m_stunPatterns[m_frameIndex];
+		y = Stun-18;
+		break;
 
 	default:
 		n = m_idlePatterns[m_frameIndex];
