@@ -317,8 +317,7 @@ void Player::PlayerHurt()
 				m_KnockbackTimer = 0.4;
 				m_IsKnockback = true;
 
-				// ★ ここが重要！ 攻撃後の状態を決める（吹っ飛び中は無効）
-				// ノックバック中は update() で状態遷移を管理するのでここで Run/Idleに戻さない
+				
 			}
 
 			animTime = 0.0;
