@@ -4,7 +4,23 @@
 class Player;
 class Game_Map;
 
-enum class AnimState_Boss { Idle, Run, Dead, Attack, };
+enum class AnimState_Boss
+{
+	Idle,
+	Battle_Idle,
+	Charge_Atk,
+	Fly,
+	Throw_star,
+	Dash,
+	Meditate,
+	P2_1_Atk,
+	P2_2_Atk,
+	P2_3_Atk,
+	P2_4_Atk,
+	Throw_Gas,
+	Parry,
+	Dead,
+};
 
 struct AnimDesc_Boss {
 	int  row;
@@ -116,25 +132,39 @@ private:
 	double m_OverBPMTimer = 0.0;
 
 	AnimState_Boss m_state{ AnimState_Boss::Idle };	// 現在のアニメーション状態
+
+
 	HashTable<AnimState_Boss, AnimDesc_Boss> m_anims{	// アニメーションの説明
-		{ AnimState_Boss::Idle,   {0, 0, 8, 0.09, true  }  },
-		{ AnimState_Boss::Run,    { 1, 3, 9, 0.10, true }  },
-		{ AnimState_Boss::Dead,   { 4, 1, 3, 0.25, false } },
-		{ AnimState_Boss::Attack, { 3,2, 4, 0.20, false  } },
+		{ AnimState_Boss::Idle,			{ 0, 0, 7, 0.10, true }  },
+		{ AnimState_Boss::Battle_Idle,  { 0, 7, 5, 0.10, true }  },
+		{ AnimState_Boss::Charge_Atk,   { 1, 3, 8, 0.10, false}  },
+		{ AnimState_Boss::Fly,			{ 2, 3, 1, 0.10, true }  },
+		{ AnimState_Boss::Throw_star,	{ 2, 4, 2, 0.05, false}  },
+		{ AnimState_Boss::Dash,			{ 2, 6, 1, 0.10, true }  },
+		{ AnimState_Boss::Meditate,		{ 6, 4, 1, 0.10, true }  },
+		{ AnimState_Boss::P2_1_Atk,		{ 2, 7, 6, 0.05, false }  },
+		{ AnimState_Boss::P2_2_Atk,		{ 3, 5, 5, 0.05, false }  },
+		{ AnimState_Boss::P2_3_Atk,		{ 4, 2, 6, 0.05, false }  },
+		{ AnimState_Boss::P2_4_Atk,		{ 5, 1, 7, 0.05, false }  },
+		{ AnimState_Boss::Throw_Gas,	{ 5, 7, 5, 0.10, false }  },
+		{ AnimState_Boss::Parry,		{ 6, 5, 5, 0.10, false }  },
+		{ AnimState_Boss::Dead,			{ 3, 2, 5, 0.10, false }  },
 	};
 
 	//For Drawing sprite sheet
-	int32  m_frameIndex{ 0 };	// 現在のフレームインデックス
+	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
+	size_t m_frameIndexY = 0;
 	double m_time{ 0.0 };		// アニメーション時間管理用
 
 	void setState(AnimState_Boss s) {	// アニメーション状態を設定
 		if (m_state != s)
 		{
 			m_state = s;
-			m_time = 0.0;        // フレーム更新タイマーをリセット
 			m_frameIndex = 0;    // アニメーションの最初のフレームに戻す
+			m_time = 0.0;        // フレーム更新タイマーをリセット
 		}
 	}
+
 
 public:
 	Enemy_Boss() = default;
@@ -160,6 +190,7 @@ public:
 		return m_base_speed / m_boss_speed;
 		// If m_boss_speed > base_speed → faster attacks (shorter time)
 	}
+	AnimState_Boss GetPlayerState() const { return m_state; }
 
 	void SetPosition(const Vec2& pos) { m_boss_pos = pos; }
 	void SetScale(const Vec2& scale) { m_boss_scale = scale; }
@@ -177,10 +208,11 @@ public:
 };
 
 
-// collision when moving is weird
-// collision code is at the bottom so it didnt activate at the top of the update
+
 // pattern 1 and 4 (only player needed now)
 // animation
 
 // merge with player -> player take damage when hit the boss
 // check the death 
+
+// reflect throwing star
