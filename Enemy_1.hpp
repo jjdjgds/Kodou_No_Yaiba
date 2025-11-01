@@ -85,7 +85,7 @@ private:
 	float m_AttackRange;	  //攻撃範囲
 	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
 	//bool m_hitWindowActive = false;// 攻撃判定ウィンドウがアクティブかどうか
-
+	bool m_hitWindowActive = false;
 	bool   m_engaged = false;         // 是否处于交战（进入过 chaseRect 即置 true）
 	double m_yLoseTimer = 0.0;        // 玩家在不同Y轴的累计时长
 	double m_yLoseThresholdSec = 5.0; // 满足该秒数才允许脱战
