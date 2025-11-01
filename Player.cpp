@@ -1348,10 +1348,12 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			if (KeyT.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl)
 			{
 				TimeStopManager::Start(); // ザ・ワールド発動
+				SetTimeStoped(true);
 			}
 			if (KeyT.up())
 			{
 				TimeStopManager::Stop(); // ザ・ワールド発動
+				SetTimeStoped(false);
 			}
 
 

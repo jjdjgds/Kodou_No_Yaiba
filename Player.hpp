@@ -94,6 +94,7 @@ private:
 	double m_KnockbackTimer = 0.35;
 	double m_InvincibleTimer = 0.0;
 	bool m_IsKnockback = false;
+	bool m_TimeAutoFlag = false;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 
@@ -225,7 +226,7 @@ public:
 	 bool GetIsInvincible() const { return m_IsInvincible; }
 	 bool IsDogeging() const { return m_isDodging; }
 	 int GetMedecine()const { return m_Medicle; }
-	 
+	 bool IsTimeStoped() const { return m_TimeAutoFlag; }
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
@@ -255,6 +256,7 @@ public:
 	bool SetIsDodging(bool dodging) { return m_isDodging = dodging; }
 	void SetMedecine(int med) { m_Medicle = med ; }
 	void SetMaxMedecine() { m_Medicle = m_MaxMedicle; }
+	bool SetTimeStoped(bool st) { return  m_TimeAutoFlag = st; }
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;

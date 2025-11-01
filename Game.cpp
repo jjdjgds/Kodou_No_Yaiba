@@ -56,12 +56,18 @@ void Game::draw() const
 	Scene::SetBackground(ColorF(0.5, 0.5, 0.5, 1.0));
 	bg.draw();
 	map.draw();                // ← マップを描画
+	Boss_spawner.draw(map);
+	if (player.IsTimeStoped())
+	{
+		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 0,0,0,0.7 });
+
+	}
 	player.draw(map);             // ← プレイヤーを描画
 
 
-	Ui.draw(player,map);
+	//Ui.draw(player,map);
 
-	Boss_spawner.draw(map);
+	
 
 	Ui.draw(player,map);
 

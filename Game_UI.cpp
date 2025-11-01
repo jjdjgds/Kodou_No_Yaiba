@@ -147,6 +147,7 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	{
 		m_RedAutoFlag = false;
 	}
+	
 	switch (state)
 	{
 	case HeartRateState::Stun:
@@ -279,6 +280,8 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 	{
 		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 1,0,0,0.1 });
 	}
+	
+	
 	// === 描画位置 ===
 	Vec2 drawPos = Vec2{ 200, 200 };
 
