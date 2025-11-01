@@ -246,7 +246,7 @@ void Player::PlayerAttack(const Vec2& camera)
 		{
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
-
+			m_AttackStart = false;
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				SetPlayerState(StateMode::Run);
@@ -562,6 +562,7 @@ void Player::PlayerIdleToAttack(const Vec2& camera)
 		{
 			m_frameIndex = 0;
 			SetPlayerAttackFlag(false);
+			m_AttackStart = false;
 
 			//  ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
@@ -1253,6 +1254,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerLastState(GetPlayerState());
 			SetPlayerAttackFlag(true);
 			m_frameIndex = 0;
+			m_AttackStart = true;
 			animTime = 0.0;
 			const Audio& AS1 = AudioAsset(U"Sowrd1");
 			const Audio& AS2 = AudioAsset(U"Sowrd2");

@@ -57,7 +57,6 @@ bool Bullet::updateAndHit(double dt, const Game_Map& map,
 
 		const RectF box(Arg::center = probe + faceApply(m_hitBiasLocal), m_hitSize);
 
-		Print << U"bu {}" << box;
 
 		
 

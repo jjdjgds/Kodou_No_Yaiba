@@ -34,7 +34,6 @@ private:
 	bool m_FaceRight;		  //向き
 	float m_Speed = 150.0f;	  //移動速度
 
-	bool m_hitWindowActive = false;// 攻撃判定ウィンドウがアクティブかどうか
 	bool   m_dead = false;              // 已进入死亡流程
 	bool   m_pendingRemoval = false;
 
@@ -117,7 +116,7 @@ private:
 		{
 			m_state = s;
 			m_time = 0.0;        // フレーム更新タイマーをリセット
-			m_frameIndex = 0;    // アニメーションの最初のフレームに戻す
+ 			m_frameIndex = 0;    // アニメーションの最初のフレームに戻す
 		}
 	}
 

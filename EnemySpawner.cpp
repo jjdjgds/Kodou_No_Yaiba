@@ -8,16 +8,15 @@ void EnemySpawner::clear() {
 }
 
 // Spawn the boss at a position
-void  EnemySpawner::spawnBoss(const Vec2& pos, double stride, bool faceRight, Vec2 scale)
+void  EnemySpawner::spawnBoss(const Vec2& pos)
 {
 	if (!m_boss)
 	{
-		m_boss = new Enemy_Boss(pos, stride, faceRight, scale);
+		m_boss = new Enemy_Boss(pos);
 	}
 	else
 	{
 		m_boss->SetPosition(pos); // move existing boss
-		m_boss->SetScale(scale);
 	}
 }
 
@@ -80,7 +79,7 @@ void  EnemySpawner::update(Player& player, Game_Map& map)
 void  EnemySpawner::draw(const Game_Map& map) const
 {
 	if (m_boss)
-		m_boss->draw(m_boss->GetPosition() - map.getCameraPos(), { map.getChipWidth() * 3.5,map.getChipHeight() * 3.5 });
+		m_boss->draw(map);
 
 	for (const auto& e : m_enemy1) { if (e) e->draw(map); }
 	for (const auto& e : m_enemy2) { if (e) e->draw(map); }

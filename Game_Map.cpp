@@ -151,13 +151,6 @@ bool Game_Map::CheckCollision(const RectF& rect)
 				return true;
 			}
 		break; 
-		case BLOCK_GOAL:
-			if (rect.intersects(block.GetRect()))
-			{
-				loadNextStage();
-				return true;
-			}
-		break;
 		default:
 		break;
 		}
@@ -165,6 +158,30 @@ bool Game_Map::CheckCollision(const RectF& rect)
 	}
 	return false;
 }
+
+
+bool Game_Map::intersectsGoal(const RectF& rect) const
+{
+	for (const auto& block : m_blocks)
+	{
+		if (block.getType() == BLOCK_GOAL && rect.intersects(block.GetRect()))
+			return true;
+	}
+	return false;
+}
+
+std::optional<Vec2> Game_Map::findPlayerSpawn() const
+{
+	for (const auto& block : m_blocks)
+	{
+		if (block.getType() == BLOCK_PLAYER)
+		{
+			return block.GetRect().center();
+		}
+	}
+	return std::nullopt;
+}
+
 
 bool Game_Map::CheckCollision_Line(const Line& line) const
 {
