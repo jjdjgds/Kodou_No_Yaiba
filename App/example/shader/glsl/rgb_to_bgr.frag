@@ -39,7 +39,7 @@ void main()
 {
 	vec4 texColor = texture(Texture0, UV);
 
-	texColor = texColor.bgra;
+	texColor = texColor.Map_bgra;
 
 	FragColor = (texColor * Color) + g_colorAdd;
 }

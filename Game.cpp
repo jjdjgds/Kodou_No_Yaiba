@@ -12,10 +12,10 @@ Game::Game(const InitData& init)
 	: IScene{ init }
 	, player(
 	Vec2(800, 750), // 位置
-	Vec2(130, 130), // スプライトスケール(px)
+	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
 	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
-		3,
+		5,
 		3,
 		90,
 		3,
@@ -30,7 +30,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage2.txt",2))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -51,7 +51,7 @@ void Game::update()
 	const RectF pBoxWorld(Arg::center = player.GetPlayerPosition(),
 					  player.GetPlayerHitBox());
 
-	bg.update();
+	
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
 	Ui.update(player, map);
@@ -79,7 +79,6 @@ void Game::update()
 void Game::draw() const
 {
 	Scene::SetBackground(ColorF(0.5, 0.5, 0.5, 1.0));
-	bg.draw();
 	map.draw();                // ← マップを描画
 	Boss_spawner.draw(map);
 	if (player.IsTimeStoped())

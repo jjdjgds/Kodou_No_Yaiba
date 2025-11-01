@@ -75,6 +75,11 @@ bool Bullet::updateAndHit(double dt, const Game_Map& map,
 			m_pos.x += (m_vel.x > 0 ? 1 : -1); // 少しずらす
 			m_faceRight = !m_faceRight; // 反転
 			m_RemoveFlag = true; // ★ ここを追加
+			//U"BCunter"
+			const Audio& Cunter1 = AudioAsset(U"BCunter");
+			Cunter1.stop();
+			Cunter1.play();
+
 		}
 		if (rectScreen(cam).intersects(pHitBoxScreen)) {// プレイヤーに命中
 			if (doge)

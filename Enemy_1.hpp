@@ -41,7 +41,7 @@ private:
 
 	double m_hitOffsetY = 0.0;// 当たり判定Y
 
-	Vec2 m_Scale = { 180.0 ,155.0 };// 大きさ
+	Vec2 m_Scale = { 140.0 ,125.0 };// 大きさ
 	Vec2 m_hitBox = { 90.0 ,120.0 };// 当たり判定サイズ
 
 

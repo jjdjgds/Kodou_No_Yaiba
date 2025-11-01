@@ -2,6 +2,7 @@
 #include <Siv3D.hpp>
 #include "Block.hpp"
 
+
 class Game_Map
 { 
 private:
