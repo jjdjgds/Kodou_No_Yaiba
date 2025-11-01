@@ -133,86 +133,60 @@ void Game_UI::UIBerserk()
 	}
 }
 
-void Game_UI::update(Player player, const Game_Map& CameraPos)
+void Game_UI::update(Player& player, const Game_Map& CameraPos)
 {
 	HeatanimTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 
 	const auto state = player.GetPlayerHeartState();
 	const int bpm = player.GetPlayerBPM();
+
+	// 赤フラグのオン・オフ制御
 	if (bpm <= 60 || bpm >= 140)
-	{
 		m_RedAutoFlag = true;
-	}
 	else
-	{
 		m_RedAutoFlag = false;
-	}
-	
+
+	// 状態別 UI 表示
 	switch (state)
 	{
-	case HeartRateState::Stun:
-		UIStun();
-		break;
-
-	
-	case HeartRateState::Berserk:
-		UIBerserk();
-		break;
-	case HeartRateState::TimeControl:
-		UITimeControl();
-		break;
-	case HeartRateState::Normal:
-		UINormal();
-		break;
-	case HeartRateState::Dead:
-		UIDead();
-		break;
-
-	default:
-		break;
+	case HeartRateState::Stun:        UIStun(); break;
+	case HeartRateState::Berserk:     UIBerserk(); break;
+	case HeartRateState::TimeControl: UITimeControl(); break;
+	case HeartRateState::Normal:      UINormal(); break;
+	case HeartRateState::Dead:        UIDead(); break;
+	default: break;
 	}
-	
 
-	// ここで音を制御（drawではなく）
+	// 状態が変わったらBGM切り替え
 	if (m_WasState != state)
 	{
 		const Audio& pHbSound = AudioAsset(U"FastBeat");
 		const Audio& pLbSound = AudioAsset(U"SlowBeat");
 
-		// 一旦全部止める
 		pHbSound.stop();
 		pLbSound.stop();
 
-		// 新しい状態に応じて再生
 		switch (state)
 		{
 		case HeartRateState::Berserk:
 			pHbSound.setSpeed(1.0).play();
 			break;
-
 		case HeartRateState::Normal:
 			pHbSound.setSpeed(0.7).play();
 			break;
-
 		case HeartRateState::TimeControl:
 			pLbSound.setSpeed(1.0).play();
 			break;
-
 		default:
 			break;
 		}
 
-		m_WasState = state; // 状態更新
+		m_WasState = state;
 	}
-	
-
-	
-	
-	
-
 }
 
-void Game_UI::draw(Player player, const Game_Map& CameraPos) const
+
+void Game_UI::draw(const Player& player, const Game_Map& CameraPos) const
 {
 	const Texture& BeatTex = TextureAsset(U"HeatBeat");
 	const Texture& PlayerHP = TextureAsset(U"PlayerHP");

@@ -4,6 +4,7 @@
 #include "Enemy_2.hpp"
 #include "Collision.hpp"
 #include "TimeStopManager.h"
+#include "AllEffect.h"
 using namespace Collision;
 
 
@@ -14,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
 	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
-		3,
+		5,
 		3,
 		90,
 		3,
@@ -29,7 +30,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory() + U"example/Map/stage2.txt", 2))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",2))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -55,7 +56,8 @@ void Game::update()
 	map.update();
 	Ui.update(player, map);
 	player.update(map, m_enemies1,m_enemies2);
-	Boss_spawner.update(player, map);
+	Boss_spawner.update(player, map,effects);
+	effects.UpdateEffect();
 
 
 	if (map.intersectsGoal(pBoxWorld)) {
@@ -92,6 +94,8 @@ void Game::draw() const
 	
 
 	Ui.draw(player,map);
+	ScopedRenderStates2D blend{ BlendState::Additive };
+	effects.DrawEffect();
 
 
 }

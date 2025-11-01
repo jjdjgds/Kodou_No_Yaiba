@@ -8,7 +8,7 @@
 #include "Game_BG.hpp"
 #include "TimeStopManager.h"
 #include "EnemySpawner.hpp"
-
+#include "AllEffect.h"
 class Game : public App::Scene
 {
 public:
@@ -23,7 +23,8 @@ private:
 	Array<Enemy_2> m_enemies2;//敵キャラクターの配列
 	Game_Map map;
 	Game_UI Ui;
-
+	Game_BG bg;
+	AllEffect effects;
 	EnemySpawner Boss_spawner;
 	TimeStopManager tsm;
 };

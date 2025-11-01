@@ -3,6 +3,7 @@
 #include "Player.hpp"
 #include "Bullet.hpp"
 #include "TextShot.hpp"
+#include "AllEffect.h"
 class Bullet;
 
 enum class AnimState_Enemy2 {Idle,Run,Dead,Attack,};// アニメーション状態列挙型
@@ -165,7 +166,7 @@ public:
 
 	Enemy_2& GetEnemy() { return *this; }
 
-	void update(Player& player, Game_Map& map);
+	void update(Player& player, Game_Map& map, AllEffect& alleffe);
 
 	void draw(const Game_Map& CameraPos) const;
 
