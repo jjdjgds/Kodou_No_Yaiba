@@ -61,13 +61,13 @@ RectF Player::getHitRect(const Vec2& camera) const
 	// === 実際の当たり判定サイズ（スケール反映） ===
 	const SizeF sz = {
 		GetPlayerHitBox().x * m_Scale.x / 10,
-		GetPlayerHitBox().y * m_Scale.y / 10
+		GetPlayerHitBox().y * m_Scale.y / 12
 	};
 
 	// === 中心をスプライトと一致させる（体中心基準） ===
 	// m_Position がキャラ中心座標なのでそのまま使用
 	const Vec2 center = GetPlayerPosition()
-		.movedBy(-camera + Vec2{ 0,-40 }); // カメラ補正
+		.movedBy(-camera + Vec2{ 0,-30 }); // カメラ補正
 
 	return RectF{
 		Arg::center = center,
@@ -1026,8 +1026,8 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		  m_HitBox.y * m_Scale.y / 13
 	};
 
-	// === 重要：描画との整合性を取るためのオフセット ===
-	const Vec2 collisionOffset = Vec2{ 0, -30 };
+		// === 重要：描画との整合性を取るためのオフセット ===
+		const Vec2 collisionOffset = Vec2{ 0, -30 };
 
 	bool isTouchingWallLeft = false;
 	bool isTouchingWallRight = false;
