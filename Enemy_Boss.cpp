@@ -147,6 +147,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			m_hasTakenHit = true;
 			m_boss_hp -= 1;
 			s4.play();
+			Print << U"[hp] : " << m_boss_hp;
 		}
 	}
 	else
@@ -160,45 +161,99 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 	if (bossRect.intersects(playerRect))
 	{
-		// Boss rectangle edges
-		float bossLeft = bossRect.left().begin.x;
-		float bossRight = bossRect.right().begin.x;
-		float bossTop = bossRect.top().begin.y;
-		float bossBottom = bossRect.bottom().begin.y;
+		//// Boss rectangle edges
+		//float bossLeft = bossRect.left().begin.x;
+		//float bossRight = bossRect.right().begin.x;
+		//float bossTop = bossRect.top().begin.y;
+		//float bossBottom = bossRect.bottom().begin.y;
+		//
+		//// Player rectangle edges
+		//float playerLeft = playerRect.left().begin.x;
+		//float playerRight = playerRect.right().begin.x;
+		//float playerTop = playerRect.top().begin.y;
+		//float playerBottom = playerRect.bottom().begin.y;
+		//
+		//// Centers for push direction calculation
+		//float bossCenterX = (bossLeft + bossRight) / 2.0f;
+		//float bossCenterY = (bossTop + bossBottom) / 2.0f;
+		//float playerCenterX = (playerLeft + playerRight) / 2.0f;
+		//float playerCenterY = (playerTop + playerBottom) / 2.0f;
+		//
+		//// Calculate overlap
+		//float overlapX = std::min(bossRight, playerRight) - std::max(bossLeft, playerLeft);
+		//float overlapY = std::min(bossBottom, playerBottom) - std::max(bossTop, playerTop);
+		//
+		//// Resolve collision along the smaller overlap
+		//	// Push player away
+		//if (overlapX < overlapY)
+		//{
+		//	// Horizontal push
+		//	const Vec2 pushDir = (m_FaceRight ? Vec2{ +1, 0 } : Vec2{ -1, 0 });
+		//	player.SetPlayerPosition(player.GetPlayerPosition() + pushDir * overlapX);
+		//}
+		//else
+		//{
+		//	// Vertical push
+		//	player.SetPlayerPosition(player.GetPlayerPosition() - Vec2{ 0, overlapY });
+		//}
 
-		// Player rectangle edges
-		float playerLeft = playerRect.left().begin.x;
-		float playerRight = playerRect.right().begin.x;
-		float playerTop = playerRect.top().begin.y;
-		float playerBottom = playerRect.bottom().begin.y;
+			if (bossRect.intersects(playerRect))
+			{
+				// Boss rectangle edges
+				float bossLeft = bossRect.left().begin.x;
+				float bossRight = bossRect.right().begin.x;
+				float bossTop = bossRect.top().begin.y;
+				float bossBottom = bossRect.bottom().begin.y;
 
-		// Centers for push direction calculation
-		float bossCenterX = (bossLeft + bossRight) / 2.0f;
-		float bossCenterY = (bossTop + bossBottom) / 2.0f;
-		float playerCenterX = (playerLeft + playerRight) / 2.0f;
-		float playerCenterY = (playerTop + playerBottom) / 2.0f;
+				// Player rectangle edges
+				float playerLeft = playerRect.left().begin.x;
+				float playerRight = playerRect.right().begin.x;
+				float playerTop = playerRect.top().begin.y;
+				float playerBottom = playerRect.bottom().begin.y;
 
-		// Calculate overlap
-		float overlapX = std::min(bossRight, playerRight) - std::max(bossLeft, playerLeft);
-		float overlapY = std::min(bossBottom, playerBottom) - std::max(bossTop, playerTop);
+				// Calculate overlap
+				float overlapX = std::min(bossRight, playerRight) - std::max(bossLeft, playerLeft);
+				float overlapY = std::min(bossBottom, playerBottom) - std::max(bossTop, playerTop);
 
-		// Resolve collision along the smaller overlap
-		if (overlapX < overlapY)
-		{
-			// Horizontal push
-			if (playerCenterX < bossCenterX)
-				player.SetPlayerPosition(player.GetPlayerPosition() - Vec2{ overlapX, 0 }); // push left
-			else
-				player.SetPlayerPosition(player.GetPlayerPosition() + Vec2{ overlapX, 0 }); // push right
-		}
-		else
-		{
-			// Vertical push
-			if (playerCenterY < bossCenterY)
-				player.SetPlayerPosition(player.GetPlayerPosition() - Vec2{ 0, overlapY }); // push up
-			else
-				player.SetPlayerPosition(player.GetPlayerPosition() + Vec2{ 0, overlapY }); // push down
-		}
+				Vec2 playerPos = player.GetPlayerPosition();
+				Vec2 newPos = playerPos;
+
+
+				if (overlapX < overlapY)
+				{
+					// Horizontal push
+					Vec2 pushDir = (m_FaceRight ? Vec2{ +1, 0 } : Vec2{ -1, 0 });
+					newPos = playerPos + pushDir * overlapX;
+
+					RectF newPlayerRect(newPos, player.GetPlayerScale());
+					if (!map.CheckCollision(newPlayerRect))
+					{
+						player.SetPlayerPosition(newPos);
+					}
+					else
+					{
+						// Optional: Slide slightly along vertical if possible
+						Vec2 slidePos = playerPos + Vec2{ 0, Sign(overlapY) } *2.0; // small nudge
+						RectF slideRect(slidePos, player.GetPlayerScale());
+						if (!map.CheckCollision(slideRect))
+							player.SetPlayerPosition(slidePos);
+					}
+				}
+				else
+				{
+					// Vertical push
+					Vec2 pushDir = Vec2{ 0, -1 };
+					newPos = playerPos + pushDir * overlapY;
+
+					RectF newPlayerRect(newPos, player.GetPlayerScale());
+					if (!map.CheckCollision(newPlayerRect))
+					{
+						player.SetPlayerPosition(newPos);
+					}
+				}
+			
+		    }
+	
 	}
 
 	if (m_OverBPM)
@@ -835,14 +890,15 @@ void Enemy_Boss::Pattern_4(Player& player, Vec2 cam_pos)
 
 void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos , double dt_enemy)
 {
+	const double dt_5 = Scene::DeltaTime();
 	const double tScale = GetTimeScale();
 
-	const double windupTime = 1.0 * tScale ;  // Pre-attack delay before dash
-	const double dashTime = 0.5 * tScale;  // Max dash duration
-	const double stopDistance = 50.0; // Stop this far in front of player
-	const double postDashPause = 0.8 * tScale; // Pause before actual attack
-	const double attackTime = 0.4 * tScale; // Duration of hit window
-	const double cooldownTime = 0.6 * tScale;  // Recovery delay after attack
+	const double windupTime = 1.0 * tScale;  // Pre-attack delay before dash
+	const double dashTime = 0.3 * tScale;  // Max dash duration
+	const double stopDistance = 40.0; // Stop this far in front of player
+	const double postDashPause = 1.0 * tScale; // Pause before actual attack
+	const double attackTime = 0.1 * tScale; // Duration of hit window
+	const double cooldownTime = 1.0 * tScale;  // Recovery delay after attack
 
 	if (!m_isAttacking)
 	{
@@ -870,7 +926,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos , double dt_enemy)
 	m_FaceRight = (dir.x >= 0.0f);
 
 	// Update the timer based on the delta time
-	m_pattern5Timer += dt_enemy;
+	m_pattern5Timer += dt_5;
 
 	// Debugging: Print out the timer value after update
 	//Print << U"[Pattern_5] After Timer Update: " << m_pattern5Timer;
@@ -892,8 +948,8 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos , double dt_enemy)
 	{
 		//Print << U"[Pattern_5] chargup phase.";
 		setState(AnimState_Boss::Charge_Up);
-		const float dashSpeed = 2000.0f; // Adjust speed here
-		m_boss_pos.x += dir.x * dashSpeed *dt_enemy;
+		const float dashSpeed = 1000.0f; // Adjust speed here
+		m_boss_pos.x += dir.x * dashSpeed * dt_5;
 
 		// Compute current distance to player
 		float currentDist = (player.GetPlayerPosition().x - m_boss_pos.x) * dir.x;
