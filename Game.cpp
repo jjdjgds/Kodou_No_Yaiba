@@ -4,6 +4,7 @@
 #include "Enemy_2.hpp"
 #include "Collision.hpp"
 #include "TimeStopManager.h"
+#include "AllEffect.h"
 using namespace Collision;
 
 
@@ -68,7 +69,8 @@ void Game::update()
 	map.update();
 	Ui.update(player, map);
 	player.update(map, m_enemies1,m_enemies2);
-	Boss_spawner.update(player, map);
+	Boss_spawner.update(player, map,effects);
+	effects.UpdateEffect();
 
 
 }
@@ -92,6 +94,8 @@ void Game::draw() const
 	
 
 	Ui.draw(player,map);
+	ScopedRenderStates2D blend{ BlendState::Additive };
+	effects.DrawEffect();
 
 
 }

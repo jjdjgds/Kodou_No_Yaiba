@@ -20,7 +20,7 @@ struct AnimDesc_Enemy1 {// アニメーションの説明構造体
 	bool   loop = true;
 };
 
-class Enemy_1 :public AllEffect
+class Enemy_1 
 {
 private:
 
@@ -155,7 +155,7 @@ public:
 
 	Enemy_1& GetEnemy() { return *this; }
 
-	void update(Player& player, Game_Map& map);
+	void update(Player& player, Game_Map& map, AllEffect& alleffe);
 
 	void draw(const Game_Map& CameraPos) const;
 

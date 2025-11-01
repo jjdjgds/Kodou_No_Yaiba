@@ -53,15 +53,15 @@ private:
 
 	float m_Speed;			  //移動速度
 	float m_DamageTimeOut;	  //ダメージ受けた後の無敵時間
-	bool m_Jump;			  //ジャンプ状態
+	bool  m_Jump;			  //ジャンプ状態
 	float m_JumpSpeed;		  //ジャンプ速度
-	bool m_FaceRight;		  //向き true:右 false:左
-	bool m_Invincible;		  //無敵状態 true:無敵 false:通常
+	bool  m_FaceRight;		  //向き true:右 false:左
+	bool  m_Invincible;		  //無敵状態 true:無敵 false:通常
 	double animTime = 0.0;    //アニメーション時間管理用
 	RectF m_srcRect;		  //描画元矩形
-	Vec2 m_HitRect = { 6.0 ,5.0 };          //当たり判定矩形
+	Vec2  m_HitRect = { 6.0 ,5.0 };          //当たり判定矩形
 	float m_gravity = 9.8;  //重力
-	bool m_onGround = false;
+	bool  m_onGround = false;
 	double m_hitOffsetY = 20.0;// 当たり判定Y
 	double m_DogelstTimer = 0.0;
 	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間

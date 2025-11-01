@@ -58,13 +58,13 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 }
 
 // Update all enemies and boss
-void  EnemySpawner::update(Player& player, Game_Map& map)
+void  EnemySpawner::update(Player& player, Game_Map& map,AllEffect& ae)
 {
 	if (m_boss)
 		m_boss->update(player, map);
 
-	for (auto& e : m_enemy1)  if (e)e->update(player, map);
-	for (auto& e : m_enemy2) if (e) e->update(player, map);
+	for (auto& e : m_enemy1)  if (e)e->update(player, map,ae);
+	for (auto& e : m_enemy2) if (e) e->update(player, map,ae);
 
 	// ★ 死亡动画结束 → 自动从容器移除
 	m_enemy1.remove_if([](const std::unique_ptr<Enemy_1>& e) {
