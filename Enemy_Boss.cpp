@@ -468,7 +468,7 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos , double dt_enemy)
 {
 	const double tScale = GetTimeScale();
-	const double moveSpeed = 800.0 * dt_enemy;
+	const double moveSpeed = 2000.0 * dt_enemy;
 	const double projectileSpeed = 1000.0;
 
 	// Target = top middle of map
@@ -548,6 +548,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos , double dt_enemy)
 		// Move projectile
 		if (m_projectileActive)
 		{
+			throw_star.play();
 			m_projectilePos += m_projectileDir * projectileSpeed * dt_enemy;
 
 			const Texture& starTex = TextureAsset(U"shuriken");
@@ -570,6 +571,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos , double dt_enemy)
 				if (player.IsPlayerAttacking())
 				{
 					// Reverse direction
+					parry.play();
 					m_projectileDir = (m_boss_pos - m_projectilePos).normalized(); // send back to boss
 					m_projectileReflected = true;
 					//Print << U"[Pattern_1] Projectile reflected!";
@@ -693,13 +695,26 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos , double dt_enemy)
 	case 1: // --- Attack (active hit) ---
 	{
 		if (m_pattern2Count == 0)
+		{
+			s1.play();
 			setState(AnimState_Boss::P2_1_Atk);
+		}
 		else if (m_pattern2Count == 1)
+		{
+			s2.play();
 			setState(AnimState_Boss::P2_2_Atk);
+		}
 		else if (m_pattern2Count == 2)
+		{
+			s3.play();
 			setState(AnimState_Boss::P2_3_Atk);
+		}
 		else if (m_pattern2Count == 3)
+		{
+			s4.play();
 			setState(AnimState_Boss::P2_4_Atk);
+		}
+			
 
 		const float hitW = m_hitBox.x * 1.1f;
 		const float hitH = m_hitBox.y;
@@ -767,6 +782,7 @@ void Enemy_Boss::Pattern_3(Player& player, Vec2 cam_pos)
 		m_smoke.position = m_boss_pos + dir * throwDist;
 		m_smoke.position.y += m_hitOffsetY;
 		m_smoke.lifetime = 5.0;   // lasts 5 seconds
+		smoke.play();
 		m_smoke.active = true;
 	
 		//Print << U"[Pattern_3] Boss throws smoke!";
@@ -958,6 +974,7 @@ void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 	{
 		m_isAttacking = true;
 		setState(AnimState_Boss::Meditate); // Boss is meditating (vulnerable)
+		rest.play();
 		m_pattern6Timer = 0.0f;
 		m_pattern6Count = 0;
 		//Print << U"[Pattern_6 Start]";
@@ -997,6 +1014,7 @@ void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 		m_pattern6Count = 0;
 		m_pattern6Timer = 0.0f;
 		m_isAttacking = false;
+		rest.stop();
 		Print << U"[Pattern_6 End] Boss woke up!";
 	}
 }
@@ -1081,6 +1099,7 @@ void Enemy_Boss::executeCounterAttack(Player& player, Vec2 cam_pos)
 	const RectF playerRect = player.getHitRect(cam_pos);
 	if (counterHitbox.intersects(playerRect))
 	{
+		parry.play();
 		player.takeDamage(1);
 		m_hasHitPlayer = true;  // Set the flag to prevent further damage
 	}

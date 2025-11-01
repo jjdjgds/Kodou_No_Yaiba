@@ -183,6 +183,14 @@ private:
 		}
 	}
 
+	const Audio& throw_star = AudioAsset(U"pattern_1_throw");
+	const Audio& smoke = AudioAsset(U"pattern_3");
+	const Audio& parry = AudioAsset(U"pattern_4");
+	const Audio& rest = AudioAsset(U"pattern_6");
+	const Audio& s1 = AudioAsset(U"Sowrd1");
+	const Audio& s2 = AudioAsset(U"Sowrd2");
+	const Audio& s3 = AudioAsset(U"Sowrd3");
+	const Audio& s4 = AudioAsset(U"Sowrd4");
 
 public:
 	Enemy_Boss() = default;
