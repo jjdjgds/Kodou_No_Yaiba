@@ -736,12 +736,21 @@ void Player::takeDamage(int damage, bool fromRight)
 
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
+	// HPが0なら即死亡状態にしてアニメーション更新のみ行う
 	if (GetPlayerHP() <= 0)
 	{
-		SetPlayerState(StateMode::Dead);
+		// 状態がまだDeadでなければDeadに変更
+		if (GetPlayerState() != StateMode::Dead)
+		{
+			SetPlayerState(StateMode::Dead);
+			SetPlayerBPM(0); // BPMも0にする
+			SetPlayerHeartState(HeartRateState::Dead);
+		}
 
-		return;
+		PlayerDead();  // 死亡アニメ更新
+		return;        // 他の処理をスキップ
 	}
+
 	
 	// --- update() の冒頭付近 ---
 	if (m_IsStunned)
@@ -766,17 +775,6 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	}
 
 
-<<<<<<< HEAD
-	if (GetPlayerHP() <= 0)
-	{
-		SetPlayerState(StateMode::Dead);
-		return;
-	}
-	
-=======
-	
-
->>>>>>> 3f24381b645443af6f2a62bee7394cf59979b227
 	//-----------------------------------
     // ノックバック中
     //-----------------------------------
@@ -816,20 +814,6 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		return;
 	}
 
-	// HPが0なら即死亡状態にしてアニメーション更新のみ行う
-	if (GetPlayerHP() <= 0)
-	{
-		// 状態がまだDeadでなければDeadに変更
-		if (GetPlayerState() != StateMode::Dead)
-		{
-			SetPlayerState(StateMode::Dead);
-			SetPlayerBPM(0); // BPMも0にする
-			SetPlayerHeartState(HeartRateState::Dead);
-		}
-
-		PlayerDead();  // 死亡アニメ更新
-		return;        // 他の処理をスキップ
-	}
 
 	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();

@@ -501,6 +501,33 @@ void Enemy_2::update(Player& player, Game_Map& map)
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame) || m_takeDamage;
 	if (gotHit) {//
+		const Audio& AS1 = AudioAsset(U"Sowrd1");
+		const Audio& AS2 = AudioAsset(U"Sowrd2");
+		const Audio& AS3 = AudioAsset(U"Sowrd3");
+		const Audio& AS4 = AudioAsset(U"Sowrd4");
+		AS1.stop();
+		AS2.stop();
+		AS3.stop();
+		AS4.stop();
+		int a = Random(0, 3);
+		switch (a)
+		{
+
+		case 0:
+			AS1.play();
+			break;
+		case 1:
+			AS2.play();
+			break;
+		case 2:
+			AS3.play();
+			break;
+		case 3:
+			AS4.play();
+			break;
+		default:
+			break;
+		}
 		die();
 	}
 	else if (m_state == AnimState_Enemy2::Attack) {
