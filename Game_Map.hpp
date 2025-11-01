@@ -38,5 +38,6 @@ public:
 	const Array<Block>& getBlocks() const { return m_blocks; }
 	double getChipWidth() const { return m_chipWidth; }
 	double getChipHeight() const { return m_chipHeight; }
+	RectF worldBounds() const;
 };
 
