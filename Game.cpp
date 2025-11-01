@@ -36,11 +36,33 @@ Game::Game(const InitData& init)
 	}
 	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
 
+	if (auto spawn = map.findPlayerSpawn()) {
+		player.SetPlayerPosition(*spawn);
+	}
+	else {
+		player.SetPlayerPosition(Vec2{ 800, 750 });
+	}
 
 }
 
 void Game::update()
 {
+	const RectF pBoxWorld(Arg::center = player.GetPlayerPosition(),
+					  player.GetPlayerHitBox());
+
+	if (map.intersectsGoal(pBoxWorld)) {
+		map.loadNextStage();
+		Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
+
+		if (auto spawn = map.findPlayerSpawn()) {
+			player.SetPlayerPosition(*spawn);
+		}
+		else {
+			player.SetPlayerPosition({ 100, 100 });
+		}
+	}
+
+
 	bg.update();
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
@@ -56,12 +78,18 @@ void Game::draw() const
 	Scene::SetBackground(ColorF(0.5, 0.5, 0.5, 1.0));
 	bg.draw();
 	map.draw();                // ← マップを描画
+	Boss_spawner.draw(map);
+	if (player.IsTimeStoped())
+	{
+		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 0,0,0,0.7 });
+
+	}
 	player.draw(map);             // ← プレイヤーを描画
 
 
-	Ui.draw(player,map);
 
-	Boss_spawner.draw(map);
+
+	
 
 	Ui.draw(player,map);
 

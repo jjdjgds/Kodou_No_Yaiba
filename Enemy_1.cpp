@@ -24,11 +24,19 @@ void Enemy_1::die() {// 死亡処理
 
 RectF Enemy_1::hurtRect(const Vec2& cam) const
 {
-	const double forwardOffset = m_hitBox.x * -0.2; // 調整可
-	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
-	const SizeF sz{ m_hitBox.x , m_hitBox.y };
-	return RectF{ Arg::center = m_Position.movedBy(xOffset, m_hitOffsetY) - cam, sz };
+	// 矩形をキャラの中心に合わせる
+	const SizeF sz{ m_hitBox.x, m_hitBox.y };
+	Vec2 center = m_Position - cam;
+
+	// 横方向の微調整（まずは0で確認）
+	// center.x += (m_FaceRight ? 0 : 0);
+
+	// 縦方向も中心に合わせる
+	center.y -= 0;
+
+	return RectF{ Arg::center = center, sz };
 }
+
 
 RectF Enemy_1::hurtRectAt(const Vec2& pos) const
 {
@@ -38,36 +46,6 @@ RectF Enemy_1::hurtRectAt(const Vec2& pos) const
 	return RectF{ Arg::center = pos.movedBy(xOffset , m_hitOffsetY), sz };
 }
 
-
-// 前方の障害物までの距離を測定(待定)
-//double Enemy_1::forwardClearance(const Game_Map& map, double baseW, double baseH, double lead, double maxForward, int dir) const
-//{
-//	const double step = 4.0;
-//	double tOK = 0.0;
-//
-//	for (double t = 0.0; t <= maxForward; t += step) {
-//		const Vec2 center = m_Position.movedBy(dir * (lead + t), m_hitOffsetY);
-//		const RectF probe(Arg::center = center, SizeF{ baseW, baseH }); // 世界坐标！
-//		if (map.CheckCollision_RecF(probe)) {
-//			break;
-//		}
-//		tOK = t;
-//	}
-//
-//	double lo = tOK, hi = Min(tOK + step, maxForward);
-//	for (int i = 0; i < 6; ++i) { // 2^-6 ≈ 0.015625 * step
-//		const double mid = (lo + hi) * 0.5;
-//		const Vec2 center = m_Position.movedBy(dir * (lead + mid), m_hitOffsetY);
-//		const RectF probe(Arg::center = center, SizeF{ baseW, baseH });
-//		if (!map.CheckCollision_RecF(probe)) {
-//			lo = mid;
-//		}
-//		else {
-//			hi = mid;
-//		}
-//	}
-//	return lo;
-//}
 
 RectF Enemy_1::attackRect(const Game_Map& map) const
 {
@@ -117,6 +95,37 @@ Line Enemy_1::makeGroundProbeLine(const Vec2& cam, bool debug) const
 	}
 }
 
+// プレイヤーへの視線が通っているかを判定
+static bool hasLineOfSight(const Enemy_1& self, Game_Map& map, const RectF& playerBox)
+{
+	const Vec2 from = self.getPosition();
+	const Vec2 to = playerBox.center();
+	Vec2 dir = to - from;
+	const double dist = dir.length();
+	if (dist <= 0.0001) {
+		return true;
+	}
+	dir /= dist;
+
+
+	const double step = 6.0;// 探査ステップ
+	const SizeF  probeSize{ 8, 8 };// 视线探测用矩形サイズ
+	for (double t = 0.0; t <= dist; t += step) {
+		const Vec2 p = from + dir * t;// 探査点
+
+		if (playerBox.intersects(Circle{ p, 3.0 })) {// プレイヤーに到達
+			return true;
+		}
+
+		if (map.CheckCollision_RecF(RectF{ Arg::center = p, probeSize })) {// 障害物に当たった
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
 
 void Enemy_1::update(Player& player, Game_Map& map)
 {
@@ -133,11 +142,17 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const RectF pHitBox(Arg::center = player.GetPlayerPosition() - cam, player.GetPlayerHitBox()); // プレイヤー本体
 	const RectF pAttackBox = player.getAttackRect(cam); // プレイヤーの攻撃矩形（Player の関数利用）
 
-	
-	const bool playerInChase = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡矩形内にいるか
+
 	const bool playerInAttack = RectToRect(eAttackBox, pHitBox);// プレイヤーが攻撃矩形内にいるか
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
 
+
+	const bool playerInChase = RectToRect(eChaseBox, pHitBox);
+	const RectF pHitBoxWorld(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox());
+	const bool playerInChaseWall = playerInChase
+		&& hasLineOfSight(*this, map, pHitBoxWorld);// プレイヤーが追跡矩形内にいるか（粗判定+视线判定）
+
+	
 	if (playerInChase) {// プレイヤーが追跡矩形内にいるなら交戦状態に移行
 		m_engaged = true;
 		m_yLoseTimer = 0.0;
@@ -184,7 +199,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		{// 死亡時飛び出し
 			m_FaceRight = (player.GetPlayerPosition().x >= m_Position.x);
 			const double base = (m_speedBase > 0 ? m_speedBase : 150.0);
-			m_Speed = 1000;
+			m_Speed = 100;
 
 			double remaining = m_Speed * dt;
 			const double unit = 2.0;
@@ -225,10 +240,6 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		m_isRunning = false;
 		updateFacingStable();
 
-		if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-			player.takeDamage(1, m_FaceRight);;
-			m_hasHitPlayer = true;
-		}
 	}
 	else {// 通常行動状態
 
@@ -283,7 +294,9 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 			m_mode = Behavior_Enemy1::Patrol;
 			if (!groundAhead) {
-				m_FaceRight = !m_FaceRight;
+				if (m_onGround) {
+					m_FaceRight = !m_FaceRight;
+				}
 				m_isRunning = false;
 			}
 
@@ -419,6 +432,37 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
+
+
+		const Audio& AS1 = AudioAsset(U"Sowrd1");
+		const Audio& AS2 = AudioAsset(U"Sowrd2");
+		const Audio& AS3 = AudioAsset(U"Sowrd3");
+		const Audio& AS4 = AudioAsset(U"Sowrd4");
+		AS1.stop();
+		AS2.stop();
+		AS3.stop();
+		AS4.stop();
+		int a = Random(0, 3);
+		switch (a)
+		{
+
+		case 0:
+
+			AS1.play();
+			break;
+
+		case 1:
+			AS2.play();
+			break;
+		case 2:
+			AS3.play();
+			break;
+		case 3:
+			AS4.play();
+			break;
+		default:
+			break;
+		}
 		die();
 	}
 	else if (m_state == AnimState_Enemy1::Attack) {
@@ -436,7 +480,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 	// ----------------------------
 	// --- アニメーション更新
-	// ----------------------------
+	// ----------------------------d
 
 
 	const auto& A = m_anims[m_state];
@@ -446,14 +490,6 @@ void Enemy_1::update(Player& player, Game_Map& map)
 
 		if (A.loop) {
 			m_frameIndex = (m_frameIndex + 1) % A.frames;
-			m_hitWindowActive = (m_frameIndex >= 2 && m_frameIndex <= 4);
-			if (m_hitWindowActive && !m_hasHitPlayer)
-			{
-				if (RectToRect(eAttackBox, pHitBox)) {
-					player.takeDamage(1, m_FaceRight);
-					m_hasHitPlayer = true;
-				}
-			}
 		}
 		else {
 			if (m_frameIndex < (A.frames - 1)) {
@@ -465,12 +501,6 @@ void Enemy_1::update(Player& player, Game_Map& map)
 					m_pendingRemoval = true;
 				}
 				else if (m_state == AnimState_Enemy1::Attack) {// 攻撃アニメーション終了
-					if (!m_hasHitPlayer && RectToRect(eAttackBox, pHitBox)) {
-						player.takeDamage(1);
-						m_hasHitPlayer = true;
-						m_attackCooldown = m_attackCooldownMax; // ← ヒットしたら即クールダウン
-					}
-
 					m_attackFlag = false;
 					m_hasHitPlayer = false;
 					m_attackCooldown = m_attackCooldownMax;
@@ -481,6 +511,17 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		}
 	}
 
+	if (m_state == AnimState_Enemy1::Attack)
+	{
+		m_hitWindowActive = (m_frameIndex >= 1 && m_frameIndex <= 2);
+		if (m_hitWindowActive && !m_hasHitPlayer)
+		{
+			if (RectToRect(eAttackBox, pHitBox)) {
+				player.takeDamage(1, m_FaceRight);
+				m_hasHitPlayer = true;
+			}
+		}
+	}
 
 	if (m_state != AnimState_Enemy1::Attack && m_state != AnimState_Enemy1::Dead) {// 攻撃中・被弾中以外は状態を速度に応じて更新
 		setState(m_isRunning ? AnimState_Enemy1::Run : AnimState_Enemy1::Idle);
@@ -489,7 +530,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const bool inChase = playerInChase;
 	const bool engagedNow = m_engaged;
 
-	if (inChase && !textChase) {
+	if (!textallowLose && inChase && !textChase) {
 		text.trigger(U'!');
 		textallowLose = true;
 	}
@@ -530,7 +571,7 @@ void Enemy_1::draw(const Game_Map& map) const
 
 	Vec2 center = m_Position - map.getCameraPos();
 	const double visualH = c.y * syScale;
-	center.y -= (visualH * 0.5 - m_hitBox.y * 0.5) - m_hitOffsetY;
+	center.y -= (visualH * 0.5 - m_hitBox.y * 0.59) - m_hitOffsetY;
 
 	(m_FaceRight ? reg : reg.mirrored())
 		.scaled(sxScale, syScale)

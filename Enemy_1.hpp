@@ -34,7 +34,6 @@ private:
 	bool m_FaceRight;		  //向き
 	float m_Speed = 150.0f;	  //移動速度
 
-	bool m_hitWindowActive = false;// 攻撃判定ウィンドウがアクティブかどうか
 	bool   m_dead = false;              // 已进入死亡流程
 	bool   m_pendingRemoval = false;
 
@@ -85,7 +84,8 @@ private:
 	double m_attackCooldownMax = 0.6; // 可调
 	float m_AttackRange;	  //攻撃範囲
 	bool m_hasHitPlayer = false; // 1回の攻撃でプレイヤーに当てたかどうか
-
+	//bool m_hitWindowActive = false;// 攻撃判定ウィンドウがアクティブかどうか
+	bool m_hitWindowActive = false;
 	bool   m_engaged = false;         // 是否处于交战（进入过 chaseRect 即置 true）
 	double m_yLoseTimer = 0.0;        // 玩家在不同Y轴的累计时长
 	double m_yLoseThresholdSec = 5.0; // 满足该秒数才允许脱战
@@ -116,7 +116,7 @@ private:
 		{
 			m_state = s;
 			m_time = 0.0;        // フレーム更新タイマーをリセット
-			m_frameIndex = 0;    // アニメーションの最初のフレームに戻す
+ 			m_frameIndex = 0;    // アニメーションの最初のフレームに戻す
 		}
 	}
 

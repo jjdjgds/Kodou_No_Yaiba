@@ -174,11 +174,6 @@ public:
 	bool IsDead() const { return m_dead; }
 
 
-	double forwardClearance(const Game_Map& map,
-								 double baseW, double baseH,
-								 double lead, double maxForward,
-								 int dir) const;
-
 	RectF hurtRect(const Vec2& cam) const; // ダメージ判定矩形を取得
 	RectF hurtRectAt(const Vec2& pos) const;// 指定位置での当たり判定矩形取得
 
@@ -190,11 +185,73 @@ public:
 
 	static bool groundBehind(const Enemy_2& self, const Game_Map& map)// 敵の背後に地面があるかどうか
 	{
-		const double back = 1.2 * self.m_hitBox.x;
-		const double down = 1.0 * self.m_hitBox.y;
-		const Vec2 dir = (self.m_FaceRight ? Vec2{ -back, +down }: Vec2{ +back, +down });
-		const Line line(self.m_Position, self.m_Position + dir);
-		return map.CheckCollision_Line(line);
+		// 使用“角色尺寸”而不是“世界坐标值”来决定探测长度
+		const double back = 1.5 * self.m_hitBox.x;   // 向后的水平探测长度（略小于宽度）
+		const double down = 0.9 * self.m_hitBox.y;   // 向下的垂直探测长度（约等于高度）
+
+		// 从“脚边”起笔更稳：m_Position + 脚底偏移
+		const Vec2 foot = self.m_Position.movedBy(0, self.m_hitOffsetY);
+
+		// 背后方向：面朝右→向左后（-x,+y）；面朝左→向右后（+x,+y）
+		const Vec2 dir = (self.m_FaceRight ? Vec2{ -back, +down }
+		: Vec2{ +back, +down });
+
+		// 世界坐标线段；map.CheckCollision_Line 也要吃“世界坐标”的线
+		const Line probe(foot, foot + dir);
+		const Line probe1(foot- map.getCameraPos(), foot - map.getCameraPos() + dir);
+		probe1.draw(2, Palette::Aqua);
+		
+		return map.CheckCollision_Line(probe);
 	};
+
+	static bool groundBehind_1(const Enemy_2& self, const Game_Map& map)// 敵の背後に地面があるかどうか
+	{
+		// 使用“角色尺寸”而不是“世界坐标值”来决定探测长度
+		const double back = 0.8 * self.m_hitBox.x;   // 向后的水平探测长度（略小于宽度）
+
+		// 从“脚边”起笔更稳：m_Position + 脚底偏移
+		const Vec2 foot = self.m_Position.movedBy(0, self.m_hitOffsetY);
+
+		// 背后方向：面朝右→向左后（-x,+y）；面朝左→向右后（+x,+y）
+		const Vec2 dir = (self.m_FaceRight ? Vec2{ -back, 0 }
+		: Vec2{ +back, 0 });
+
+		// 世界坐标线段；map.CheckCollision_Line 也要吃“世界坐标”的线
+		const Line probe(foot, foot + dir);
+		const Line probe1(foot - map.getCameraPos(), foot - map.getCameraPos() + dir);
+		probe1.draw(2, Palette::Orangered);
+
+		return map.CheckCollision_Line(probe);
+	};
+
+	static bool hasLineOfSight(const Enemy_2& self, Game_Map& map, const RectF& playerBox)
+	{
+		const Vec2 from = self.m_Position;
+		const Vec2 to = playerBox.center();
+		Vec2 dir = to - from;
+		const double dist = dir.length();
+		if (dist <= 0.0001) {
+			return true;
+		}
+		dir /= dist;
+
+
+		const double step = 6.0;// 探査ステップ
+		const SizeF  probeSize{ 8, 8 };// 视线探测用矩形サイズ
+		for (double t = 0.0; t <= dist; t += step) {
+			const Vec2 p = from + dir * t;// 探査点
+
+			if (playerBox.intersects(Circle{ p, 3.0 })) {// プレイヤーに到達
+				return true;
+			}
+
+			if (map.CheckCollision_RecF(RectF{ Arg::center = p, probeSize })) {// 障害物に当たった
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 };
 

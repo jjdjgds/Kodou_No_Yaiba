@@ -66,6 +66,11 @@ private:
 	double m_DogelstTimer = 0.0;
 	double m_DogeCoolTimer = 0.0;   // クールタイムの経過時間
 	double m_DogeCooldown = 1.0;    // クールタイム時間（秒）
+
+	bool m_IsStunned = false;     // スタン中かどうか
+	double m_StunTimer = 0.0;     // スタン経過時間
+	const double m_StunDuration = 2.0; // 2秒スタン
+
 	bool   m_isDodging = false;     // 現在ドッジ中か
 
 	double m_DogeTimer = 0.0;       // ドッジ中の経過時間
@@ -89,6 +94,7 @@ private:
 	double m_KnockbackTimer = 0.35;
 	double m_InvincibleTimer = 0.0;
 	bool m_IsKnockback = false;
+	bool m_TimeAutoFlag = false;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 
@@ -106,7 +112,7 @@ private:
 	Array<int32> m_attackPatterns{ 0, 1, 2, 3,4};
 
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
-	Array<int32> m_hurtPatterns{  0,1,1,2 };
+	Array<int32> m_hurtPatterns{  0,1,2 };
 
 	//Jumpアニメーション
 	Array<int32> m_jumpPatterns{1,1,1,1,1 };
@@ -220,7 +226,7 @@ public:
 	 bool GetIsInvincible() const { return m_IsInvincible; }
 	 bool IsDogeging() const { return m_isDodging; }
 	 int GetMedecine()const { return m_Medicle; }
-	 
+	 bool IsTimeStoped() const { return m_TimeAutoFlag; }
 	//setter
 	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
@@ -250,6 +256,7 @@ public:
 	bool SetIsDodging(bool dodging) { return m_isDodging = dodging; }
 	void SetMedecine(int med) { m_Medicle = med ; }
 	void SetMaxMedecine() { m_Medicle = m_MaxMedicle; }
+	bool SetTimeStoped(bool st) { return  m_TimeAutoFlag = st; }
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;

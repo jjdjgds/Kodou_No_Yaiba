@@ -115,6 +115,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AllEffect.cpp" />
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Enemy_1.cpp" />
@@ -340,6 +341,7 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AllEffect.h" />
     <ClInclude Include="Block.hpp" />
     <ClInclude Include="Bullet.hpp" />
     <ClInclude Include="Collision.hpp" />

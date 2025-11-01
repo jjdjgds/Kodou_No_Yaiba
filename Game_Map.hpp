@@ -23,6 +23,10 @@ public:
 	void updateCamera(const Vec2& playerPos);
 	Vec2 getCameraPos() const { return m_cameraPos; }
 
+	bool intersectsGoal(const RectF& rect) const;
+
+	std::optional<Vec2> findPlayerSpawn() const;
+
 	bool CheckCollision(const RectF& rect) ;
 	bool CheckCollision_Line(const Line& line) const;//敵の地面判定用
 	bool CheckCollision_RecF(const RectF& rect) const;//敵判定用
