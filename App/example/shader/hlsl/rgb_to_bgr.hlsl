@@ -44,7 +44,7 @@ float4 PS(s3d::PSInput input) : SV_TARGET
 {
 	float4 texColor = g_texture0.Sample(g_sampler0, input.uv);
 
-	texColor = texColor.bgra;
+	texColor = texColor.Map_bgra;
 
 	return (texColor * input.color) + g_colorAdd;
 }

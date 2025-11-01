@@ -2,6 +2,8 @@
 
 #include "Game_Map.hpp"
 #include "MapLoader.hpp"
+#include "Game_BG.hpp"
+Game_BG Map_bg;
 
 Game_Map::Game_Map()
 {
@@ -29,8 +31,8 @@ bool Game_Map::loadStageFromFile(const FilePath& path,const int stage)
 
 	setCurrentStage(stage);
 	//map height to screen and let width scroll
-	m_chipHeight = 75.0f;
-	m_chipWidth  = 75.0f;
+	m_chipHeight = 100.0f;
+	m_chipWidth  = 100.0f;
 
 
 	m_blocks.clear();
@@ -49,12 +51,35 @@ bool Game_Map::loadStageFromFile(const FilePath& path,const int stage)
 			m_blocks << block;
 		}
 	}
+
+	/*const Size worldPx{
+		static_cast<int>(m_width * m_chipWidth),
+		static_cast<int>(m_height * m_chipHeight)
+	};*/
+	const Size worldPx{
+		static_cast<int>(m_width * m_chipWidth),
+		static_cast<int>(m_height * m_chipHeight)
+	};
+	Map_bg.setMode(BgMode::WorldLocked);   // ✅ 跟方块一起动
+	Map_bg.setWorldSize(worldPx);
+	Map_bg.setLoop(false);
+
 	return true;
 }
 
 void Game_Map::loadNextStage()
 {
 	m_currentStage++;
+
+
+
+	Map_bg.setSize(Scene::Size());
+	Map_bg.setScrollSpeed(Vec2{ 2, 0 }); // 需要滚动就 >0；纯静态背景可设 (0,0)
+	Map_bg.setLoop(false);               // 需要滚动改为 true
+	Map_bg.resetOffset();
+
+	const FilePath bgPath = U"example/Map/map" + Format(m_currentStage) + U".png";
+	Map_bg.setAsset(bgPath, Color{ 24, 40, 56 });
 
 	FilePath nextPath = U"example/Map/stage" + Format(m_currentStage) + U".txt";
 
@@ -86,12 +111,14 @@ void Game_Map::update()
 		block.UpdateBlock();
 
 	}
-
+	Map_bg.syncWithCamera(m_cameraPos);
+	Map_bg.update();
+	
 }
 
 void Game_Map::draw() const
 {
-	
+	Map_bg.draw();
 	for (const auto& block : m_blocks)
 	{
 		if (!block.IsUsed()) continue;
@@ -106,7 +133,7 @@ void Game_Map::draw() const
 			break;
 
 		case BLOCK_SOLID:
-			TextureAsset(U"Wall").resized(size).draw(drawPos);
+			TextureAsset(U"Block").resized(size).draw(drawPos);
 			break;
 
 		case BLOCK_GOAL:
