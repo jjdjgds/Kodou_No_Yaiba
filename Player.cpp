@@ -702,7 +702,11 @@ void Player::takeDamage(int damage, bool fromRight)
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
 
-	
+	if (GetPlayerHP() <= 0)
+	{
+		SetPlayerState(StateMode::Dead);
+		return;
+	}
 	
 	//-----------------------------------
     // ノックバック中

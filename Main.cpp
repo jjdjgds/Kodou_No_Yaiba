@@ -40,10 +40,13 @@ void Main()
 
 	}
 
-	TextureAsset::Register(U"Enemy1", U"example/spritesheet/Enemy1.png");
-	TextureAsset::Register(U"Enemy2", U"example/spritesheet/Enemy2.png");
-	TextureAsset::Register(U"Enemy2Bullet", U"example/spritesheet/BULLET.png");
+	{
+		TextureAsset::Register(U"Enemy1", U"example/spritesheet/Enemy1.png");
+		TextureAsset::Register(U"Enemy2", U"example/spritesheet/Enemy2.png");
+		TextureAsset::Register(U"Enemy2Bullet", U"example/spritesheet/BULLET.png");
+	}
 
+	TextureAsset::Register(U"TitleBg", U"example/bg/title_bg.png");
 	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
 	//ATTACK_1.png
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
@@ -65,8 +68,8 @@ void Main()
 	// シーンマネージャの作成
 	//ここに追加していく
 	App manager;
-	manager.add<Game>(State::Game);
 	manager.add<Title>(State::Title);
+	manager.add<Game>(State::Game);
 
 	
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え

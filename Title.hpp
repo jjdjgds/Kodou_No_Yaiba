@@ -13,6 +13,7 @@ public:
 	void draw() const override;
 
 private:
+	int m_selected = 0;
 
 	RoundRect m_startButton{ Arg::center(400, 300), 300, 60, 8 };
 	RoundRect m_rankingButton{ Arg::center(400, 400), 300, 60, 8 };
