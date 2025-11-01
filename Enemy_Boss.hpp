@@ -63,21 +63,24 @@ private:
 	float m_gravity = 1000.0f;
 	bool   m_onGround = false;
 
-	int m_boss_hp = 50;
+	int m_boss_hp = 30;
 	float m_boss_bpm = 100;
 	float m_base_bpm = 100;
 	bool m_isAttacking = false;
 	int m_boss_atk = 1;
 	int m_boss_range = 250.0f;
+	bool m_hasTakenHit = false;
 	double m_hitOffsetY = 0.0;// 当たり判定Y
 	float chaseRange = 350.0f;
-	;
+
 	float dist = 0;
 	float m_base_speed = 300.0f;
 	float m_boss_speed = 300.0f;
 
 	Boss_Behavior m_behavior = Boss_Behavior::idle;
 	Boss_Pattern m_pattern = Boss_Pattern::PATTERN_0;
+
+	bool m_hasHitPlayer = false;
 
 	// Attack / pattern management
 	double m_attackTimer = 0.0;
@@ -118,6 +121,7 @@ private:
 	struct SmokeData
 	{
 		Vec2 position;
+		double timeInSmoke = 0.0;
 		double lifetime = 0.0;
 		bool active = false;
 	};
