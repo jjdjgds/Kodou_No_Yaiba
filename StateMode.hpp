@@ -18,7 +18,8 @@ enum class StateMode {
 	Pareise,		// 13: 防御状態
 	TheWorld,       // 14: 時止め状態
 	Berserk,        // 15: バーサーカーモード
-	Dead			// 16: 死亡状態
+	Stun,           // 16:sutann
+	Dead			// 17: 死亡状態
 };
 /*
 enum class PlayerState { Idle, Jump, Attack };

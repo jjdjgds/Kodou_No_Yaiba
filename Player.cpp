@@ -14,12 +14,7 @@ HeartRateState Player::GetHeartRateState(int bpm)
 	if (bpm <= 60 || bpm >= 140)
 		return HeartRateState::Stun;
 
-	/*if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
-		return HeartRateState::Warning;*/
-	if ((bpm >= 61 && bpm <= 70))
-	{
-		return HeartRateState::LowWarning;
-	}
+	
 	
 	if (bpm >= 120 && bpm <= 139)
 		return HeartRateState::Berserk;
@@ -87,26 +82,57 @@ RectF Player::getHitRect(const Vec2& camera) const
 void Player::UpdateHeartState()
 {
 	auto bpm = GetPlayerBPM();
+
 	if (bpm == 0)
+	{
 		SetPlayerHeartState(HeartRateState::Dead);
-		
-	else if (bpm <= 60 || bpm >= 140)
+		return;
+	}
+
+	if (bpm <= 60 || bpm >= 140)
+	{
 		SetPlayerHeartState(HeartRateState::Stun);
 
-	
-	
-	
-		
-	else if (bpm >= 120 && bpm <= 139)
-		SetPlayerHeartState(HeartRateState::Berserk);
+		// 初回のみスタン状態に遷移
+		if (!m_IsStunned)
+		{
+			m_IsStunned = true;
+			m_StunTimer = 0.0;
+			SetPlayerState(StateMode::Stun); // アニメーション側もスタンに
+		}
 
-		
-	else if (bpm >= 71 && bpm <= 80)
+		return;
+	}
+
+	// update内の頭の方に追加（他のreturnより前）
+	if (m_IsStunned)
+	{
+		m_StunTimer += Scene::DeltaTime();
+
+		// 2秒経過したら解除
+		if (m_StunTimer >= m_StunDuration)
+		{
+			m_IsStunned = false;
+			m_StunTimer = 0.0;
+			SetPlayerHeartState(HeartRateState::Normal);
+			SetPlayerState(StateMode::Idle);
+		}
+		else
+		{
+			// アニメーションのみ再生して入力など停止
+			PlayerStun();
+			return;
+		}
+	}
+
+	if (bpm >= 120 && bpm <= 139)
+		SetPlayerHeartState(HeartRateState::Berserk);
+	else if (bpm >= 60 && bpm <= 80)
 		SetPlayerHeartState(HeartRateState::TimeControl);
 	else
 		SetPlayerHeartState(HeartRateState::Normal);
-		
 }
+
 
 void Player::takeDamage(int dmg)
 {
@@ -341,7 +367,7 @@ void Player::PlayerJumpAttack()
 		m_frameIndex++;
 
 		// 攻撃判定フレーム（3〜5）
-		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		if (m_frameIndex >= 2 && m_frameIndex <= 5)
 		{
 
 			m_AttackFlag = true;
@@ -389,8 +415,7 @@ void Player::ApplyHeartEffects()
 	{
 	case HeartRateState::Stun:
 		break;
-	case HeartRateState::HightWarning:
-		break;
+	
 	case HeartRateState::Berserk:
 		break;
 	case HeartRateState::TimeControl:
@@ -520,7 +545,7 @@ void Player::PlayerIdleToAttack(const Vec2& camera)
 		m_frameIndex++;
 
 		// 攻撃判定フレーム（3〜5）
-		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		if (m_frameIndex >= 2 && m_frameIndex <= 5)
 		{
 
 			m_AttackFlag = true;
@@ -668,10 +693,20 @@ void Player::PlayerFall()
 
 }
 
-void  Player::PlayerStun()
+void Player::PlayerStun()
 {
+	const double stunFrameDuration = 0.3;
+	animTime += Scene::DeltaTime();
 
+	if (animTime >= stunFrameDuration)
+	{
+		animTime -= stunFrameDuration;
+		m_frameIndex = (m_frameIndex + 1) % m_stunPatterns.size(); // スタン中のループアニメ
+	}
+
+	// 一切の操作・移動はなし
 }
+
 void Player::takeDamage(int damage, bool fromRight)
 {
 
@@ -701,13 +736,47 @@ void Player::takeDamage(int damage, bool fromRight)
 
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
+	if (GetPlayerHP() <= 0)
+	{
+		SetPlayerState(StateMode::Dead);
 
+		return;
+	}
+	
+	// --- update() の冒頭付近 ---
+	if (m_IsStunned)
+	{
+		// タイマー進行
+		m_StunTimer += Scene::DeltaTime();
+
+		// スタンアニメだけ再生
+		PlayerStun();
+
+		// スタン解除判定
+		if (m_StunTimer >= m_StunDuration)
+		{
+			m_IsStunned = false;
+			m_StunTimer = 0.0;
+			SetPlayerBPM(80);
+			SetPlayerHeartState(HeartRateState::Normal);
+			SetPlayerState(StateMode::Idle);
+		}
+
+		return; // ← 最後に return 一回だけ
+	}
+
+
+<<<<<<< HEAD
 	if (GetPlayerHP() <= 0)
 	{
 		SetPlayerState(StateMode::Dead);
 		return;
 	}
 	
+=======
+	
+
+>>>>>>> 3f24381b645443af6f2a62bee7394cf59979b227
 	//-----------------------------------
     // ノックバック中
     //-----------------------------------
@@ -764,15 +833,13 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
-
 	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
-	if (GetPlayerHeartState() == HeartRateState::Stun)
-	{
-		// スタンアニメーション再生
-		PlayerStun();
-		return;
-	}
 
+	if (m_StunTimer > 0.0)
+	{
+		m_StunTimer -= Scene::DeltaTime();
+		m_StunTimer = Max(0.0, m_StunTimer);
+	}
 	
 	// クールタイム中は m_DogeCoolTimer を減らす
 	if (m_DogeCoolTimer > 0.0)
@@ -813,7 +880,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_BersarkTimer = 8.0;             // バーサーク継続秒数
 			m_IsInvincible = true;            // ★無敵ON
 			m_AttackSpeedBoost = 1.5;         // ★攻撃速度倍率（1.5倍）
-			Print << U"🔥バーサークモード突入！🔥";
+			//Print << U"🔥バーサークモード突入！🔥";
 		}
 
 		// バーサーク継続処理
@@ -1203,35 +1270,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_frameIndex = 0;
 			m_AttackStart = true;
 			animTime = 0.0;
-			const Audio& AS1 = AudioAsset(U"Sowrd1");
-			const Audio& AS2 = AudioAsset(U"Sowrd2");
-			const Audio& AS3 = AudioAsset(U"Sowrd3");
-			const Audio& AS4 = AudioAsset(U"Sowrd4");
-			AS1.stop();
-			AS2.stop();
-			AS3.stop();
-			AS4.stop();
-			int a = Random(0,3);
-			switch (a)
-			{
-
-			case 0:
-
-				AS1.play();
-				break;
-
-			case 1:
-				AS2.play();
-				break;
-			case 2:
-				AS3.play();
-				break;
-			case 3:
-				AS4.play();
-				break;
-			default:
-				break;
-			}
+			
 			
 			// 攻撃ステートへ
 			if (m_onGround)
@@ -1294,13 +1333,15 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			{
 				SetPlayerState(StateMode::Medecine);
 			}
-			if (KeyT.pressed())
+			if (KeyT.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl)
 			{
 				TimeStopManager::Start(); // ザ・ワールド発動
+				SetTimeStoped(true);
 			}
 			if (KeyT.up())
 			{
 				TimeStopManager::Stop(); // ザ・ワールド発動
+				SetTimeStoped(false);
 			}
 
 
@@ -1509,7 +1550,10 @@ void Player::draw(const Game_Map& CameraPos) const
 		y = Dead-15;
 		
 		break;
-
+	case StateMode::Stun:
+		n = m_stunPatterns[m_frameIndex];
+		y = Stun-18;
+		break;
 
 	default:
 		n = m_idlePatterns[m_frameIndex];
@@ -1562,10 +1606,10 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	// === デバッグ表示 ===
 	RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 

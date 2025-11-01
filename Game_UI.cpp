@@ -147,15 +147,14 @@ void Game_UI::update(Player player, const Game_Map& CameraPos)
 	{
 		m_RedAutoFlag = false;
 	}
+	
 	switch (state)
 	{
 	case HeartRateState::Stun:
 		UIStun();
 		break;
-	case HeartRateState::HightWarning:
-	case HeartRateState::LowWarning:
-		UIWarning();
-		break;
+
+	
 	case HeartRateState::Berserk:
 		UIBerserk();
 		break;
@@ -281,6 +280,8 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 	{
 		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 1,0,0,0.1 });
 	}
+	
+	
 	// === 描画位置 ===
 	Vec2 drawPos = Vec2{ 200, 200 };
 
@@ -291,7 +292,7 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 
 	for (int i = 0; i < player.GetPlayerHP(); i++)
 	{
-		PlayerHP(0, 0, 345, 300).scaled(0.3).drawAt(100 * i+100, 300);
+		PlayerHP(0, 0, 345, 300).scaled(0.25).drawAt(100 * i+100, 70);
 
 	}
 	int x = 0;
@@ -320,8 +321,9 @@ void Game_UI::draw(Player player, const Game_Map& CameraPos) const
 	default:
 		break;
 	}
+	
+	PlayerMedicle(medicleWidth * x, 0, medicleWidth, medicleHeidht).scaled(0.18).rotated(3.14/6).drawAt(1500, 800);
 
-	PlayerMedicle(medicleWidth*x, 0, medicleWidth, medicleHeidht).scaled(0.1).drawAt(100, 300);
 
 	
 

@@ -33,6 +33,7 @@ private:
 	Array<int32> m_deadBeatPatterns{ 11,12,13,14,15 };
 	double HeatanimTime = 0.0;    //アニメーション時間管理用
 	bool m_RedAutoFlag = false;
+	
 	HeartRateState m_WasState = HeartRateState::Normal;
 public:
 	void UIStun();
