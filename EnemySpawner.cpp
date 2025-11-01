@@ -41,13 +41,13 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 			break;
 		case BLOCK_ENEMY_1:
 		{
-			auto e = std::make_unique<Enemy_1>(pos, 600.0);
+			auto e = std::make_unique<Enemy_1>(pos, 400.0);
 			m_enemy1 << std::move(e);
 			break;
 		}
 		case BLOCK_ENEMY_2:
 		{
-			auto e = std::make_unique<Enemy_2>(pos, 600.0);
+			auto e = std::make_unique<Enemy_2>(pos, 300.0);
 			m_enemy2 << std::move(e);
 			break;
 		}

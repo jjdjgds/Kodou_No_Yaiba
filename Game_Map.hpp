@@ -10,15 +10,18 @@ private:
 	int m_height = 0;
 	double m_chipWidth = 100.0;
 	double m_chipHeight = 100.0;
+	int m_currentStage = 0;
 
 	Vec2 m_cameraPos = Vec2(0, 0);
 public:
 	Game_Map();
 	~Game_Map();
-	bool loadStageFromFile(const FilePath& path);
+	bool loadStageFromFile(const FilePath& path, const int stage);
 	void loadNextStage();
 	void update();
 	void draw() const;
+
+	void setCurrentStage(int stage) { m_currentStage = stage; }
 
 	void updateCamera(const Vec2& playerPos);
 	Vec2 getCameraPos() const { return m_cameraPos; }
