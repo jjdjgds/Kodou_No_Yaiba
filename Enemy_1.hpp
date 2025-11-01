@@ -20,7 +20,7 @@ struct AnimDesc_Enemy1 {// アニメーションの説明構造体
 	bool   loop = true;
 };
 
-class Enemy_1 
+class Enemy_1 :public AllEffect
 {
 private:
 
