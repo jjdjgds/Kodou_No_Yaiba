@@ -14,9 +14,7 @@ HeartRateState Player::GetHeartRateState(int bpm)
 	if (bpm <= 60 || bpm >= 140)
 		return HeartRateState::Stun;
 
-	/*if ((bpm >= 61 && bpm <= 70) || (bpm >= 130 && bpm <= 139))
-		return HeartRateState::Warning;*/
-
+	
 	
 	if (bpm >= 120 && bpm <= 139)
 		return HeartRateState::Berserk;
@@ -129,7 +127,7 @@ void Player::UpdateHeartState()
 
 	if (bpm >= 120 && bpm <= 139)
 		SetPlayerHeartState(HeartRateState::Berserk);
-	else if (bpm >= 71 && bpm <= 80)
+	else if (bpm >= 60 && bpm <= 80)
 		SetPlayerHeartState(HeartRateState::TimeControl);
 	else
 		SetPlayerHeartState(HeartRateState::Normal);
@@ -417,8 +415,7 @@ void Player::ApplyHeartEffects()
 	{
 	case HeartRateState::Stun:
 		break;
-	case HeartRateState::HightWarning:
-		break;
+	
 	case HeartRateState::Berserk:
 		break;
 	case HeartRateState::TimeControl:
