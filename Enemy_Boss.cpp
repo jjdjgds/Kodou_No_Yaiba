@@ -138,19 +138,24 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	const RectF bossRect = BossRect(map.getCameraPos());
 	const RectF playerRect = player.getHitRect(map.getCameraPos());
 
-	if (bossRect.intersects(pAttackBox))
+
+	if (player.IsPlayerAttacking())
 	{
-		if (player.IsPlayerAttacking() && !m_hasTakenHit)
+		if (!m_hasTakenHit && bossRect.intersects(pAttackBox))
 		{
-			m_hasTakenHit = true; // Prevent repeated hits during same attack
+			// Boss takes damage once per attack
+			m_hasTakenHit = true;
 			m_boss_hp -= 1;
+			s4.play();
 		}
-		
 	}
 	else
 	{
+		// Attack animation ended, ready to take another hit next time
 		m_hasTakenHit = false;
 	}
+	
+
 
 
 	if (bossRect.intersects(playerRect))
@@ -222,7 +227,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	updateSpeedByBPM();
 	// --- Animation Timer ---
 	const auto& anim = m_anims[m_state];
-	m_time += Scene::DeltaTime() * (m_boss_speed / m_base_speed);
+	m_time += dt * (m_boss_speed / m_base_speed);
 	while (m_time >= anim.frameTime)
 	{
 		m_time -= anim.frameTime;
@@ -657,8 +662,8 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos , double dt_enemy)
 	const double tScale = GetTimeScale();
 	// --- Timing and phase constants ---
 	const double moveTime = 0.2;      // move duration
-	const double attackTime = 0.20 * tScale;    // attack active window
-	const double pauseTime = 0.20 * tScale;     // pause after attack
+	const double attackTime = 0.25 * tScale;    // attack active window
+	const double pauseTime = 0.35 * tScale;     // pause after attack
 	const double moveSpeed = 400.0;    // short dash speed
 	const int maxRepeats = 4;          // repeat count
 
@@ -941,6 +946,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos , double dt_enemy)
 		const RectF playerRect = player.getHitRect(cam_pos);
 		if (attackHitbox.intersects(playerRect))
 		{
+			m_vel.x = 0;
 			Print << U"[Boss] Pattern 5 Attack HIT!";
 			player.takeDamage(1);
 			m_hasHitPlayer = true;  // Set the flag to prevent further damage
@@ -1014,6 +1020,7 @@ void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 		m_pattern6Count = 0;
 		m_pattern6Timer = 0.0f;
 		m_isAttacking = false;
+		setState(AnimState_Boss::Battle_Idle);
 		rest.stop();
 		Print << U"[Pattern_6 End] Boss woke up!";
 	}
