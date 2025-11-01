@@ -197,6 +197,27 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		}
 	}
 
+	// --- Animation Timer ---
+	const auto& anim = m_anims[m_state];
+	m_time += Scene::DeltaTime() * (m_boss_speed / m_base_speed);
+	while (m_time >= anim.frameTime)
+	{
+		m_time -= anim.frameTime;
+
+		if (anim.loop)
+		{
+			m_frameIndex = (m_frameIndex + 1) % anim.frames;
+		}
+		else
+		{
+			if (m_frameIndex < (anim.frames - 1))
+			{
+				++m_frameIndex;
+			}
+
+		}
+	}
+
 	if (m_isAttacking)
 	{
 		executePattern(player, map, m_pattern);
@@ -209,7 +230,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	case Boss_Behavior::idle:
 		//Print << U"Idle";
 		m_vel.x = 0.0f;
-		setState(AnimState_Boss::Idle);
+
 		if (!m_isDying && dist < chaseRange)
 		{
 			m_behavior = Boss_Behavior::Chase;
@@ -217,9 +238,8 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		break;
 	case Boss_Behavior::Chase:
 	{
-		//Print << U"Chase";
 		m_vel.x = (dx / dist) * m_boss_speed;
-		setState(AnimState_Boss::Run);
+		setState(AnimState_Boss::Battle_Idle);
 
 		bool playerInAttackRange = (dist < m_boss_range);
 		bool nextPatternIs6 = (m_pattern == Boss_Pattern::PATTERN_6);
@@ -227,7 +247,6 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		{
 			m_behavior = Boss_Behavior::Attack;
 		}
-
 		break;
 	}
 	case Boss_Behavior::Attack:
@@ -259,47 +278,22 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		break;
 	};
 
-	// --- Animation Timer ---
-	const AnimDesc_Boss& anim = m_anims[m_state];
-	m_time += Scene::DeltaTime() * (m_boss_speed / m_base_speed);
-
-	if (m_time >= anim.frameTime)
-	{
-		m_time -= anim.frameTime;
-		m_frameIndex++;
-
-		if (m_frameIndex >= anim.frames)
-		{
-			if (anim.loop)
-			{
-				m_frameIndex = 0;
-			}
-			else
-			{
-				m_frameIndex = anim.frames - 1;
-
-				// Attack finished
-				if (m_state == AnimState_Boss::Attack)
-				{
-					//m_isAttacking = false;
-					setState(AnimState_Boss::Idle);
-				}
-			}
-		}
-	}
-
 	// --- Gravity ---
 	m_vel.y += m_gravity * dt;
 
 	// Update smoke independently (it persists)
 	UpdateSmoke(map.getCameraPos(), player);
+
+	Print << U"AnimState: " << static_cast<int>(m_state)
+		<< U" | Frame: " << m_frameIndex
+		<< U" | Time: " << m_time;
 }
 
 void Enemy_Boss::draw(const Game_Map& map) const
 {
-	constexpr int TEX_COLS = 5;
-	constexpr int TEX_ROWS = 5;
-	const Texture& tex = TextureAsset(U"Enemy1");
+	constexpr int TEX_COLS = 8;
+	constexpr int TEX_ROWS = 8;
+	const Texture& tex = TextureAsset(U"Boss");
 	const Size c = { tex.width() / TEX_COLS, tex.height() / TEX_ROWS };
 
 	const auto& R = m_anims.at(m_state);
@@ -507,6 +501,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 		double dist = dir.length();
 		if (dist > 1.0)
 		{
+			setState(AnimState_Boss::Fly);
 			dir /= dist;
 			m_boss_pos += dir * moveSpeed * dt;
 		}
@@ -533,7 +528,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 			Vec2 toPlayer = player.GetPlayerPosition() - m_boss_pos;
 			m_projectileDir = toPlayer.normalized();
 			m_projectileActive = true;
-
+			setState(AnimState_Boss::Throw_star);
 			Print << U"[Pattern_1] Fired projectile toward player!";
 		}
 
@@ -622,7 +617,7 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
 	{
 	case 0: // --- Move forward ---
 		m_boss_pos.x += m_pattern2Dir.x * moveSpeed * dt;
-
+		setState(AnimState_Boss::Dash);
 		if (m_pattern2Timer >= moveTime)
 		{
 			m_pattern2Timer = 0.0;
@@ -633,6 +628,15 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
 
 	case 1: // --- Attack (active hit) ---
 	{
+		if (m_pattern2Count == 0)
+			setState(AnimState_Boss::P2_1_Atk);
+		else if (m_pattern2Count == 1)
+			setState(AnimState_Boss::P2_2_Atk);
+		else if (m_pattern2Count == 2)
+			setState(AnimState_Boss::P2_3_Atk);
+		else if (m_pattern2Count == 3)
+			setState(AnimState_Boss::P2_4_Atk);
+
 		const float hitW = m_hitBox.x * 0.75f;
 		const float hitH = m_hitBox.y;
 		const float forwardOffset = hitW;

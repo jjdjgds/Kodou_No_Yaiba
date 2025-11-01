@@ -50,7 +50,12 @@ void Main()
 	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
 	//ATTACK_1.png
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
-
+	{
+		TextureAsset::Register(U"Boss", U"example/spritesheet/boss_1.png");
+		TextureAsset::Register(U"Smoke_bomb", U"example/spritesheet/smoke_bomb.png");
+		TextureAsset::Register(U"Smoke", U"example/spritesheet/smoke.png");
+		TextureAsset::Register(U"shuriken", U"example/spritesheet/shuriken.png");
+	}
 	
 
 	//玉ねぎ楷書_激_無料版v7
