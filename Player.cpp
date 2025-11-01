@@ -1620,7 +1620,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	const double scaleX = scaleY * (IsPlayerFacingRight() ? 1.0 : -1.0);
 
 	// === オフセット ===
-	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 25 } : Vec2{ -10, 25 };
+	const Vec2 offset = IsPlayerFacingRight() ? Vec2{ 10, 10 } : Vec2{ -10, 10 };
 
 	// === 当たり判定中心と一致 ===
 	// （スプライトの中心がキャラクターの中心に一致）
@@ -1635,12 +1635,12 @@ void Player::draw(const Game_Map& CameraPos) const
 	}
 	if (GetPlayerState() == StateMode::IdleToRun)
 	{
-		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 11 } : Vec2{ 0, 11 };
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 7 } : Vec2{ 0, 7 };
 
 	}
 	if (GetPlayerState() == StateMode::Run)
 	{
-		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 13 } : Vec2{ 0, 13 };
+		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 7 } : Vec2{ 0, 7 };
 
 	}
 	if (GetPlayerState() == StateMode::OnTheWall)

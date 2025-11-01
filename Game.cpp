@@ -15,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
 	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
-		3,
+		5,
 		3,
 		90,
 		3,
@@ -30,7 +30,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",2))
 	{
 		Print << U"Failed to load stage1";
 		return;
