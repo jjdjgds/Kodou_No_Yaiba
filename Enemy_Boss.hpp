@@ -68,10 +68,10 @@ private:
 	float m_base_bpm = 100;
 	bool m_isAttacking = false;
 	int m_boss_atk = 1;
-	int m_boss_range = 250.0f;
+	int m_boss_range = 400.0f;
 	bool m_hasTakenHit = false;
 	double m_hitOffsetY = 0.0;// 当たり判定Y
-	float chaseRange = 350.0f;
+	float chaseRange = 500.0f;
 
 	float dist = 0;
 	float m_base_speed = 300.0f;

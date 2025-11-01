@@ -655,7 +655,7 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
 	const double dt = Scene::DeltaTime();
 	const double tScale = GetTimeScale();
 	// --- Timing and phase constants ---
-	const double moveTime = 0.3;      // move duration
+	const double moveTime = 0.2;      // move duration
 	const double attackTime = 0.20 * tScale;    // attack active window
 	const double pauseTime = 0.20 * tScale;     // pause after attack
 	const double moveSpeed = 400.0;    // short dash speed
@@ -702,7 +702,7 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
 		else if (m_pattern2Count == 3)
 			setState(AnimState_Boss::P2_4_Atk);
 
-		const float hitW = m_hitBox.x * 0.75f;
+		const float hitW = m_hitBox.x * 1.1f;
 		const float hitH = m_hitBox.y;
 		const float forwardOffset = hitW;
 
