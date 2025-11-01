@@ -57,7 +57,7 @@ private:
 	bool m_debugDraw = true;
 
 	Vec2 m_boss_pos;
-	Vec2 m_boss_scale = { 200.0 ,180.0 };
+	Vec2 m_boss_scale = { 260.0 ,240.0 };
 	Vec2 m_hitBox = { 70.0  ,100.0 };
 	Vec2 m_vel = { 0,0 };
 	bool m_FaceRight = true;
@@ -66,7 +66,6 @@ private:
 
 	int m_boss_hp = 30;
 	float m_boss_bpm = 100;
-	float m_base_bpm = 100;
 	bool m_isAttacking = false;
 	int m_boss_atk = 1;
 	int m_boss_range = 400.0f;

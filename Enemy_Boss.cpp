@@ -66,7 +66,6 @@ RectF Enemy_Boss::chaseRect(const Vec2& cam) const
 void Enemy_Boss::update(Player& player, Game_Map& map)
 {
 	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
-	updateSpeedByBPM();
 	const Vec2 camPos = map.getCameraPos();
 	Vec2 playerPos = player.GetPlayerPosition();
 
@@ -199,30 +198,28 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 	if (m_OverBPM)
 	{
-		m_OverBPMTimer += Scene::DeltaTime();
-
 		// Keep the boss completely still
 		m_vel = Vec2{ 0, 0 };
-		m_isAttacking = false;
 		setState(AnimState_Boss::Idle);
-
+		m_OverBPMTimer += Scene::DeltaTime();
 		// Optional: effects or debug message
-		// Print << U"[Boss] Overheated... Cooling down!";
+		Print << U"[Boss] Overheated... Cooling down!";
 
 		// Wait for 2 seconds before resuming
 		if (m_OverBPMTimer >= 2.0f)
 		{
 			// Boss cools down and resumes action
 			m_OverBPMTimer = 0.0f;
-			m_boss_bpm = m_base_bpm;
+			m_boss_bpm = 100;
 			m_OverBPM = false;
-			m_behavior = Boss_Behavior::Chase;
+			m_isAttacking = false;
+			setState(AnimState_Boss::Battle_Idle);
 			Print << U"[Boss] Cooldown finished, resuming combat!";
 		}
 
 		return; // stop rest of update while overheated
 	}
-
+	updateSpeedByBPM();
 	// --- Animation Timer ---
 	const auto& anim = m_anims[m_state];
 	m_time += Scene::DeltaTime() * (m_boss_speed / m_base_speed);
@@ -555,8 +552,8 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos , double dt_enemy)
 
 			const Texture& starTex = TextureAsset(U"shuriken");
 
-			double projW = 20.0;
-			double projH = 20.0;
+			double projW = 60.0;
+			double projH = 60.0;
 			starTex
 				.scaled(projW / starTex.width(), projH / starTex.height())
 				.draw(m_projectilePos - Vec2(projW / 2, projH / 2) - cam_pos, ColorF(1.0));
@@ -1091,7 +1088,7 @@ void Enemy_Boss::executeCounterAttack(Player& player, Vec2 cam_pos)
 
 void Enemy_Boss::updateSpeedByBPM()
 {
-	float bpmRatio = m_boss_bpm / m_base_bpm;
+	float bpmRatio = m_boss_bpm / 100;
 	m_boss_speed = m_base_speed + (m_base_speed * (bpmRatio - 1.0f) * 2.0f); // 2.0 = multiplier
 	// Optional: clamp to prevent crazy speeds
 	m_boss_speed = Clamp(m_boss_speed, 300.0f, 1200.0f);
@@ -1101,7 +1098,6 @@ void Enemy_Boss::updateSpeedByBPM()
 		m_OverBPM = true;
 		m_OverBPMTimer = 0.0;
 		Print << U"[Boss] BPM too high! Boss overheats!";
-		return;
 	}
 	//Print << U"[Boss_speed] : " << m_boss_speed;
 	//Print << U"[BPM] : " << m_boss_bpm;
