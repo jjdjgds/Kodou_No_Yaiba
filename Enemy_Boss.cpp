@@ -837,11 +837,11 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos , double dt_enemy)
 {
 	const double tScale = GetTimeScale();
 
-	const double windupTime = 0.5 * tScale ;  // Pre-attack delay before dash
-	const double dashTime = 0.6 * tScale;  // Max dash duration
+	const double windupTime = 1.0 * tScale ;  // Pre-attack delay before dash
+	const double dashTime = 0.5 * tScale;  // Max dash duration
 	const double stopDistance = 50.0; // Stop this far in front of player
-	const double postDashPause = 0.5 * tScale; // Pause before actual attack
-	const double attackTime = 0.25 * tScale; // Duration of hit window
+	const double postDashPause = 0.8 * tScale; // Pause before actual attack
+	const double attackTime = 0.4 * tScale; // Duration of hit window
 	const double cooldownTime = 0.6 * tScale;  // Recovery delay after attack
 
 	if (!m_isAttacking)
