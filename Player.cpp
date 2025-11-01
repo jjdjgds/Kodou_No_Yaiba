@@ -13,8 +13,6 @@ HeartRateState Player::GetHeartRateState(int bpm)
 {
 	if (bpm <= 60 || bpm >= 140)
 		return HeartRateState::Stun;
-
-	
 	
 	if (bpm >= 120 && bpm <= 139)
 		return HeartRateState::Berserk;
@@ -74,9 +72,6 @@ RectF Player::getHitRect(const Vec2& camera) const
 		sz
 	};
 }
-
-
-
 
 
 void Player::UpdateHeartState()
