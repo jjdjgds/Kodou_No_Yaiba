@@ -367,7 +367,7 @@ void Player::PlayerJumpAttack()
 		m_frameIndex++;
 
 		// 攻撃判定フレーム（3〜5）
-		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		if (m_frameIndex >= 2 && m_frameIndex <= 5)
 		{
 
 			m_AttackFlag = true;
@@ -545,7 +545,7 @@ void Player::PlayerIdleToAttack(const Vec2& camera)
 		m_frameIndex++;
 
 		// 攻撃判定フレーム（3〜5）
-		if (m_frameIndex >= 3 && m_frameIndex <= 5)
+		if (m_frameIndex >= 2 && m_frameIndex <= 5)
 		{
 
 			m_AttackFlag = true;
@@ -1256,35 +1256,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_frameIndex = 0;
 			m_AttackStart = true;
 			animTime = 0.0;
-			const Audio& AS1 = AudioAsset(U"Sowrd1");
-			const Audio& AS2 = AudioAsset(U"Sowrd2");
-			const Audio& AS3 = AudioAsset(U"Sowrd3");
-			const Audio& AS4 = AudioAsset(U"Sowrd4");
-			AS1.stop();
-			AS2.stop();
-			AS3.stop();
-			AS4.stop();
-			int a = Random(0,3);
-			switch (a)
-			{
-
-			case 0:
-
-				AS1.play();
-				break;
-
-			case 1:
-				AS2.play();
-				break;
-			case 2:
-				AS3.play();
-				break;
-			case 3:
-				AS4.play();
-				break;
-			default:
-				break;
-			}
+			
 			
 			// 攻撃ステートへ
 			if (m_onGround)
@@ -1620,10 +1592,10 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	// === デバッグ表示 ===
 	RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
 	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 

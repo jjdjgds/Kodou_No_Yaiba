@@ -24,11 +24,19 @@ void Enemy_1::die() {// 死亡処理
 
 RectF Enemy_1::hurtRect(const Vec2& cam) const
 {
-	const double forwardOffset = m_hitBox.x * -0.2; // 調整可
-	const double xOffset = (m_FaceRight ? +forwardOffset : -forwardOffset);
-	const SizeF sz{ m_hitBox.x , m_hitBox.y };
-	return RectF{ Arg::center = m_Position.movedBy(xOffset, m_hitOffsetY) - cam, sz };
+	// 矩形をキャラの中心に合わせる
+	const SizeF sz{ m_hitBox.x, m_hitBox.y };
+	Vec2 center = m_Position - cam;
+
+	// 横方向の微調整（まずは0で確認）
+	// center.x += (m_FaceRight ? 0 : 0);
+
+	// 縦方向も中心に合わせる
+	center.y -= 0;
+
+	return RectF{ Arg::center = center, sz };
 }
+
 
 RectF Enemy_1::hurtRectAt(const Vec2& pos) const
 {
@@ -424,6 +432,37 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
+
+
+		const Audio& AS1 = AudioAsset(U"Sowrd1");
+		const Audio& AS2 = AudioAsset(U"Sowrd2");
+		const Audio& AS3 = AudioAsset(U"Sowrd3");
+		const Audio& AS4 = AudioAsset(U"Sowrd4");
+		AS1.stop();
+		AS2.stop();
+		AS3.stop();
+		AS4.stop();
+		int a = Random(0, 3);
+		switch (a)
+		{
+
+		case 0:
+
+			AS1.play();
+			break;
+
+		case 1:
+			AS2.play();
+			break;
+		case 2:
+			AS3.play();
+			break;
+		case 3:
+			AS4.play();
+			break;
+		default:
+			break;
+		}
 		die();
 	}
 	else if (m_state == AnimState_Enemy1::Attack) {

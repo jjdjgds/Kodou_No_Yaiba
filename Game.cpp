@@ -87,7 +87,7 @@ void Game::draw() const
 	player.draw(map);             // ← プレイヤーを描画
 
 
-	//Ui.draw(player,map);
+
 
 	
 
