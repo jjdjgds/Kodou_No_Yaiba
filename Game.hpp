@@ -9,6 +9,9 @@
 #include "TimeStopManager.h"
 #include "EnemySpawner.hpp"
 #include "AllEffect.h"
+
+enum class DeathChoice { Retry = 0, Title = 1 };
+
 class Game : public App::Scene
 {
 public:
@@ -27,4 +30,19 @@ private:
 	AllEffect effects;
 	EnemySpawner Boss_spawner;
 	TimeStopManager tsm;
+
+
+	bool         m_showDeath = false;
+	DeathChoice  m_deathSel = DeathChoice::Retry;
+	RectF        m_btnRetry;
+	RectF        m_btnTitle;
+
+	void drawDeathOverlay() const;
+	void updateDeathOverlay();
+	void restartCurrentStage();
+
+	void resetDeathOverlay() {
+		m_showDeath = false;
+		m_deathSel = DeathChoice::Retry;
+	}
 };

@@ -549,6 +549,8 @@ void Player::PlayerDead()
 			m_frameIndex++;
 		}
 		// 最後に達したら何もしない（そのまま静止）
+
+		m_isDead = true; // 死亡フラグを立てる
 	}
 }
 
@@ -1668,4 +1670,26 @@ void Player::draw(const Game_Map& CameraPos) const
 	
 	//Print << U"" << GetPlayerBPM();
 
+}
+
+void Player::Revive() {
+	m_isDead = false;
+	SetPlayerState(StateMode::Idle);
+	m_frameIndex = 0;
+	animTime = 0.0;
+
+	m_IsKnockback = false;
+	m_KnockbackVelocity = Vec2{ 0,0 };
+	m_IsStunned = false;
+	m_StunTimer = 0.0;
+	m_DogeTimer = 0.0;
+	m_DogeCoolTimer = 0.0;
+	m_HeartCoolFlg = false;
+	m_HeartCoolTimer = 0.0;
+
+	m_IsInvincible = true;
+	m_InvincibleTimer = 0.6;
+
+	m_onGround = true;
+	SetPlayerVelocity(Vec2{ 0,0 });
 }

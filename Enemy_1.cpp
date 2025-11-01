@@ -147,13 +147,17 @@ void Enemy_1::update(Player& player, Game_Map& map,AllEffect& alleffe)
 	const bool groundAhead = map.CheckCollision_Line(eGroundProbeLine);// 敵の地面が前方にあるか
 
 
-	const bool playerInChaseWall = RectToRect(eChaseBox, pHitBox);
+	const bool playerInChase = RectToRect(eChaseBox, pHitBox);
 	const RectF pHitBoxWorld(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox());
-	const bool playerInChase = playerInChaseWall
+	const bool playerInChaseWall = playerInChase
 		&& hasLineOfSight(*this, map, pHitBoxWorld);// プレイヤーが追跡矩形内にいるか（粗判定+视线判定）
 
 	
 	if (playerInChase) {// プレイヤーが追跡矩形内にいるなら交戦状態に移行
+		if (!m_engaged) {
+			constexpr double spotCooldown = 1;
+			m_attackCooldown = Max(m_attackCooldown, spotCooldown);
+		}
 		m_engaged = true;
 		m_yLoseTimer = 0.0;
 	}

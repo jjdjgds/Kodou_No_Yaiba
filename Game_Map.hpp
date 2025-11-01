@@ -23,6 +23,7 @@ public:
 	void draw() const;
 
 	void setCurrentStage(int stage) { m_currentStage = stage; }
+	int getCurrentStage() const { return m_currentStage; }
 
 	void updateCamera(const Vec2& playerPos);
 	Vec2 getCameraPos() const { return m_cameraPos; }
