@@ -3,7 +3,7 @@
 #include "Enemy_1.hpp"
 #include "Collision.hpp"
 #include "Player.hpp"
-
+#include "AllEffect.h"
 using namespace Collision;
 
 
@@ -127,7 +127,7 @@ static bool hasLineOfSight(const Enemy_1& self, Game_Map& map, const RectF& play
 
 
 
-void Enemy_1::update(Player& player, Game_Map& map)
+void Enemy_1::update(Player& player, Game_Map& map,AllEffect& alleffe)
 {
 	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	const Vec2 cam = map.getCameraPos() * TimeStopManager::GetEnemyScale();
@@ -424,7 +424,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		player.OnParrySuccess();  // Playerクラスに関数を作っておくと良い
 
 		
-		AudioAsset(U"ParrySound").play();
+		//AudioAsset(U"ParrySound").play();
 
 		return; // このフレームは以降の処理をスキップ
 	}
@@ -432,6 +432,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
+		alleffe.SetEffect(getPosition()-cam, Vec2{1.0,0.3},0.4,player.IsPlayerFacingRight());
 		const Audio& AS1 = AudioAsset(U"Sowrd1");
 		const Audio& AS2 = AudioAsset(U"Sowrd2");
 		const Audio& AS3 = AudioAsset(U"Sowrd3");
@@ -441,6 +442,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 		AS3.stop();
 		AS4.stop();
 		int a = Random(0, 3);
+		a = 1;
 		switch (a)
 		{
 
@@ -458,6 +460,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 			AS4.play();
 			break;
 		default:
+			AS4.play();
 			break;
 		}
 		die();

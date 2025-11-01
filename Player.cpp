@@ -218,28 +218,21 @@ void Player::PlayerAttack(const Vec2& camera)
 
 	if (!m_AttackStart) return;
 
+	if (!m_AttackStart) return;
+
 	if (animTime >= attackFrameDuration)
 	{
 		animTime -= attackFrameDuration;
+
+		// 1. まずフレームインデックスをインクリメント
 		m_frameIndex++;
 
-		// 攻撃判定フレーム（3〜5）
-		if (m_frameIndex >= 2 && m_frameIndex <= 5)
+		// 2. インクリメントの結果、範囲外になったかチェック
+		if (m_frameIndex >= static_cast<int>(m_attackPatterns.size())) // static_cast<int> を追加
 		{
-			
-			m_AttackFlag = true;
-			
-		}
-		else
-		{
+			m_frameIndex = 0; // リセット
 
-			m_AttackFlag = false;
-		}
-
-		// 攻撃アニメ終了
-		if (m_frameIndex >= m_attackPatterns.size())
-		{
-			m_frameIndex = 0;
+			// 攻撃アニメ終了の処理をここに移す
 			SetPlayerAttackFlag(false);
 			m_AttackStart = false;
 			if (KeyA.pressed() || KeyD.pressed())
@@ -251,6 +244,17 @@ void Player::PlayerAttack(const Vec2& camera)
 				SetPlayerState(StateMode::Idle);
 			}
 			m_HeartTimer = 0.0;
+			return; // 処理を終了
+		}
+
+		// 3. 攻撃判定フレーム
+		if (m_frameIndex >= 2 && m_frameIndex <= 5)
+		{
+			m_AttackFlag = true;
+		}
+		else
+		{
+			m_AttackFlag = false;
 		}
 	}
 }
@@ -731,32 +735,12 @@ void Player::takeDamage(int damage, bool fromRight)
 
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
 {
-	// HPが0なら即死亡状態にしてアニメーション更新のみ行う
-	if (GetPlayerHP() <= 0)
-	{
-		// 状態がまだDeadでなければDeadに変更
-		if (GetPlayerState() != StateMode::Dead)
-		{
-			SetPlayerState(StateMode::Dead);
-			SetPlayerBPM(0); // BPMも0にする
-			SetPlayerHeartState(HeartRateState::Dead);
-		}
-
-		PlayerDead();  // 死亡アニメ更新
-		return;        // 他の処理をスキップ
-	}
-
 	
-	// --- update() の冒頭付近 ---
+	
 	if (m_IsStunned)
 	{
-		// タイマー進行
 		m_StunTimer += Scene::DeltaTime();
-
-		// スタンアニメだけ再生
 		PlayerStun();
-
-		// スタン解除判定
 		if (m_StunTimer >= m_StunDuration)
 		{
 			m_IsStunned = false;
@@ -765,9 +749,9 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerHeartState(HeartRateState::Normal);
 			SetPlayerState(StateMode::Idle);
 		}
-
-		return; // ← 最後に return 一回だけ
+		return;
 	}
+
 
 
 	//-----------------------------------
@@ -939,7 +923,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerFaceRight(input.x > 0);
 		}
 		//-----------------------------------
-		// 🔹 時止めスケールを適用した移動更新
+		//時止めスケールを適用した移動更新
 		//-----------------------------------
 		double dt = Scene::DeltaTime() * TimeStopManager::GetPlayerScale();
 
@@ -1523,7 +1507,7 @@ void Player::draw(const Game_Map& CameraPos) const
 		y = Medicine+32;
 
 		break;
-
+		
 	case StateMode::Dead:
 		n = m_deadPatterns[m_frameIndex];
 		y = Dead-15;
