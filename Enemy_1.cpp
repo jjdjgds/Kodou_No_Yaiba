@@ -3,7 +3,7 @@
 #include "Enemy_1.hpp"
 #include "Collision.hpp"
 #include "Player.hpp"
-
+#include "AllEffect.h"
 using namespace Collision;
 
 
@@ -433,7 +433,7 @@ void Enemy_1::update(Player& player, Game_Map& map)
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
 
-
+		
 		const Audio& AS1 = AudioAsset(U"Sowrd1");
 		const Audio& AS2 = AudioAsset(U"Sowrd2");
 		const Audio& AS3 = AudioAsset(U"Sowrd3");
