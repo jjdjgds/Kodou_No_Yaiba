@@ -41,13 +41,13 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 			break;
 		case BLOCK_ENEMY_1:
 		{
-			auto e = std::make_unique<Enemy_1>(pos, 600.0);
+			auto e = std::make_unique<Enemy_1>(pos, 400.0);
 			m_enemy1 << std::move(e);
 			break;
 		}
 		case BLOCK_ENEMY_2:
 		{
-			auto e = std::make_unique<Enemy_2>(pos, 600.0);
+			auto e = std::make_unique<Enemy_2>(pos, 300.0);
 			m_enemy2 << std::move(e);
 			break;
 		}
@@ -58,13 +58,13 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 }
 
 // Update all enemies and boss
-void  EnemySpawner::update(Player& player, Game_Map& map)
+void  EnemySpawner::update(Player& player, Game_Map& map,AllEffect& ae)
 {
 	if (m_boss)
 		m_boss->update(player, map);
 
-	for (auto& e : m_enemy1)  if (e)e->update(player, map);
-	for (auto& e : m_enemy2) if (e) e->update(player, map);
+	for (auto& e : m_enemy1)  if (e)e->update(player, map,ae);
+	for (auto& e : m_enemy2) if (e) e->update(player, map,ae);
 
 	// ★ 死亡动画结束 → 自动从容器移除
 	m_enemy1.remove_if([](const std::unique_ptr<Enemy_1>& e) {

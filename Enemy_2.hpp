@@ -3,6 +3,7 @@
 #include "Player.hpp"
 #include "Bullet.hpp"
 #include "TextShot.hpp"
+#include "AllEffect.h"
 class Bullet;
 
 enum class AnimState_Enemy2 {Idle,Run,Dead,Attack,};// アニメーション状態列挙型
@@ -43,8 +44,8 @@ private:
 
 	double m_hitOffsetY = 0.0;// 当たり判定Y
 
-	Vec2 m_Scale = { 100.0 ,100.0 };// 大きさ
-	Vec2 m_hitBox = { 70.0 ,100.0 };// 当たり判定サイズ
+	Vec2 m_Scale = { 130.0 ,130.0 };// 大きさ
+	Vec2 m_hitBox = { 90.0 ,120.0 };// 当たり判定サイズ
 
 
 	float m_gravity = 1800.0;// 重力
@@ -165,7 +166,7 @@ public:
 
 	Enemy_2& GetEnemy() { return *this; }
 
-	void update(Player& player, Game_Map& map);
+	void update(Player& player, Game_Map& map, AllEffect& alleffe);
 
 	void draw(const Game_Map& CameraPos) const;
 

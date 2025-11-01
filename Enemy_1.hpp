@@ -3,13 +3,15 @@
 #include "Player.hpp"
 #include "TextShot.hpp"
 #include "Game_Map.hpp"
-
+#include "AllEffect.h"
 
 enum class AnimState_Enemy1 { Idle, Run, Dead, Attack, };// アニメーション状態列挙型
 enum class Behavior_Enemy1 { Patrol, Chase, Attack, };// 行動パターン列挙型
 enum class PatrolPhase_Enemy1 { Move, Wait, };// 巡回フェーズ列挙型
 // ↓ Player クラスの前方宣言を追加
 class Player;
+
+
 struct AnimDesc_Enemy1 {// アニメーションの説明構造体
 	int   row;
 	int   start;
@@ -18,7 +20,7 @@ struct AnimDesc_Enemy1 {// アニメーションの説明構造体
 	bool   loop = true;
 };
 
-class Enemy_1
+class Enemy_1 
 {
 private:
 
@@ -39,8 +41,8 @@ private:
 
 	double m_hitOffsetY = 0.0;// 当たり判定Y
 
-	Vec2 m_Scale = { 140.0 ,120.0 };// 大きさ
-	Vec2 m_hitBox = { 70.0 ,100.0 };// 当たり判定サイズ
+	Vec2 m_Scale = { 180.0 ,155.0 };// 大きさ
+	Vec2 m_hitBox = { 90.0 ,120.0 };// 当たり判定サイズ
 
 
 	float m_gravity = 1800.0;// 重力
@@ -153,7 +155,7 @@ public:
 
 	Enemy_1& GetEnemy() { return *this; }
 
-	void update(Player& player, Game_Map& map);
+	void update(Player& player, Game_Map& map, AllEffect& alleffe);
 
 	void draw(const Game_Map& CameraPos) const;
 

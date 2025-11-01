@@ -43,8 +43,8 @@ public:
 
 	void UINormal();
 	void UIDead();
-	void update(Player player, const Game_Map& CameraPos);
-	void draw(Player player, const Game_Map& CameraPos)const;
+	void update(Player& player, const Game_Map& CameraPos);
+	void draw(const Player& player, const Game_Map& CameraPos)const;
 };
 
 //case HeartRateState::Stun:

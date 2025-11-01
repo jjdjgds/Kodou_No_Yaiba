@@ -12,7 +12,7 @@ Game_Map::~Game_Map()
 {
 }
 
-bool Game_Map::loadStageFromFile(const FilePath& path)
+bool Game_Map::loadStageFromFile(const FilePath& path,const int stage)
 {
 	Array<int> mapData;
 	int width, height;
@@ -27,7 +27,7 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 	//m_chipWidth = static_cast<double>(screenSize.x) / m_width;
 	//m_chipHeight = static_cast<double>(screenSize.y) / m_height;
 
-
+	setCurrentStage(stage);
 	//map height to screen and let width scroll
 	m_chipHeight = 75.0f;
 	m_chipWidth  = 75.0f;
@@ -54,10 +54,9 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 
 void Game_Map::loadNextStage()
 {
-	int currentStage = 2;
-	currentStage++;
+	m_currentStage++;
 
-	FilePath nextPath = U"example/Map/stage" + Format(currentStage) + U".txt";
+	FilePath nextPath = U"example/Map/stage" + Format(m_currentStage) + U".txt";
 
 	if (!FileSystem::Exists(nextPath))
 	{
@@ -68,7 +67,7 @@ void Game_Map::loadNextStage()
 	// Reset camera and load the next stage
 	m_cameraPos = Vec2{ 0, 0 };
 
-	if (loadStageFromFile(nextPath))
+	if (loadStageFromFile(nextPath, m_currentStage))
 	{
 		Print << U"✅ Loaded next stage: " << nextPath;
 	}
