@@ -8,6 +8,7 @@ enum class AnimState_Boss
 {
 	Idle,
 	Battle_Idle,
+	Charge_Up,
 	Charge_Atk,
 	Fly,
 	Throw_star,
@@ -56,7 +57,7 @@ private:
 	bool m_debugDraw = true;
 
 	Vec2 m_boss_pos;
-	Vec2 m_boss_scale = { 140.0 ,120.0 };
+	Vec2 m_boss_scale = { 200.0 ,180.0 };
 	Vec2 m_hitBox = { 70.0  ,100.0 };
 	Vec2 m_vel = { 0,0 };
 	bool m_FaceRight = true;
@@ -90,10 +91,10 @@ private:
 	int m_deathPatternCounter = 0;  // Counts how many times we've cycled
 	bool m_deathanimation = false;
 
-	void handleAttackPattern(Player& player, Game_Map& map);
-	void executePattern(Player& player, Game_Map& map, Boss_Pattern pattern);
+	void handleAttackPattern(Player& player, Game_Map& map, double dt);
+	void executePattern(Player& player, Game_Map& map, Boss_Pattern pattern  , double dt);
 
-	void Pattern_1(Player& player, Vec2 cam_pos);
+	void Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy);
 	int m_pattern1Phase = 0;          // Phase tracker: 0=moveToTop, 1=attack, 2=return
 	double m_pattern1Timer = 0.0;     // Timer for transitions
 	Vec2 m_startPos = Vec2{ 0, 0 };   // Starting position before moving to top
@@ -103,7 +104,7 @@ private:
 	bool m_projectileReflected = true;    // now it is heading toward the boss
 	int  m_currentWaypoint = 0;
 
-	void Pattern_2(Player& player, Vec2 cam_pos);
+	void Pattern_2(Player& player, Vec2 cam_pos, double dt_enemy);
 	double m_pattern2Timer = 0.0;
 	int m_pattern2Phase = 0;
 	int m_pattern2Count = 0;
@@ -135,15 +136,18 @@ private:
 	bool m_counterReady = false;      // true when in counter stance
 	double m_pattern4Timer = 0.0;    // timer to exit counter stance
 
-	void Pattern_5(Player& player, Vec2 cam_pos);
+	void Pattern_5(Player& player, Vec2 cam_pos, double dt_enemy);
 	int m_pattern5Phase = 0;
 	double m_pattern5Timer = 0.0;
 
 	void Pattern_6(Player& player, Vec2 cam_pos);
 	double m_pattern6Timer = 0.0;
+	int m_pattern6Count = 0;
 	void updateSpeedByBPM();
 	bool m_OverBPM = false;
 	double m_OverBPMTimer = 0.0;
+	bool   m_recentlyHit = false;
+	float  m_hitTimer = 0.0f;
 
 	AnimState_Boss m_state{ AnimState_Boss::Idle };	// 現在のアニメーション状態
 
@@ -151,11 +155,12 @@ private:
 	HashTable<AnimState_Boss, AnimDesc_Boss> m_anims{	// アニメーションの説明
 		{ AnimState_Boss::Idle,			{ 0, 0, 7, 0.10, true }  },
 		{ AnimState_Boss::Battle_Idle,  { 0, 7, 4, 0.10, true }  },
-		{ AnimState_Boss::Charge_Atk,   { 1, 3, 8, 0.10, false}  },
+		{ AnimState_Boss::Charge_Up,	{ 1, 3, 7, 0.10, true }  },
+		{ AnimState_Boss::Charge_Atk,   { 2, 2, 1, 0.10, true }  },
 		{ AnimState_Boss::Fly,			{ 2, 3, 1, 0.01, true }  },
 		{ AnimState_Boss::Throw_star,	{ 2, 4, 2, 0.30, false}  },
 		{ AnimState_Boss::Dash,			{ 2, 6, 1, 0.10, true }  },
-		{ AnimState_Boss::Meditate,		{ 2, 7, 1, 2.00, true }  },
+		{ AnimState_Boss::Meditate,		{ 2, 7, 1, 0.01, true }  },
 		{ AnimState_Boss::P2_1_Atk,		{ 3, 0, 6, 0.05, false }  },
 		{ AnimState_Boss::P2_2_Atk,		{ 3, 6, 5, 0.05, false }  },
 		{ AnimState_Boss::P2_3_Atk,		{ 4, 3, 6, 0.05, false }  },
