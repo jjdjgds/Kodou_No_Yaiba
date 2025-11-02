@@ -447,6 +447,7 @@ void Enemy_Boss::draw(const Game_Map& map) const
 		chaseRect(map.getCameraPos()).drawFrame(2.0, Palette::White);
 
 	}
+	
 }
 
 void Enemy_Boss::drawPatternElements(const Game_Map& map) const
