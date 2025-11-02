@@ -195,6 +195,8 @@ private:
 
 	void drawPatternElements(const Game_Map& map) const;
 
+	bool m_bossDead = false;
+
 
 
 public:
@@ -245,6 +247,7 @@ public:
 
 	const SmokeData& GetSmokeData() const { return m_smoke; }
 	bool IsSmokeActive() const { return m_smoke.active; }
+	bool IsBossDead() const { return m_bossDead; }
 };
 
 

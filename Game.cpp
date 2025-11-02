@@ -8,6 +8,7 @@
 using namespace Collision;
 
 
+
 Game::Game(const InitData& init)
 	: IScene{ init }
 	, player(
@@ -26,11 +27,9 @@ Game::Game(const InitData& init)
 	false, true, false
 	)
 
-
 {
-
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage3.txt",3))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -57,6 +56,22 @@ Game::Game(const InitData& init)
 
 void Game::update()
 {
+	const int stage = map.getCurrentStage();
+	const Audio& audio_battle = AudioAsset(U"BattleBgm");
+	const Audio& audio_boss = AudioAsset(U"BossBgm");
+
+	if (!audio_battle.isPlaying() && stage !=4)
+	{
+		audio_battle.play();
+		audio_battle.setVolume(0.7);
+	}
+	else if (!audio_boss.isPlaying() && stage == 4)
+	{
+		audio_battle.stop();
+		audio_boss.play();
+		audio_boss.setVolume(0.7);
+	}
+
 	const RectF pBoxWorld(Arg::center = player.GetPlayerPosition(),
 					  player.GetPlayerHitBox());
 
@@ -72,6 +87,15 @@ void Game::update()
 	if (player.GetPlayerState() == StateMode::Dead && player.IsDead()) {
 		m_showDeath = true;
 	}
+	if (boss.IsBossDead() && player.IsDead())
+	{
+		m_bossDeath = true;
+	}
+
+	if (m_bossDeath) {
+		updateClearOverlay();
+		return;
+	}
 	if (m_showDeath) {
 		updateDeathOverlay();
 		return;
@@ -80,6 +104,7 @@ void Game::update()
 
 	if (Boss_spawner.areAllCleared()&& map.intersectsGoal(pBoxWorld)) {
 		map.loadNextStage();
+
 		map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 		map.update();
 		if (auto spawn = map.findPlayerSpawn()) {
@@ -113,6 +138,9 @@ void Game::draw() const
 
 	if (m_showDeath) {
 		drawDeathOverlay();
+	}
+	if (m_bossDeath) {
+		drawClearOverlay();
 	}
 }
 
@@ -167,7 +195,6 @@ void Game::drawDeathOverlay() const {
 		FontAsset(U"TitleFont")(U"DEATH").drawAt(Scene::CenterF().movedBy(0, -40), Palette::Red);
 	}
 
-
 	const auto drawBtn = [&](const RectF& r, StringView label, bool focused) {
 		r.draw(focused ? ColorF(1, 1, 1, 0.15) : ColorF(1, 1, 1, 0.05));
 		r.drawFrame(2, focused ? Palette::Orange : Palette::Gray);
@@ -176,6 +203,44 @@ void Game::drawDeathOverlay() const {
 
 	drawBtn(m_btnRetry, U"Retry", m_deathSel == DeathChoice::Retry);
 	drawBtn(m_btnTitle, U"Title", m_deathSel == DeathChoice::Title);
+}
+
+void Game::updateClearOverlay() {
+	
+	const bool trigger = KeyEnter.down() || MouseL.down() || KeySpace.down();
+	if (!trigger) return;
+
+	if (m_selected)
+	{
+		changeScene(State::Title);
+	}
+}
+
+void Game::drawClearOverlay() const {
+	if (TextureAsset::IsRegistered(U"ClearBg")) {
+		TextureAsset(U"ClearBg").resized(Scene::Size()).draw();
+	}
+	else {
+		FontAsset(U"TitleFont")(U"CLEAR").drawAt(Scene::CenterF().movedBy(0, -40), Palette::Red);
+	}
+
+	const Vec2  center = Scene::CenterF();
+	const SizeF btnSize{ 240, 60 };
+
+	const RectF startBtn(Arg::center = center, btnSize);
+
+	auto drawButton = [](const RectF& r, StringView text, bool selected)
+		{
+			const ColorF fill = selected ? ColorF{ 1.0, 1.0, 1.0, 0.25 }
+			: ColorF{ 1.0, 1.0, 1.0, 0.12 };
+			const ColorF frame = selected ? ColorF{ 1.0 } : ColorF{ 0.7 };
+			r.rounded(12).draw(fill).drawFrame(2, 0, frame);
+
+			String label = selected ? U"▶ " + String{ text } : String{ text };
+			FontAsset(U"Bold")(label).drawAt(28, r.center(), Palette::White);
+		};
+
+	drawButton(startBtn, U"START", m_selected == true);
 }
 
 

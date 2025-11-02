@@ -11,6 +11,13 @@ Title::Title(const InitData& init)
 
 void Title::update()
 {
+	const Audio& audio = AudioAsset(U"TitleBgm");
+	if(!audio.isPlaying())
+	{
+		audio.setVolume(0.7);
+		audio.play();
+	}
+
 	const Vec2  center = Scene::CenterF();
 	const SizeF btnSize{ 240, 60 };
 	const double offsetY = 160;
@@ -38,6 +45,7 @@ void Title::update()
 	{
 		if (m_selected == 0) {
 			changeScene(State::Game);
+			audio.stop();
 		}
 		else {
 			System::Exit();

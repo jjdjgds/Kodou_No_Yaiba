@@ -531,6 +531,7 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map , double dt)
 		{
 			m_behavior = Boss_Behavior::idle;
 			//Print << U"Boss is dead!";
+			m_bossDead = true;
 		
 		}
 	}
