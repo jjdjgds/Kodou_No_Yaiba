@@ -30,7 +30,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage2.txt",2))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -43,9 +43,6 @@ Game::Game(const InitData& init)
 	else {
 		player.SetPlayerPosition(Vec2{ 800, 750 });
 	}
-
-
-	player.SetPlayerHP(player.GetPlayerMaxHP());
 
 	const Vec2 c = Scene::CenterF();
 	const SizeF btnSize{ 200, 56 };
@@ -174,7 +171,6 @@ void Game::drawDeathOverlay() const {
 	const auto drawBtn = [&](const RectF& r, StringView label, bool focused) {
 		r.draw(focused ? ColorF(1, 1, 1, 0.15) : ColorF(1, 1, 1, 0.05));
 		r.drawFrame(2, focused ? Palette::Orange : Palette::Gray);
-		r.rounded(12);
 		FontAsset(U"Menu")(label).drawAt(r.center(), focused ? Palette::Orange : Palette::White);
 		};
 
