@@ -83,7 +83,7 @@ void Game_Map::loadNextStage()
 
 	if (!FileSystem::Exists(nextPath))
 	{
-		Print << U"🎉 All stages cleared!";
+		//Print << U"🎉 All stages cleared!";
 		return;
 	}
 
@@ -92,11 +92,11 @@ void Game_Map::loadNextStage()
 
 	if (loadStageFromFile(nextPath, m_currentStage))
 	{
-		Print << U"✅ Loaded next stage: " << nextPath;
+		//Print << U"✅ Loaded next stage: " << nextPath;
 	}
 	else
 	{
-		Print << U"❌ Failed to load next stage: " << nextPath;
+		//Print << U"❌ Failed to load next stage: " << nextPath;
 	}
 
 

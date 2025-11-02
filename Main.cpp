@@ -40,6 +40,11 @@ void Main()
 		AudioAsset::Register(U"BCunter", U"example/Audio/BullerCunter.MP3");
 		AudioAsset::Register(U"Medicle", U"example/Audio/Medicle.MP3");
 		//Medicle
+
+		AudioAsset::Register(U"BossBgm", U"example/Audio/boss_bgm.MP3", Loop::Yes);
+		AudioAsset::Register(U"TitleBgm", U"example/Audio/title.MP3", Loop::Yes);
+		AudioAsset::Register(U"BattleBgm", U"example/Audio/combat.MP3", Loop::Yes);
+
 	}
 
 	{
@@ -49,7 +54,8 @@ void Main()
 	}
 
 	TextureAsset::Register(U"TitleBg", U"example/bg/title_bg.png");
-	TextureAsset::Register(U"DeathBg", U"example/spritesheet/death.png");
+	TextureAsset::Register(U"DeathBg", U"example/bg/death_bg.png");
+	TextureAsset::Register(U"ClearBg", U"example/bg/clear_bg.png");
 	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
 	TextureAsset::Register(U"Block", U"example/MAp/Block.png");
 	TextureAsset::Register(U"Map3", U"example/MAp/map3.png");
@@ -85,8 +91,8 @@ void Main()
 	// シーンマネージャの作成
 	//ここに追加していく
 	App manager;
-	manager.add<Game>(State::Game);
 	manager.add<Title>(State::Title);
+	manager.add<Game>(State::Game);
 
 	
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え

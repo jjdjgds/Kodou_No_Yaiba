@@ -55,7 +55,7 @@ enum class Boss_Behavior
 class Enemy_Boss
 {
 private:
-	bool m_debugDraw = true;
+	bool m_debugDraw = false;
 
 	Vec2 m_boss_pos;
 	Vec2 m_boss_scale = { 260.0 ,240.0 };
@@ -196,6 +196,8 @@ private:
 
 	void drawPatternElements(const Game_Map& map) const;
 
+	bool m_bossDead = false;
+
 
 
 public:
@@ -246,6 +248,7 @@ public:
 
 	const SmokeData& GetSmokeData() const { return m_smoke; }
 	bool IsSmokeActive() const { return m_smoke.active; }
+	bool IsBossDead() const { return m_bossDead; }
 };
 
 

@@ -169,7 +169,7 @@ void Player::takeDamage(int dmg)
 		m_HeartCoolTimer = 2.0; // 例: 2秒間は再スタンしない
 		m_HeartCoolFlg = true;
 		SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
-		Print << U"⚡ スタン中に被弾！一時的にスタン解除";
+		//Print << U"⚡ スタン中に被弾！一時的にスタン解除";
 	}
 
 	// --- HP減少 ---
@@ -244,7 +244,7 @@ void Player::OnParrySuccess()
 	m_ParrySuccess = true;
 	m_ParryTimer = 0.25; // 例：0.25秒間無敵や硬直
 	//m_AnimState = PlayerAnim::Parry; // パリィ用アニメーションに切り替え
-	Print << U"Parry Success!";
+	//Print << U"Parry Success!";
 
 }
 
@@ -826,7 +826,7 @@ void Player::takeDamage(int damage, bool fromRight)
 		m_IsStunned = false;
 		m_StunTimer = 0.0;
 		SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
-		Print << U"⚡ スタン中に被弾！スタン解除";
+		//Print << U"⚡ スタン中に被弾！スタン解除";
 	}
 	else
 	{
@@ -999,7 +999,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		m_IsInvincible = true;  // ★無敵ON
 		m_AttackSpeedBoost = 1.5;// ★攻撃速度倍率（1.5倍）
 		m_Speed *= 1.5;
-		Print << U"🔥バーサークモード突入！🔥";
+		//Print << U"🔥バーサークモード突入！🔥";
 	}
 
 	// バーサーク継続処理
@@ -1017,7 +1017,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_IsInvincible = false;// ★無敵解除
 			m_AttackSpeedBoost = 1.0;// ★攻撃速度戻す
 			m_Speed /= 1.5;
-			Print << U"バーサーク解除";
+			//Print << U"バーサーク解除";
 		}
 	}
 
@@ -1803,16 +1803,16 @@ void Player::draw(const Game_Map& CameraPos) const
 		.drawAt(drawPos + offset + dogeOffset);
 
 	// === デバッグ表示 ===
-	RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	//RectF hitBox = getHitRect(CameraPos.getCameraPos());
+	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
-	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	//RectF attackBox = getAttackRect(CameraPos.getCameraPos());
+	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
-	Print << U"velo" << GetPlayerVelocity();
-	Print << U"" << GetPlayerBPM();
+	//Print << U"velo" << GetPlayerVelocity();
+	//Print << U"" << GetPlayerBPM();
 
 }
 

@@ -8,6 +8,7 @@
 #include "Game_BG.hpp"
 #include "TimeStopManager.h"
 #include "EnemySpawner.hpp"
+#include "Enemy_Boss.hpp"
 #include "AllEffect.h"
 
 enum class DeathChoice { Retry = 0, Title = 1 };
@@ -24,6 +25,7 @@ private:
 	Player player;  // ← これがないと Game.cpp 内で player が使えない！
 	Array<Enemy_1> m_enemies1;//敵キャラクターの配列
 	Array<Enemy_2> m_enemies2;//敵キャラクターの配列
+	Enemy_Boss boss;//ボスキャラクター
 	Game_Map map;
 	Game_UI Ui;
 	Game_BG bg;
@@ -31,7 +33,7 @@ private:
 	EnemySpawner Boss_spawner;
 	TimeStopManager tsm;
 
-
+	bool         m_bossDeath = false;
 	bool         m_showDeath = false;
 	DeathChoice  m_deathSel = DeathChoice::Retry;
 	RectF        m_btnRetry;
@@ -40,6 +42,11 @@ private:
 	void drawDeathOverlay() const;
 	void updateDeathOverlay();
 	void restartCurrentStage();
+
+	void updateClearOverlay();
+	void drawClearOverlay() const;
+
+	bool m_selected = false;
 
 	void resetDeathOverlay() {
 		m_showDeath = false;
