@@ -141,7 +141,7 @@ void Game_UI::update(Player& player, const Game_Map& CameraPos)
 	const int bpm = player.GetPlayerBPM();
 
 	// 赤フラグのオン・オフ制御
-	if (bpm <= 60 || bpm >= 140)
+	if (bpm <= 70 || bpm >= 130)
 		m_RedAutoFlag = true;
 	else
 		m_RedAutoFlag = false;
@@ -183,6 +183,9 @@ void Game_UI::update(Player& player, const Game_Map& CameraPos)
 
 		m_WasState = state;
 	}
+
+
+
 }
 
 
@@ -191,7 +194,9 @@ void Game_UI::draw(const Player& player, const Game_Map& CameraPos) const
 	const Texture& BeatTex = TextureAsset(U"HeatBeat");
 	const Texture& PlayerHP = TextureAsset(U"PlayerHP");
 	const Texture& PlayerMedicle = TextureAsset(U"Medicine");
-	
+	const Texture& RedAuto = TextureAsset(U"RedAout");
+
+
 	const int32 frameWidth = 383;
 	const int32 frameHeight = 158;
 
@@ -248,11 +253,13 @@ void Game_UI::draw(const Player& player, const Game_Map& CameraPos) const
 			y = row * frameHeight;
 		}
 	}
-
+	double t = Scene::Time() * 5.0; // 点滅の速さ（2.0を上げると速くなる）
+	double alpha = 0.5 + 0.5 * Sin(t);
 
 	if( m_RedAutoFlag)
 	{
-		RectF{ 0,0,Scene::Width(),Scene::Height() }.draw(ColorF{ 1,0,0,0.1 });
+
+		RedAuto(0, 0, 1920, 1080).scaled(0.833).draw(ColorF{1.0,0.3,0.3,alpha });
 	}
 	
 	

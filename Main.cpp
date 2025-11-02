@@ -25,6 +25,7 @@ void Main()
 		TextureAsset::Register(U"Player", U"example/spritesheet/PLAYER.png");
 		TextureAsset::Register(U"PlayerHP", U"example/spritesheet/hp.png");
 		TextureAsset::Register(U"Medicine", U"example/spritesheet/medicine.png");
+		TextureAsset::Register(U"RedAout", U"example/spritesheet/warning.png");
 
 	}
 	{

@@ -100,22 +100,21 @@ void Player::UpdateHeartState()
 		return;
 	}
 
-	// スタン判定
 	if (bpm <= 60 || bpm >= 140)
 	{
-		SetPlayerHeartState(HeartRateState::Stun);
+		// 🔸クールタイム中はスタンさせない
+		if (m_HeartCoolFlg)
+			return;
 
-		// ★ 連続スタン防止：最近被弾した場合は即座にスタンしない
-		// m_HeartCoolTimer は被弾時にセットされる想定
-		if (!m_IsStunned && m_HeartCoolTimer <= 0.0)
+		if (!m_IsStunned)
 		{
 			m_IsStunned = true;
 			m_StunTimer = 0.0;
 			SetPlayerState(StateMode::Stun);
 		}
-
 		return;
 	}
+
 
 	// スタン解除処理（通常は update() 内で処理しているがここでも補助）
 	if (m_IsStunned)
@@ -165,8 +164,12 @@ void Player::takeDamage(int dmg)
 	{
 		m_IsStunned = false;
 		m_StunTimer = 0.0;
-		Print << U"⚡ スタン中に被弾！スタン解除";
-		// スタン解除時に即座に HURT 処理に入る（BPM は下で調整）
+
+		// 🔸スタン再発を防ぐクールタイムをリセット
+		m_HeartCoolTimer = 2.0;  // 例: 2秒間は再スタンしない
+		m_HeartCoolFlg = true;
+		SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
+		Print << U"⚡ スタン中に被弾！一時的にスタン解除";
 	}
 
 	// --- HP減少 ---
@@ -314,7 +317,14 @@ void Player::PlayerDoge()
 	// Dodge中の速度変更
 	if (m_DogeTimer == 0.0)
 	{
-		SetPlayerSpeed(DogePlayerSpeed);
+		// ★ 修正ポイント：他の状態（壁ジャンプなど）から来たときの速度をリセット
+		SetPlayerVelocity(Vec2::Zero());
+
+		// ★ プレイヤーの向きに応じて回避方向へ初速を与える
+		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
+		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, 0));
+
+		// アニメ・タイマー初期化
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
@@ -334,7 +344,7 @@ void Player::PlayerDoge()
 
 	if (m_DogeTimer >= dogeDuration)
 	{
-		// Dodge終了
+		// ★ 修正ポイント：速度を確実にリセット
 		SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y));
 		SetPlayerSpeed(NormalPlayerSpeed);
 
@@ -761,16 +771,21 @@ void Player::takeDamage(int damage, bool fromRight)
 	{
 		m_IsStunned = false;
 		m_StunTimer = 0.0;
+		SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
 		Print << U"⚡ スタン中に被弾！スタン解除";
+	}
+	else
+	{
+		// --- BPM減少（下限チェック）---
+		int newBPM = GetPlayerBPM() - 8;
+		newBPM = Max(newBPM, 0); // ★ 0未満にならないようにクランプ
+		SetPlayerBPM(newBPM);
 	}
 
 	// --- HP減少 ---
 	m_HP -= damage;
 
-	// --- BPM減少（下限チェック）---
-	int newBPM = GetPlayerBPM() - 8;
-	newBPM = Max(newBPM, 0); // ★ 0未満にならないようにクランプ
-	SetPlayerBPM(newBPM);
+	
 
 	// --- クールタイム系 ---
 	m_HeartTimer = 0.0;
@@ -933,7 +948,8 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		m_BersarkTimer = 8.0;             // バーサーク継続秒数
 		m_IsInvincible = true;            // ★無敵ON
 		m_AttackSpeedBoost = 1.5;         // ★攻撃速度倍率（1.5倍）
-		//Print << U"🔥バーサークモード突入！🔥";
+		m_Speed *= 1.5;
+		Print << U"🔥バーサークモード突入！🔥";
 	}
 
 	// バーサーク継続処理
@@ -950,6 +966,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_BersarkFlg = false;
 			m_IsInvincible = false;        // ★無敵解除
 			m_AttackSpeedBoost = 1.0;      // ★攻撃速度戻す
+			m_Speed /= 1.5;
 			Print << U"バーサーク解除";
 		}
 	}
@@ -1665,7 +1682,7 @@ void Player::draw(const Game_Map& CameraPos) const
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
-	
-	//Print << U"" << GetPlayerBPM();
+	Print << U"velo" << GetPlayerVelocity();
+	Print << U"" << GetPlayerBPM();
 
 }
