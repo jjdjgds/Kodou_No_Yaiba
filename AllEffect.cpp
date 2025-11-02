@@ -9,11 +9,11 @@ void AllEffect::SetEffect(const Vec2& pos, const Vec2& scale, double frameMax, b
 		if (!e.active)
 		{
 			e.Reset(pos, scale, frameMax, dir);
-			Print << U"SetEffect 呼び出し成功！pos:" << pos;
+			//Print << U"SetEffect 呼び出し成功！pos:" << pos;
 			return;
 		}
 	}
-	Print << U"SetEffect 呼ばれたけど空きなし";
+	//Print << U"SetEffect 呼ばれたけど空きなし";
 }
 
 void AllEffect::UpdateEffect()

@@ -945,7 +945,7 @@ void Enemy_Boss::Pattern_4(Player& player, Vec2 cam_pos)
 		m_isAttacking = false;
 		m_hasHitPlayer = false;
 		m_pattern4Timer = 0.0;
-		Print << U"[Pattern_4] Boss exits counter stance.";
+		//Print << U"[Pattern_4] Boss exits counter stance.";
 	}
 }
 
