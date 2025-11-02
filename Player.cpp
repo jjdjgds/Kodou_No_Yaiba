@@ -102,7 +102,6 @@ void Player::UpdateHeartState()
 
 	if (bpm <= 60 || bpm >= 140)
 	{
-		// 🔸クールタイム中はスタンさせない
 		if (m_HeartCoolFlg)
 			return;
 
@@ -112,11 +111,11 @@ void Player::UpdateHeartState()
 			m_StunTimer = 0.0;
 			SetPlayerState(StateMode::Stun);
 		}
-		return;
+		return; // 解除は update() に任せる
 	}
 
 
-	// スタン解除処理（通常は update() 内で処理しているがここでも補助）
+
 	if (m_IsStunned)
 	{
 		m_StunTimer += Scene::DeltaTime();
@@ -125,18 +124,16 @@ void Player::UpdateHeartState()
 		{
 			m_IsStunned = false;
 			m_StunTimer = 0.0;
-			// BPM を安全な値に戻す（強制）
-			SetPlayerBPM(Max(80, GetPlayerBPM()));
 			SetPlayerHeartState(HeartRateState::Normal);
 			SetPlayerState(StateMode::Idle);
 		}
 		else
 		{
-			// スタン中のアニメ更新は PlayerStun() 側で行う（update のスタンブロックでも呼んでいる）
 			PlayerStun();
 			return;
 		}
 	}
+
 
 	// 通常の心拍状態判定
 	if (bpm >= 120 && bpm <= 139)
@@ -814,30 +811,24 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 	if (m_IsStunned)
 	{
-		// タイマー進行（TimeScale や他と揃えたいなら倍率を掛ける）
 		m_StunTimer += Scene::DeltaTime();
-
-		// スタン中はアニメだけ回す
 		PlayerStun();
 
-		// スタン解除判定（時間経過）
 		if (m_StunTimer >= m_StunDuration)
 		{
 			m_IsStunned = false;
 			m_StunTimer = 0.0;
-			SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
 			SetPlayerHeartState(HeartRateState::Normal);
 			SetPlayerState(StateMode::Idle);
+			SetPlayerBPM(80);
 		}
 
-		// スタン中に被弾した場合は takeDamage() の中で m_IsStunned を false にしているので、
-		// ここに到達する時点でスタンがまだ解除されていなければアニメ継続。スタン解除されたら以降の処理を行うため return は控えめにする
 		if (m_IsStunned)
 		{
-			return; // まだスタンならその他処理はスキップ
+			return;
 		}
-		// ここに来る＝スタンは解除された → 通常の update を続行
 	}
+
 
 
 

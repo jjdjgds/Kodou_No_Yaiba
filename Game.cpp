@@ -15,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
 	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
-		5,
+		3,
 		3,
 		90,
 		3,
@@ -45,7 +45,7 @@ Game::Game(const InitData& init)
 	}
 
 
-
+	player.SetPlayerHP(player.GetPlayerMaxHP());
 
 	const Vec2 c = Scene::CenterF();
 	const SizeF btnSize{ 200, 56 };
