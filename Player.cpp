@@ -313,45 +313,66 @@ void Player::PlayerIdle()
 }
 void Player::PlayerDoge()
 {
-	// 1回目のみ初速設定
+	// 初回だけ設定
 	if (m_DogeTimer == 0.0)
 	{
-		const double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
-		const double velY = GetPlayerVelocity().y; // 落下速度維持
-
-		// 定数でX軸加速（Yはそのまま）
-		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, velY));
-
+		// SetPlayerSpeed(DogePlayerSpeed); // ★ 通常の速度設定は不要
 		m_frameIndex = 0;
 		animTime = 0.0;
+
+		// 回避方向を決定
+		double dir = (IsPlayerFacingRight() ? 1.0 : -1.0);
+		// m_DogeVelocity に回避の瞬発的な移動量を設定
+		// DogePlayerSpeed ではなく固定値（例: 800.0）を使うことで、より明確な回避移動を実現
+		m_DogeVelocity = Vec2{ dir * 800.0, 0.0 }; // 瞬発力高めに
+
+		// ★ 回避中は無敵にする (任意)
+		m_IsInvincible = true;
 	}
 
-	// ★ここを追加！(速度に基づいて移動する)
+	// 移動処理
 	Vec2 pos = GetPlayerPosition();
-	pos += GetPlayerVelocity() * Scene::DeltaTime();
+	// ★ 速度を徐々に減衰させる (スライド感を出す)
+	pos += m_DogeVelocity * Scene::DeltaTime();
+	m_DogeVelocity *= 0.85; // 毎フレーム 15% 減衰
+
 	SetPlayerPosition(pos);
 
+	// アニメ更新 (省略なし)
 	animTime += Scene::DeltaTime();
-	m_DogeTimer += Scene::DeltaTime();
-
-	if (m_DogeTimer >= 0.25) // 終了時間
+	const double dogeFrameDuration = 0.08;
+	if (animTime >= dogeFrameDuration)
 	{
-		// 終了時に速度をリセット
-		Vec2 v = GetPlayerVelocity();
-		v.x = 0; // ← X速度だけ止める
-		SetPlayerVelocity(v);
+		animTime -= dogeFrameDuration;
+		m_frameIndex = (m_frameIndex + 1) % m_dogePatterns.size();
+	}
+
+	// 経過時間
+	m_DogeTimer += Scene::DeltaTime();
+	const double dogeDuration = 0.3; // Dodge継続時間を少し延ばした
+
+	if (m_DogeTimer >= dogeDuration || m_DogeVelocity.length() < 100.0) // 速度が落ちても終了
+	{
+		// Dodge終了
+		m_DogeVelocity = Vec2{ 0, 0 };
+		// SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y)); // ★ update() で上書きされるため、ここでリセットは不要
 		SetPlayerSpeed(NormalPlayerSpeed);
+		m_IsInvincible = false; // ★ 無敵解除
 
-		m_DogeTimer = 0.0;
-		m_isDodging = false;
-
-		// 状態復帰
 		if (KeyA.pressed() || KeyD.pressed())
+		{
 			SetPlayerState(StateMode::Run);
+		}
 		else
+		{
 			SetPlayerState(StateMode::Idle);
+		}
+
+		m_isDodging = false;
+		m_DogeTimer = 0.0;
 	}
 }
+
 
 void Player::PlayerHurt()
 {

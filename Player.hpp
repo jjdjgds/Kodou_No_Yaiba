@@ -100,6 +100,7 @@ private:
 	double m_InvincibleTimer = 0.0;
 	bool m_IsKnockback = false;
 	bool m_TimeAutoFlag = false;
+	Vec2  m_DogeVelocity ;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
 
