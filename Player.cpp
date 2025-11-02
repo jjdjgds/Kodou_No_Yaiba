@@ -946,7 +946,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		m_IsInvincible = true;  // ★無敵ON
 		m_AttackSpeedBoost = 1.5;// ★攻撃速度倍率（1.5倍）
 		m_Speed *= 1.5;
-		Print << U"🔥バーサークモード突入！🔥";
+		//Print << U"🔥バーサークモード突入！🔥";
 	}
 
 	// バーサーク継続処理
@@ -964,7 +964,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_IsInvincible = false;// ★無敵解除
 			m_AttackSpeedBoost = 1.0;// ★攻撃速度戻す
 			m_Speed /= 1.5;
-			Print << U"バーサーク解除";
+			//Print << U"バーサーク解除";
 		}
 	}
 
@@ -1721,16 +1721,16 @@ void Player::draw(const Game_Map& CameraPos) const
 		.drawAt(drawPos + offset + dogeOffset);
 
 	// === デバッグ表示 ===
-	RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	//RectF hitBox = getHitRect(CameraPos.getCameraPos());
+	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
-	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	//RectF attackBox = getAttackRect(CameraPos.getCameraPos());
+	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
-	Print << U"velo" << GetPlayerVelocity();
-	Print << U"" << GetPlayerBPM();
+	//Print << U"velo" << GetPlayerVelocity();
+	//Print << U"" << GetPlayerBPM();
 
 }
 

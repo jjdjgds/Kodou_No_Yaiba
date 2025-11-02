@@ -30,7 +30,7 @@ private:
 	bool textallowLose = false;
 
 
-	bool m_debugDraw = true; //デバッグ描画フラグ
+	bool m_debugDraw = false; //デバッグ描画フラグ
 
 	Vec2 m_Position;		  //位置
 

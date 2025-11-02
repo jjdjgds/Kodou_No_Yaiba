@@ -54,7 +54,7 @@ enum class Boss_Behavior
 class Enemy_Boss
 {
 private:
-	bool m_debugDraw = true;
+	bool m_debugDraw = false;
 
 	Vec2 m_boss_pos;
 	Vec2 m_boss_scale = { 260.0 ,240.0 };

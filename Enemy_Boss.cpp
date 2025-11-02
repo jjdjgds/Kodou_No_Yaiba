@@ -100,7 +100,8 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		m_behavior = Boss_Behavior::Attack;
 		m_attackTimer = m_attackCooldown;
 		m_deathPatternCounter = 0;
-		Print << U"[Boss] dead";
+		m_bossDead = true;
+		//Print << U"[Boss] dead";
 
 	}
 
@@ -142,31 +143,31 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 	if (player.IsPlayerAttacking())
 	{
-		Print << U"Player is attacking";
-		Print << U"m_hasTakenHit: " << m_hasTakenHit;
-		Print << U"bossRect: " << bossRect;
-		Print << U"pAttackBox: " << pAttackBox;
-		Print << U"Intersects: " << bossRect.intersects(pAttackBox);
+		//Print << U"Player is attacking";
+		//Print << U"m_hasTakenHit: " << m_hasTakenHit;
+		//Print << U"bossRect: " << bossRect;
+		//Print << U"pAttackBox: " << pAttackBox;
+		//Print << U"Intersects: " << bossRect.intersects(pAttackBox);
 
 		if (!m_hasTakenHit && bossRect.intersects(pAttackBox))
 		{
-			Print << U"=== BOSS HIT! ===";
+			//Print << U"=== BOSS HIT! ===";
 			// Boss takes damage once per attack
 			m_hasTakenHit = true;
 			m_boss_hp -= 1;
 
 			// Play sound
 			AudioAsset(U"Sowrd4").play();
-			Print << U"[hp] : " << m_boss_hp;
+			//Print << U"[hp] : " << m_boss_hp;
 		}
 		else
 		{
 			if (m_hasTakenHit) {
-				Print << U"Already took hit this attack";
+				//rint << U"Already took hit this attack";
 			}
 			if (!bossRect.intersects(pAttackBox)) {
-				Print << U"Boss not in attack box";
-				Print << U"Distance between centers: " << bossRect.center().distanceFrom(pAttackBox.center());
+				//Print << U"Boss not in attack box";
+				//Print << U"Distance between centers: " << bossRect.center().distanceFrom(pAttackBox.center());
 			}
 		}
 	}
@@ -283,7 +284,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		setState(AnimState_Boss::Idle);
 		m_OverBPMTimer += Scene::DeltaTime();
 		// Optional: effects or debug message
-		Print << U"[Boss] Overheated... Cooling down!";
+		//Print << U"[Boss] Overheated... Cooling down!";
 
 		// Wait for 2 seconds before resuming
 		if (m_OverBPMTimer >= 2.0f)
@@ -294,7 +295,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			m_OverBPM = false;
 			m_isAttacking = false;
 			setState(AnimState_Boss::Battle_Idle);
-			Print << U"[Boss] Cooldown finished, resuming combat!";
+			//Print << U"[Boss] Cooldown finished, resuming combat!";
 		}
 
 		return; // stop rest of update while overheated
@@ -670,9 +671,9 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 			m_projectileActive = true;
 			m_projectileReflected = false;
 
-			Print << U"[Pattern_1] Throwing shuriken at player!";
-			Print << U"Boss Pos: " << m_boss_pos << U" Player Pos: " << player.GetPlayerPosition();
-			Print << U"Direction: " << m_projectileDir;
+			//Print << U"[Pattern_1] Throwing shuriken at player!";
+			//Print << U"Boss Pos: " << m_boss_pos << U" Player Pos: " << player.GetPlayerPosition();
+			//Print << U"Direction: " << m_projectileDir;
 
 			throw_star.play();
 		}
@@ -698,7 +699,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 					parry.play();
 					m_projectileDir = (m_boss_pos - m_projectilePos).normalized();
 					m_projectileReflected = true;
-					Print << U"[Pattern_1] Player parried the shuriken!";
+					//Print << U"[Pattern_1] Player parried the shuriken!";
 				}
 			}
 
@@ -708,7 +709,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 				m_projectileActive = false;
 				player.takeDamage(1);
 				m_boss_bpm += 15;
-				Print << U"[Pattern_1] Shuriken hit player!";
+				//Print << U"[Pattern_1] Shuriken hit player!";
 			}
 
 			// Check if reflected projectile hits boss
@@ -720,7 +721,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 				{
 					m_projectileActive = false;
 					m_boss_hp -= 2;
-					Print << U"[Pattern_1] Reflected shuriken hit boss!";
+					//Print << U"[Pattern_1] Reflected shuriken hit boss!";
 				}
 			}
 
@@ -730,7 +731,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 				m_projectileActive = false;
 				m_pattern1Phase = 2;
 				m_pattern1Timer = 0.0;
-				Print << U"[Pattern_1] Projectile timeout";
+				//Print << U"[Pattern_1] Projectile timeout";
 			}
 		}
 		break;
@@ -742,12 +743,12 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 		if (m_currentWaypoint < (int)waypoints.size())
 		{
 			m_pattern1Phase = 0; // move to next target
-			Print << U"[Pattern_1] Moving to next waypoint: " << m_currentWaypoint;
+			//Print << U"[Pattern_1] Moving to next waypoint: " << m_currentWaypoint;
 		}
 		else
 		{
 			m_pattern1Phase = 3; // return to start
-			Print << U"[Pattern_1] Returning to start position";
+			//Print << U"[Pattern_1] Returning to start position";
 		}
 		break;
 	}
@@ -769,7 +770,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 			m_FaceRight = (player.GetPlayerPosition().x >= m_boss_pos.x);
 			m_pattern1Phase = 0;
 			m_projectileActive = false;
-			Print << U"[Pattern_1] Pattern complete";
+			//Print << U"[Pattern_1] Pattern complete";
 		}
 		break;
 	}
@@ -973,7 +974,7 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos, double dt_enemy)
 		// Store player position at start for consistent targeting
 		m_pattern5TargetPos = player.GetPlayerPosition();
 
-		Print << U"[Pattern_5] Started Smooth Charge Attack!";
+		//Print << U"[Pattern_5] Started Smooth Charge Attack!";
 	}
 
 	Vec2 playerPos = player.GetPlayerPosition();
@@ -1164,7 +1165,7 @@ void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 			m_pattern6Count++;
 			m_recentlyHit = true;
 			m_hitTimer = 0.0f;
-			Print << U"[Pattern_6] Boss hit " << m_pattern6Count << U" times";
+			//Print << U"[Pattern_6] Boss hit " << m_pattern6Count << U" times";
 		}
 	}
 
@@ -1185,7 +1186,7 @@ void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 		m_isAttacking = false;
 		setState(AnimState_Boss::Battle_Idle);
 		rest.stop();
-		Print << U"[Pattern_6 End] Boss woke up!";
+		//Print << U"[Pattern_6 End] Boss woke up!";
 	}
 }
 
@@ -1211,7 +1212,7 @@ void Enemy_Boss::UpdateSmoke(Vec2 cam_pos, Player& player)
 	const RectF playerRect = player.getHitRect(Vec2{ 0, 0 }); // World coordinates
 	if (smokeArea.intersects(playerRect))
 	{
-		Print << U"*** PLAYER IN SMOKE! ***";
+		//Print << U"*** PLAYER IN SMOKE! ***";
 		if (m_smoke.timeInSmoke <= 0.0)
 		{
 			m_smoke.timeInSmoke = Scene::DeltaTime();
@@ -1265,7 +1266,7 @@ void Enemy_Boss::updateSpeedByBPM()
 	{
 		m_OverBPM = true;
 		m_OverBPMTimer = 0.0;
-		Print << U"[Boss] BPM too high! Boss overheats!";
+		//Print << U"[Boss] BPM too high! Boss overheats!";
 	}
 	//Print << U"[Boss_speed] : " << m_boss_speed;
 	//Print << U"[BPM] : " << m_boss_bpm;
