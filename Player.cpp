@@ -559,58 +559,63 @@ void Player::PlayerDead()
 
 void Player::PlayerKaifuku()
 {
-
+	// 1. kaifuku状態でない場合はアニメーションをリセットして終了
 	if (GetPlayerState() != StateMode::kaifuku)
 	{
 		m_frameIndex = 0;
 		return;
 	}
 
+	
+
 	const double kaifukuFrameDuration = 0.15;
-	// ここが重要！ 攻撃後の状態を決める
-	if (KeyA.pressed() || KeyA.down() || KeyD.down() || KeyD.pressed())
+
+	// 2. 状態遷移のチェック（アニメーション中でも移動/攻撃でキャンセル可能にする）
+	// ※ アニメーションの進行を優先させる場合は、これらのチェックは削除またはアニメーション終了ブロックに移します。
+	if (KeyA.pressed() || KeyD.pressed())
 	{
-		// まだ移動キーが押されている → Runへ
 		SetPlayerState(StateMode::Run);
+		return; // 状態が遷移したらアニメーション処理はスキップ
 	}
 
 	if (MouseL.down())
 	{
 		SetPlayerState(StateMode::Attack);
+		return; // 状態が遷移したらアニメーション処理はスキップ
 	}
+
+	// 3. アニメーション更新と終了チェック
 	if (animTime >= kaifukuFrameDuration)
 	{
 		animTime -= kaifukuFrameDuration;
 		m_frameIndex++;
 
-		SetPlayerBPM(GetPlayerBPM() - 1);
+
 		if (m_frameIndex >= m_kaifukuPatterns.size())
 		{
+			
+			SetPlayerBPM(GetPlayerBPM() - 10); // 減少量を仮に10に設定（適宜調整してください）
 
 			m_frameIndex = 0;
 
-
-			// ここが重要！ 攻撃後の状態を決める
+			// 終了時の状態遷移
 			if (KeyA.pressed() || KeyD.pressed())
 			{
-				// まだ移動キーが押されている → Runへ
 				SetPlayerState(StateMode::Run);
 			}
 			else
 			{
-				// 押されていない → Idleへ
 				SetPlayerState(StateMode::Idle);
 			}
-			if (MouseL.down())
-			{
-				SetPlayerState(StateMode::Attack);
-			}
+
+			// 終了後、再度攻撃入力があった場合の対応（通常はIdle/Runに戻るので不要なことが多い）
+			// if (MouseL.down())
+			// {
+			// 	SetPlayerState(StateMode::Attack);
+			// }
 		}
 	}
-
-
 }
-
 
 void Player::PlayerIdleToRun()
 {
@@ -1517,6 +1522,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		}
 		if (KeyS.pressed())
 		{
+			
 			SetPlayerState(StateMode::kaifuku);
 		}
 		if (KeyS.down())
