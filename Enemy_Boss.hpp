@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <Siv3D.hpp>
+#include "AllEffect.h"
 
 class Player;
 class Game_Map;
@@ -204,7 +205,7 @@ public:
 	{
 	}
 
-	void update(Player& player, Game_Map& map);
+	void update(Player& player, Game_Map& map, AllEffect& ae);
 
 
 	void draw(const Game_Map& map) const;

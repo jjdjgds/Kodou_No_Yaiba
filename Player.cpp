@@ -503,7 +503,7 @@ void Player::PlayerMedecine()
 			const Audio& me = AudioAsset(U"Medicle");
 			me.play();
 			m_frameIndex = 0;
-			SetPlayerBPM(GetPlayerBPM() - 10);
+			SetPlayerBPM(GetPlayerBPM() - 20);
 			SetMedecine(GetMedecine() - 1);
 			// ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())

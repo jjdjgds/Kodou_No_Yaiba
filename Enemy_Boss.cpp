@@ -63,7 +63,7 @@ RectF Enemy_Boss::chaseRect(const Vec2& cam) const
 }
 
 
-void Enemy_Boss::update(Player& player, Game_Map& map)
+void Enemy_Boss::update(Player& player, Game_Map& map, AllEffect& ae)
 {
 	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	const Vec2 camPos = map.getCameraPos();
@@ -154,6 +154,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			// Boss takes damage once per attack
 			m_hasTakenHit = true;
 			m_boss_hp -= 1;
+			ae.SetEffect(m_boss_pos, Vec2{ 1.0,0.3 }, 0.4, player.IsPlayerFacingRight());
 
 			// Play sound
 			AudioAsset(U"Sowrd4").play();

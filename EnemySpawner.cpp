@@ -74,7 +74,7 @@ void  EnemySpawner::loadFromMap(const Array<Block>& blocks, double chipWidth, do
 void  EnemySpawner::update(Player& player, Game_Map& map,AllEffect& ae)
 {
 	if (m_boss)
-		m_boss->update(player, map);
+		m_boss->update(player, map,ae);
 
 	for (auto& e : m_enemy1)  if (e)e->update(player, map,ae);
 	for (auto& e : m_enemy2) if (e) e->update(player, map,ae);
