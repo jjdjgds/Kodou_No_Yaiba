@@ -313,32 +313,15 @@ void Player::PlayerIdle()
 }
 void Player::PlayerDoge()
 {
-	// 初回だけ設定
+	// Dodge中の速度変更
 	if (m_DogeTimer == 0.0)
 	{
-		// SetPlayerSpeed(DogePlayerSpeed); // ★ 通常の速度設定は不要
+		SetPlayerSpeed(DogePlayerSpeed);
 		m_frameIndex = 0;
 		animTime = 0.0;
-
-		// 回避方向を決定
-		double dir = (IsPlayerFacingRight() ? 1.0 : -1.0);
-		// m_DogeVelocity に回避の瞬発的な移動量を設定
-		// DogePlayerSpeed ではなく固定値（例: 800.0）を使うことで、より明確な回避移動を実現
-		m_DogeVelocity = Vec2{ dir * 800.0, 0.0 }; // 瞬発力高めに
-
-		// ★ 回避中は無敵にする (任意)
-		m_IsInvincible = true;
 	}
 
-	// 移動処理
-	Vec2 pos = GetPlayerPosition();
-	// ★ 速度を徐々に減衰させる (スライド感を出す)
-	pos += m_DogeVelocity * Scene::DeltaTime();
-	m_DogeVelocity *= 0.85; // 毎フレーム 15% 減衰
-
-	SetPlayerPosition(pos);
-
-	// アニメ更新 (省略なし)
+	// アニメ更新
 	animTime += Scene::DeltaTime();
 	const double dogeFrameDuration = 0.08;
 	if (animTime >= dogeFrameDuration)
@@ -349,15 +332,13 @@ void Player::PlayerDoge()
 
 	// 経過時間
 	m_DogeTimer += Scene::DeltaTime();
-	const double dogeDuration = 0.3; // Dodge継続時間を少し延ばした
+	const double dogeDuration = 0.2; // Dodge継続時間
 
-	if (m_DogeTimer >= dogeDuration || m_DogeVelocity.length() < 100.0) // 速度が落ちても終了
+	if (m_DogeTimer >= dogeDuration)
 	{
 		// Dodge終了
-		m_DogeVelocity = Vec2{ 0, 0 };
-		// SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y)); // ★ update() で上書きされるため、ここでリセットは不要
+		SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y));
 		SetPlayerSpeed(NormalPlayerSpeed);
-		m_IsInvincible = false; // ★ 無敵解除
 
 		if (KeyA.pressed() || KeyD.pressed())
 		{
@@ -372,7 +353,6 @@ void Player::PlayerDoge()
 		m_DogeTimer = 0.0;
 	}
 }
-
 
 void Player::PlayerHurt()
 {
