@@ -975,29 +975,22 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			0.0
 	    };
 
-	// Dodge入力受付
-	if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
-	{
-		// ★ 壁キックタイマーを強制終了
-		m_WallKickTimer = 0.0;
+	
 
-		SetPlayerAttackFlag(false);
-		SetPlayerState(StateMode::Doge);
-		SetPlayerBPM(GetPlayerBPM() + 5);
-		m_isDodging = true;
-		m_DogeTimer = 0.0;
-		m_DogeCoolTimer = m_DogeCooldown;
-		m_frameIndex = 0;
-		animTime = 0.0;
+		// Dodge入力受付
+		if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
+		{
+			SetPlayerAttackFlag(false);
+			SetPlayerState(StateMode::Doge);
+			SetPlayerBPM(GetPlayerBPM() + 5);
+			m_isDodging = true;
+			m_DogeTimer = 0.0;
+			m_DogeCoolTimer = m_DogeCooldown; // ← クールタイム発動
+			m_frameIndex = 0;
+			animTime = 0.0;
+		}
 
-		// ★ Y軸速度を保持してX軸のみ設定（グローバルへ）
-		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
-		double currentVelocityY = GetPlayerVelocity().y;
-		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, currentVelocityY));
 
-		// 🔥 ここでローカルvelocityも即同期しておくのがポイント
-		velocity = GetPlayerVelocity();
-	}
 
 	// Idle → IdleToRun（最初の走り出し）
 	if ((KeyD.down() || KeyA.down()) && GetPlayerState() == StateMode::Idle)
