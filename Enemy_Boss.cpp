@@ -66,18 +66,18 @@ RectF Enemy_Boss::chaseRect(const Vec2& cam) const
 void Enemy_Boss::update(Player& player, Game_Map& map)
 {
 	const double dt = Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
-	updateSpeedByBPM();
 	const Vec2 camPos = map.getCameraPos();
 	Vec2 playerPos = player.GetPlayerPosition();
 
-	const RectF eHurtBox = BossRect(camPos);
-	const RectF eAttackBox = attackRect(camPos);                           // 敵の攻撃矩形（前方オフセット）
-	const RectF eChaseBox = chaseRect(camPos);// プレイヤー追跡矩形（広域前方オフセット）
-	const RectF pHitBox(Arg::center = player.GetPlayerPosition() - camPos, player.GetPlayerHitBox()); // プレイヤー本体
-	const RectF pAttackBox = player.getAttackRect(camPos); // プレイヤーの攻撃矩形（Player の関数利用）
+	// Update collision detection to use world coordinates
+	const RectF eHurtBox = BossRect(Vec2{ 0, 0 }); // World coordinates
+	const RectF eAttackBox = attackRect(Vec2{ 0, 0 }); // World coordinates
+	const RectF eChaseBox = chaseRect(Vec2{ 0, 0 }); // World coordinates
+	const RectF pHitBox(Arg::center = player.GetPlayerPosition(), player.GetPlayerHitBox()); // World coordinates
+	const RectF pAttackBox = player.getAttackRect(Vec2{ 0, 0 }); // World coordinates
 
-	const bool playerInChase = RectToRect(eChaseBox, pHitBox);// プレイヤーが追跡矩形内にいるか
-	const bool playerInAttack = RectToRect(eAttackBox, pHitBox);// プレイヤーが攻撃矩形内にいるか
+	const bool playerInChase = RectToRect(eChaseBox, pHitBox); // World coordinates
+	const bool playerInAttack = RectToRect(eAttackBox, pHitBox); // World coordinates
 
 	if (!m_isAttacking && !m_deathanimation)
 	{
@@ -109,7 +109,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	Vec2 probeX = m_boss_pos;
 	probeX.x += m_vel.x * dt;
 
-	RectF boxX = BossRectAt(probeX - map.getCameraPos()); // world → screen adjustment for collision
+	RectF boxX = BossRectAt(probeX); // world → screen adjustment for collision
 	if (!map.CheckCollision_RecF(boxX))
 	{
 		m_boss_pos.x = probeX.x;
@@ -123,7 +123,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	Vec2 probeY = m_boss_pos;
 	probeY.y += m_vel.y * dt;
 
-	RectF boxY = BossRectAt(probeY - map.getCameraPos());
+	RectF boxY = BossRectAt(probeY);
 
 	if (!map.CheckCollision_RecF(boxY))
 	{
@@ -136,94 +136,173 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 	// ----------------------------
 	// --- Final Foot Stabilization
 	// ----------------------------
-	const RectF bossRect = BossRect(map.getCameraPos());
-	const RectF playerRect = player.getHitRect(map.getCameraPos());
+	const RectF bossRect = BossRect(Vec2{ 0, 0 });
+	const RectF playerRect = player.getHitRect(Vec2{ 0, 0 });
 
-	if (bossRect.intersects(pAttackBox))
+
+	if (player.IsPlayerAttacking())
 	{
-		if (player.IsPlayerAttacking() && !m_hasTakenHit)
+		Print << U"Player is attacking";
+		Print << U"m_hasTakenHit: " << m_hasTakenHit;
+		Print << U"bossRect: " << bossRect;
+		Print << U"pAttackBox: " << pAttackBox;
+		Print << U"Intersects: " << bossRect.intersects(pAttackBox);
+
+		if (!m_hasTakenHit && bossRect.intersects(pAttackBox))
 		{
-			m_hasTakenHit = true; // Prevent repeated hits during same attack
+			Print << U"=== BOSS HIT! ===";
+			// Boss takes damage once per attack
+			m_hasTakenHit = true;
 			m_boss_hp -= 1;
-		}
-		
-	}
-	else
-	{
-		m_hasTakenHit = false;
-	}
 
-	if (bossRect.intersects(playerRect))
-	{
-		// Boss rectangle edges
-		float bossLeft = bossRect.left().begin.x;
-		float bossRight = bossRect.right().begin.x;
-		float bossTop = bossRect.top().begin.y;
-		float bossBottom = bossRect.bottom().begin.y;
-
-		// Player rectangle edges
-		float playerLeft = playerRect.left().begin.x;
-		float playerRight = playerRect.right().begin.x;
-		float playerTop = playerRect.top().begin.y;
-		float playerBottom = playerRect.bottom().begin.y;
-
-		// Centers for push direction calculation
-		float bossCenterX = (bossLeft + bossRight) / 2.0f;
-		float bossCenterY = (bossTop + bossBottom) / 2.0f;
-		float playerCenterX = (playerLeft + playerRight) / 2.0f;
-		float playerCenterY = (playerTop + playerBottom) / 2.0f;
-
-		// Calculate overlap
-		float overlapX = std::min(bossRight, playerRight) - std::max(bossLeft, playerLeft);
-		float overlapY = std::min(bossBottom, playerBottom) - std::max(bossTop, playerTop);
-
-		// Resolve collision along the smaller overlap
-		if (overlapX < overlapY)
-		{
-			// Horizontal push
-			if (playerCenterX < bossCenterX)
-				player.SetPlayerPosition(player.GetPlayerPosition() - Vec2{ overlapX, 0 }); // push left
-			else
-				player.SetPlayerPosition(player.GetPlayerPosition() + Vec2{ overlapX, 0 }); // push right
+			// Play sound
+			AudioAsset(U"Sowrd4").play();
+			Print << U"[hp] : " << m_boss_hp;
 		}
 		else
 		{
-			// Vertical push
-			if (playerCenterY < bossCenterY)
-				player.SetPlayerPosition(player.GetPlayerPosition() - Vec2{ 0, overlapY }); // push up
-			else
-				player.SetPlayerPosition(player.GetPlayerPosition() + Vec2{ 0, overlapY }); // push down
+			if (m_hasTakenHit) {
+				Print << U"Already took hit this attack";
+			}
+			if (!bossRect.intersects(pAttackBox)) {
+				Print << U"Boss not in attack box";
+				Print << U"Distance between centers: " << bossRect.center().distanceFrom(pAttackBox.center());
+			}
 		}
+	}
+	else
+	{
+		// Attack animation ended, ready to take another hit next time
+		m_hasTakenHit = false;
+	}
+	
+
+
+
+	if (bossRect.intersects(playerRect))
+	{
+		//// Boss rectangle edges
+		//float bossLeft = bossRect.left().begin.x;
+		//float bossRight = bossRect.right().begin.x;
+		//float bossTop = bossRect.top().begin.y;
+		//float bossBottom = bossRect.bottom().begin.y;
+		//
+		//// Player rectangle edges
+		//float playerLeft = playerRect.left().begin.x;
+		//float playerRight = playerRect.right().begin.x;
+		//float playerTop = playerRect.top().begin.y;
+		//float playerBottom = playerRect.bottom().begin.y;
+		//
+		//// Centers for push direction calculation
+		//float bossCenterX = (bossLeft + bossRight) / 2.0f;
+		//float bossCenterY = (bossTop + bossBottom) / 2.0f;
+		//float playerCenterX = (playerLeft + playerRight) / 2.0f;
+		//float playerCenterY = (playerTop + playerBottom) / 2.0f;
+		//
+		//// Calculate overlap
+		//float overlapX = std::min(bossRight, playerRight) - std::max(bossLeft, playerLeft);
+		//float overlapY = std::min(bossBottom, playerBottom) - std::max(bossTop, playerTop);
+		//
+		//// Resolve collision along the smaller overlap
+		//	// Push player away
+		//if (overlapX < overlapY)
+		//{
+		//	// Horizontal push
+		//	const Vec2 pushDir = (m_FaceRight ? Vec2{ +1, 0 } : Vec2{ -1, 0 });
+		//	player.SetPlayerPosition(player.GetPlayerPosition() + pushDir * overlapX);
+		//}
+		//else
+		//{
+		//	// Vertical push
+		//	player.SetPlayerPosition(player.GetPlayerPosition() - Vec2{ 0, overlapY });
+		//}
+
+			if (bossRect.intersects(playerRect))
+			{
+				// Boss rectangle edges
+				float bossLeft = bossRect.left().begin.x;
+				float bossRight = bossRect.right().begin.x;
+				float bossTop = bossRect.top().begin.y;
+				float bossBottom = bossRect.bottom().begin.y;
+
+				// Player rectangle edges
+				float playerLeft = playerRect.left().begin.x;
+				float playerRight = playerRect.right().begin.x;
+				float playerTop = playerRect.top().begin.y;
+				float playerBottom = playerRect.bottom().begin.y;
+
+				// Calculate overlap
+				float overlapX = std::min(bossRight, playerRight) - std::max(bossLeft, playerLeft);
+				float overlapY = std::min(bossBottom, playerBottom) - std::max(bossTop, playerTop);
+
+				Vec2 playerPos = player.GetPlayerPosition();
+				Vec2 newPos = playerPos;
+
+
+				if (overlapX < overlapY)
+				{
+					// Horizontal push
+					Vec2 pushDir = (m_FaceRight ? Vec2{ +1, 0 } : Vec2{ -1, 0 });
+					newPos = playerPos + pushDir * overlapX;
+
+					RectF newPlayerRect(newPos, player.GetPlayerScale());
+					if (!map.CheckCollision(newPlayerRect))
+					{
+						player.SetPlayerPosition(newPos);
+					}
+					else
+					{
+						// Optional: Slide slightly along vertical if possible
+						Vec2 slidePos = playerPos + Vec2{ 0, Sign(overlapY) } *2.0; // small nudge
+						RectF slideRect(slidePos, player.GetPlayerScale());
+						if (!map.CheckCollision(slideRect))
+							player.SetPlayerPosition(slidePos);
+					}
+				}
+				else
+				{
+					// Vertical push
+					Vec2 pushDir = Vec2{ 0, -1 };
+					newPos = playerPos + pushDir * overlapY;
+
+					RectF newPlayerRect(newPos, player.GetPlayerScale());
+					if (!map.CheckCollision(newPlayerRect))
+					{
+						player.SetPlayerPosition(newPos);
+					}
+				}
+			
+		    }
+	
 	}
 
 	if (m_OverBPM)
 	{
-		m_OverBPMTimer += Scene::DeltaTime();
-
 		// Keep the boss completely still
 		m_vel = Vec2{ 0, 0 };
-		m_isAttacking = false;
 		setState(AnimState_Boss::Idle);
+		m_OverBPMTimer += Scene::DeltaTime();
+		// Optional: effects or debug message
+		Print << U"[Boss] Overheated... Cooling down!";
 
-		// Optionally: Draw effect, flash, or sound cue
-		// Print << U"[Boss] Overheated... Cooling down!";
-
-		if (m_OverBPMTimer >= 2.0) // after 3 seconds
+		// Wait for 2 seconds before resuming
+		if (m_OverBPMTimer >= 2.0f)
 		{
 			// Boss cools down and resumes action
-			m_OverBPMTimer = false;
-			m_OverBPMTimer = 0.0;
-			m_boss_bpm = m_base_bpm;
-			Print << U"[Boss] Cooldown finished, resuming combat!";
+			m_OverBPMTimer = 0.0f;
+			m_boss_bpm = 100;
 			m_OverBPM = false;
+			m_isAttacking = false;
+			setState(AnimState_Boss::Battle_Idle);
+			Print << U"[Boss] Cooldown finished, resuming combat!";
 		}
 
-		return; // Stop rest of update while overheated
+		return; // stop rest of update while overheated
 	}
-
+	updateSpeedByBPM();
 	// --- Animation Timer ---
 	const auto& anim = m_anims[m_state];
-	m_time += Scene::DeltaTime() * (m_boss_speed / m_base_speed);
+	m_time += dt * (m_boss_speed / m_base_speed);
 	while (m_time >= anim.frameTime)
 	{
 		m_time -= anim.frameTime;
@@ -244,7 +323,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 	if (m_isAttacking)
 	{
-		executePattern(player, map, m_pattern);
+		executePattern(player, map, m_pattern , dt);
 
 		return;
 	}
@@ -289,7 +368,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 			if (m_isDying || playerInAttackRange )
 			{
 				// Perform current attack pattern
-				handleAttackPattern(player, map);
+				handleAttackPattern(player, map , dt);
 				//setState(AnimState_Boss::Attack);
 			}
 			m_attackTimer = 0.0; // Reset cooldown
@@ -341,6 +420,8 @@ void Enemy_Boss::draw(const Game_Map& map) const
 		.scaled(sxScale, syScale)
 		.drawAt(center);
 
+	// Draw pattern-specific elements
+	drawPatternElements(map);
 
 	if (m_debugDraw) {
 		const Vec2 cam = map.getCameraPos();
@@ -368,7 +449,39 @@ void Enemy_Boss::draw(const Game_Map& map) const
 	}
 }
 
-void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
+void Enemy_Boss::drawPatternElements(const Game_Map& map) const
+{
+	const Vec2 cam_pos = map.getCameraPos();
+
+	// Draw Pattern 1 projectile (camera-relative)
+	if (m_projectileActive)
+	{
+		const Texture& starTex = TextureAsset(U"shuriken");
+		double projW = 60.0;
+		double projH = 60.0;
+		Vec2 screenPos = m_projectilePos - cam_pos; // Convert to screen space
+		starTex
+			.scaled(projW / starTex.width(), projH / starTex.height())
+			.draw(screenPos - Vec2(projW / 2, projH / 2), ColorF(1.0));
+	}
+
+	// Draw Pattern 3 smoke (camera-relative)
+	if (m_smoke.active && m_smoke.lifetime > 0.0)
+	{
+		const Texture& smokeTex = TextureAsset(U"Smoke");
+		const float smokeW = m_hitBox.x * 10.0f;
+		const float smokeH = m_hitBox.y * 8.0f;
+
+		double alpha = 0.4 * (m_smoke.lifetime / 5.0); // Use 5.0 since lifetime starts at 5.0
+
+		Vec2 screenPos = m_smoke.position - cam_pos; // Convert to screen space
+		RectF smokeArea(Arg::center = screenPos, SizeF{ smokeW, smokeH });
+		smokeTex.scaled(smokeW / smokeTex.width(), smokeH / smokeTex.height())
+			.draw(smokeArea.pos, ColorF(1.0, alpha));
+	}
+}
+
+void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map , double dt)
 {
 	if (!m_isDying)
 	{
@@ -378,7 +491,7 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 		if (m_isAttacking)
 		{
 			// Still performing the current pattern
-			executePattern(player, map, m_pattern);
+			executePattern(player, map, m_pattern , dt);
 			return;
 		}
 		else
@@ -390,7 +503,7 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 
 			m_pattern = static_cast<Boss_Pattern>(next);
 			// reset pattern flags
-			executePattern(player, map, m_pattern);
+			executePattern(player, map, m_pattern , dt);
 			m_isAttacking = true; // Start new pattern
 			m_pattern3Done = false;
 
@@ -410,7 +523,7 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 		};
 
 		m_pattern = deathSequence[m_deathPatternCounter % 3];
-		executePattern(player, map, m_pattern);
+		executePattern(player, map, m_pattern , dt);
 		m_deathPatternCounter++;
 
 		if (m_deathPatternCounter >= 9)
@@ -422,7 +535,7 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map)
 	}
 }
 
-void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern pattern)
+void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern pattern, double dt)
 {
 	switch (pattern)
 	{
@@ -433,12 +546,12 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 
 	case Boss_Pattern::PATTERN_1:
 		//Print << U"Boss uses PATTERN_1";
-		Pattern_1(player, map.getCameraPos());
+		Pattern_1(player, map.getCameraPos(),dt);
 		break;
 
 	case Boss_Pattern::PATTERN_2:
 		//Print << U"Boss uses PATTERN_2";
-		Pattern_2(player, map.getCameraPos());
+		Pattern_2(player, map.getCameraPos(),dt);
 		break;
 
 	case Boss_Pattern::PATTERN_3:
@@ -453,7 +566,7 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 
 	case Boss_Pattern::PATTERN_5:
 		//Print << U"Boss uses PATTERN_5 ";
-		Pattern_5(player, map.getCameraPos());
+		Pattern_5(player, map.getCameraPos(),dt);
 		break;
 
 	case Boss_Pattern::PATTERN_6:
@@ -466,11 +579,10 @@ void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern patt
 	}
 }
 
-void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
+void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos, double dt_enemy)
 {
-	const double dt = Scene::DeltaTime();
 	const double tScale = GetTimeScale();
-	const double moveSpeed = 800.0 * dt;
+	const double moveSpeed = 2000.0 * dt_enemy;
 	const double projectileSpeed = 1000.0;
 
 	// Target = top middle of map
@@ -493,6 +605,7 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 		m_pattern1Timer = 0.0;
 		m_startPos = m_boss_pos;  // remember where boss started
 		m_projectileActive = false;
+		m_projectileReflected = false; // Reset reflection flag
 		// Shuffle everything except the first waypoint
 		if (waypoints.size() > 1)
 		{
@@ -501,15 +614,14 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 			waypoints = { waypoints.front() };      // Keep the first fixed
 			waypoints.append(rest);                 // Append shuffled remainder
 		}
-		m_currentWaypoint = 0; // NEW: current waypoint index
-		//Print << U"[Pattern_1] Started: moving to top middle.";
+		m_currentWaypoint = 0;
 	}
 
-	m_pattern1Timer += dt;
+	m_pattern1Timer += dt_enemy;
 
 	switch (m_pattern1Phase)
 	{
-	case 0: // Move to top middle
+	case 0: // Move to waypoint
 	{
 		Vec2 target = waypoints[m_currentWaypoint];
 		Vec2 dir = target - m_boss_pos;
@@ -527,9 +639,8 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 			m_boss_pos = target;
 			m_pattern1Phase = 1;
 			m_pattern1Timer = 0.0;
-			// Face toward player in reverse cause of the sprite
+			// Face toward player
 			m_FaceRight = (player.GetPlayerPosition().x <= m_boss_pos.x);
-			//Print << U"[Pattern_1] Reached waypoint " << m_currentWaypoint << U" → prepare to shoot.";
 		}
 		break;
 	}
@@ -538,95 +649,107 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 		if (!m_projectileActive)
 		{
 			setState(AnimState_Boss::Throw_star);
-			// Create simple projectile data
+
+			// Set projectile start position at boss position
 			m_projectilePos = m_boss_pos;
+
+			// Calculate direction from boss to player
 			Vec2 toPlayer = player.GetPlayerPosition() - m_boss_pos;
-			m_projectileDir = toPlayer.normalized();
+
+			// Ensure the direction is valid and normalized
+			if (toPlayer.length() > 0.0001f) {
+				m_projectileDir = toPlayer.normalized();
+			}
+			else {
+				// Fallback: throw in facing direction
+				m_projectileDir = (m_FaceRight ? Vec2{ 1.0, 0.0 } : Vec2{ -1.0, 0.0 });
+			}
+
 			m_projectileActive = true;
-			//Print << U"[Pattern_1] Fired projectile toward player!";
+			m_projectileReflected = false;
+
+			Print << U"[Pattern_1] Throwing shuriken at player!";
+			Print << U"Boss Pos: " << m_boss_pos << U" Player Pos: " << player.GetPlayerPosition();
+			Print << U"Direction: " << m_projectileDir;
+
+			throw_star.play();
 		}
 
-		// Move projectile
+		// Move projectile toward player
 		if (m_projectileActive)
 		{
-			m_projectilePos += m_projectileDir * projectileSpeed * dt;
+			
+			// Update projectile position - moving toward player
+			m_projectilePos += m_projectileDir * projectileSpeed * dt_enemy;
 
-			const Texture& starTex = TextureAsset(U"shuriken");
+			// Collision check with player's attack (for parry/reflection)
+			RectF attackRect = player.getAttackRect(Vec2{ 0, 0 }); // World coordinates
+			RectF playerRect = player.getHitRect(Vec2{ 0, 0 });    // World coordinates
+			Circle projectileCircle(m_projectilePos, 10); // World coordinates
 
-			double projW = 20.0;
-			double projH = 20.0;
-			starTex
-				.scaled(projW / starTex.width(), projH / starTex.height())
-				.draw(m_projectilePos - Vec2(projW / 2, projH / 2) - cam_pos, ColorF(1.0));
-
-			// Collision check
-			// Collision with player attk box
-			RectF attackRect = player.getAttackRect(cam_pos);
-			// Collision with player
-			RectF playerRect = player.getHitRect(cam_pos);
-			Circle projectileCircle(m_projectilePos - cam_pos, 10);
-
+			// Check if player parries the projectile
 			if (projectileCircle.intersects(attackRect))
 			{
 				if (player.IsPlayerAttacking())
 				{
-					// Reverse direction
-					m_projectileDir = (m_boss_pos - m_projectilePos).normalized(); // send back to boss
+					// Player parried - reverse direction back to boss
+					parry.play();
+					m_projectileDir = (m_boss_pos - m_projectilePos).normalized();
 					m_projectileReflected = true;
-					//Print << U"[Pattern_1] Projectile reflected!";
+					Print << U"[Pattern_1] Player parried the shuriken!";
 				}
 			}
 
-
+			// Check if projectile hits player
 			if (projectileCircle.intersects(playerRect))
 			{
 				m_projectileActive = false;
-				//Print << U"[Pattern_1] Projectile hit player!";
 				player.takeDamage(1);
+				m_boss_bpm += 15;
+				Print << U"[Pattern_1] Shuriken hit player!";
 			}
+
+			// Check if reflected projectile hits boss
 			if (m_projectileReflected)
 			{
-				m_projectileReflected = false;
-				// Collision with boss
-				Circle bossCircle(m_boss_pos - cam_pos, 30); // adjust radius
+				Circle bossCircle(m_boss_pos, 30); // World coordinates
 
 				if (projectileCircle.intersects(bossCircle))
 				{
 					m_projectileActive = false;
-					Print << U"[Pattern_1] Reflected projectile hit boss!";
 					m_boss_hp -= 2;
-					// TODO: Apply damage to boss
+					Print << U"[Pattern_1] Reflected shuriken hit boss!";
 				}
 			}
 
-			// Lifetime or off-screen cleanup
-			if (m_pattern1Timer > 1.0)
+			// Lifetime cleanup - destroy projectile after 3 seconds
+			if (m_pattern1Timer > 3.0)
 			{
 				m_projectileActive = false;
 				m_pattern1Phase = 2;
 				m_pattern1Timer = 0.0;
-				//Print << U"[Pattern_1] Projectile finished → returning.";
+				Print << U"[Pattern_1] Projectile timeout";
 			}
 		}
 		break;
 	}
-	case 2: // Return to start position
+	case 2: // Move to next waypoint or return
 	{
 		m_currentWaypoint++;
 
 		if (m_currentWaypoint < (int)waypoints.size())
 		{
 			m_pattern1Phase = 0; // move to next target
-			//Print << U"[Pattern_1] Moving to next waypoint " << m_currentWaypoint;
+			Print << U"[Pattern_1] Moving to next waypoint: " << m_currentWaypoint;
 		}
 		else
 		{
 			m_pattern1Phase = 3; // return to start
-			//Print << U"[Pattern_1] All waypoints done → returning to start.";
+			Print << U"[Pattern_1] Returning to start position";
 		}
 		break;
 	}
-	case 3:
+	case 3: // Return to start position
 	{
 		Vec2 dir = m_startPos - m_boss_pos;
 		double dist = dir.length();
@@ -640,24 +763,25 @@ void Enemy_Boss::Pattern_1(Player& player, Vec2 cam_pos)
 		if (dist < 15.0)
 		{
 			m_boss_pos = m_startPos;
-			m_isAttacking = false; // done
+			m_isAttacking = false; // pattern complete
 			m_FaceRight = (player.GetPlayerPosition().x >= m_boss_pos.x);
 			m_pattern1Phase = 0;
-			//Print << U"[Pattern_1] Returned to start → Pattern complete.";
+			m_projectileActive = false;
+			Print << U"[Pattern_1] Pattern complete";
 		}
 		break;
 	}
-	}	
+	}
 }
 
-void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
+void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos , double dt_enemy)
 {
 	const double dt = Scene::DeltaTime();
 	const double tScale = GetTimeScale();
 	// --- Timing and phase constants ---
 	const double moveTime = 0.2;      // move duration
-	const double attackTime = 0.20 * tScale;    // attack active window
-	const double pauseTime = 0.20 * tScale;     // pause after attack
+	const double attackTime = 0.25 * tScale;    // attack active window
+	const double pauseTime = 0.35 * tScale;     // pause after attack
 	const double moveSpeed = 400.0;    // short dash speed
 	const int maxRepeats = 4;          // repeat count
 
@@ -669,19 +793,18 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
 		m_pattern2Phase = 0;   // 0 = move, 1 = attack, 2 = pause
 		m_pattern2Timer = 0.0;
 		m_pattern2Count = 0;
-
 		const double forwardOffset = m_hitBox.x * -0.2;
 		m_pattern2Dir = (m_FaceRight ? Vec2{ +1.0, 0.0 } : Vec2{ -1.0, 0.0 });
 
 		//Print << U"[Pattern_2] locked dir = " << m_pattern2Dir;
 		//Print << U"[Pattern_2] Started multi short attacks!";
 	}
-	m_pattern2Timer += dt;
+	m_pattern2Timer += dt_enemy;
 
 	switch (m_pattern2Phase)
 	{
 	case 0: // --- Move forward ---
-		m_boss_pos.x += m_pattern2Dir.x * moveSpeed * dt;
+		m_boss_pos.x += m_pattern2Dir.x * moveSpeed * dt_enemy;
 		setState(AnimState_Boss::Dash);
 		if (m_pattern2Timer >= moveTime)
 		{
@@ -694,31 +817,44 @@ void Enemy_Boss::Pattern_2(Player& player, Vec2 cam_pos)
 	case 1: // --- Attack (active hit) ---
 	{
 		if (m_pattern2Count == 0)
+		{
+			s1.play();
 			setState(AnimState_Boss::P2_1_Atk);
+		}
 		else if (m_pattern2Count == 1)
+		{
+			s2.play();
 			setState(AnimState_Boss::P2_2_Atk);
+		}
 		else if (m_pattern2Count == 2)
+		{
+			s3.play();
 			setState(AnimState_Boss::P2_3_Atk);
+		}
 		else if (m_pattern2Count == 3)
+		{
+			s4.play();
 			setState(AnimState_Boss::P2_4_Atk);
+		}
+			
 
 		const float hitW = m_hitBox.x * 1.1f;
 		const float hitH = m_hitBox.y;
 		const float forwardOffset = hitW;
 
-		Vec2 hitboxCenter = m_boss_pos;
+		Vec2 hitboxCenter = m_boss_pos; // World coordinates
 		hitboxCenter.x += m_pattern2Dir.x * forwardOffset;
 		hitboxCenter.y += m_hitOffsetY;
 
-		RectF attackHitbox(Arg::center = hitboxCenter - cam_pos, SizeF{ hitW, hitH });
-		//attackHitbox.drawFrame(3, Palette::Orange);
+		RectF attackHitbox(Arg::center = hitboxCenter, SizeF{ hitW, hitH }); // World coordinates
 
-		const RectF playerRect = player.getHitRect(cam_pos);
+		const RectF playerRect = player.getHitRect(Vec2{ 0, 0 }); // World coordinates
 		if (attackHitbox.intersects(playerRect))
 		{
-			if(!m_hasHitPlayer)
-			player.takeDamage(1);
-			m_hasHitPlayer = true;  // Set the flag to prevent further damage
+			if (!m_hasHitPlayer)
+				player.takeDamage(1);
+			m_boss_bpm += 15;
+			m_hasHitPlayer = true;
 		}
 
 		if (m_pattern2Timer >= attackTime)
@@ -768,10 +904,10 @@ void Enemy_Boss::Pattern_3(Player& player, Vec2 cam_pos)
 		m_smoke.position = m_boss_pos + dir * throwDist;
 		m_smoke.position.y += m_hitOffsetY;
 		m_smoke.lifetime = 5.0;   // lasts 5 seconds
+		smoke.play();
 		m_smoke.active = true;
 	
 		//Print << U"[Pattern_3] Boss throws smoke!";
-	
 		m_pattern3Done = true;  // prevent re-triggering
 		m_isAttacking = false;  // signal pattern complete
 	}
@@ -787,16 +923,17 @@ void Enemy_Boss::Pattern_4(Player& player, Vec2 cam_pos)
 		Print << U"[Pattern_4] Boss is in counter stance!";
 	}
 	// --- Check if player is attacking ---
-	const RectF playerAttackBox = player.getAttackRect(cam_pos);
-	const RectF bossRect = BossRect(cam_pos);
+	const RectF playerAttackBox = player.getAttackRect(Vec2{ 0, 0 }); // World coordinates
+	const RectF bossRect = BossRect(Vec2{ 0, 0 }); // World coordinates
 
 	if (m_counterReady && bossRect.intersects(playerAttackBox))
 	{
-		setState(AnimState_Boss::P2_2_Atk); // new animation for counter
-		// Player hit detection while in counter stance
-		Print << U"[Pattern_4] Player attacked! Boss countering!";
-		executeCounterAttack(player, cam_pos);
-		m_counterReady = false;  // prevent multiple counters in same stance
+		if (player.IsPlayerAttacking())
+		{
+			setState(AnimState_Boss::P2_2_Atk);
+			executeCounterAttack(player, Vec2{ 0, 0 }); // Use world coordinates
+			m_counterReady = false;
+		}
 	}
 
 	m_pattern4Timer += Scene::DeltaTime();
@@ -809,30 +946,38 @@ void Enemy_Boss::Pattern_4(Player& player, Vec2 cam_pos)
 	}
 }
 
-void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
+void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos, double dt_enemy)
 {
-	const double dt = Scene::DeltaTime(); // Delta time per frame
-	const double tScale = GetTimeScale();
+	const double dt_5 = Scene::DeltaTime();
 
-	const double windupTime = 0.5 * tScale;  // Pre-attack delay before dash
-	const double dashTime = 0.6 * tScale;  // Max dash duration
-	const double stopDistance = 50.0; // Stop this far in front of player
-	const double postDashPause = 0.5 * tScale; // Pause before actual attack
-	const double attackTime = 0.25 * tScale; // Duration of hit window
-	const double cooldownTime = 0.6 * tScale;  // Recovery delay after attack
+	// --- Smooth timing for better flow ---
+	const double windupTime = 0.8;                 // Shorter windup for responsiveness
+	const double dashTime = 1.2;                   // Smooth dash duration
+	const double stopDistance = 80.0;              // Comfortable stop distance
+	const double postDashPause = 0.3;              // Quick pause for impact
+	const double attackTime = 0.15;                // Brief attack window
+	const double cooldownTime = 0.8;               // Quick recovery
+
+	const float dashSpeed = 1200.0f;               // Smooth, fast speed
+	const float attackRange = 180.0f;              // Generous attack range
 
 	if (!m_isAttacking)
 	{
 		m_hasHitPlayer = false;
 		m_isAttacking = true;
-		m_pattern5Phase = 0;  // Start at the wind-up phase
-		m_pattern5Timer = 0.0; // Reset timer
-		//Print << U"[Pattern_5] Started Attack Sequence.";
+		m_pattern5Phase = 0;
+		m_pattern5Timer = 0.0;
+
+		// Store player position at start for consistent targeting
+		m_pattern5TargetPos = player.GetPlayerPosition();
+
+		Print << U"[Pattern_5] Started Smooth Charge Attack!";
 	}
 
 	Vec2 playerPos = player.GetPlayerPosition();
-	Vec2 dir = playerPos - m_boss_pos;
+	Vec2 dir = m_pattern5TargetPos - m_boss_pos;
 	float dist = dir.length();
+
 	if (dist > 0.0001f)
 	{
 		dir /= dist;
@@ -845,127 +990,200 @@ void Enemy_Boss::Pattern_5(Player& player, Vec2 cam_pos)
 	// Face the player
 	m_FaceRight = (dir.x >= 0.0f);
 
-	// Update the timer based on the delta time
-	m_pattern5Timer += dt;
+	// Update the timer
+	m_pattern5Timer += dt_5;
 
-	// Debugging: Print out the timer value after update
-	//Print << U"[Pattern_5] After Timer Update: " << m_pattern5Timer;
+	// Get player rectangle once at the start
+	const RectF playerRect = player.getHitRect(Vec2{ 0, 0 });
 
 	switch (m_pattern5Phase)
 	{
-	case 0:  // Wind-up phase
-		//Print << U"[Pattern_5] Wind-up phase.";
-		setState(AnimState_Boss::Battle_Idle);
+	case 0:  // Wind-up phase - build anticipation
+	{
+		setState(AnimState_Boss::Charge_Up); // Start charge animation early
+
+		// Optional: Add subtle visual effects during windup
+		// (particle effects, screen shake, etc.)
+
 		if (m_pattern5Timer >= windupTime)
 		{
-			m_pattern5Timer = 0.0;  // Reset the timer after wind-up
-			m_pattern5Phase = 1;  // Transition to dash phase
-			//Print << U"[Boss] Wind-up complete → Dash!";
-		}
-		break;
-
-	case 1:  // chargup phase
-	{
-		//Print << U"[Pattern_5] chargup phase.";
-		setState(AnimState_Boss::Charge_Atk);
-		const float dashSpeed = 2000.0f; // Adjust speed here
-		m_boss_pos.x += dir.x * dashSpeed * dt;
-
-		// Compute current distance to player
-		float currentDist = (player.GetPlayerPosition().x - m_boss_pos.x) * dir.x;
-
-		// If we are close enough or dash time expired, stop the dash
-		if (currentDist <= stopDistance || m_pattern5Timer >= dashTime)
-		{
-			m_pattern5Phase = 2;   // Move to attack phase
 			m_pattern5Timer = 0.0;
-			//Print << U"[Boss] Dash complete → Attack!";
+			m_pattern5Phase = 1;
 		}
 		break;
 	}
-	case 2:  // Dash phase
+
+	case 1:  // Smooth dash phase
 	{
-		//Print << U"[Pattern_5] Pause before attack, timer=" << m_pattern5Timer;
-		if (m_pattern5Timer >= postDashPause)
+		setState(AnimState_Boss::Dash); // Use dash animation for movement
+
+		// Only move if we haven't hit the player yet
+		if (!m_hasHitPlayer)
 		{
-			m_pattern5Timer = 0.0;
-			m_pattern5Phase = 3;
-			//Print << U"[Boss] Pause done → Begin attack";
-		}
-		break;
-
-	}
-
-	case 3:  // Attack phase
-	{
-		//Print << U"[Pattern_5] Attack phase.";
-
-		if (m_pattern5Timer >= attackTime)
-		{
-			m_pattern5Phase = 4; // Transition to cooldown phase
-			m_pattern5Timer = 0.0;
-			//Print << U"[Boss] Attack complete → Cooldown.";
+			// Smooth movement with consistent speed
+			m_boss_pos.x += dir.x * dashSpeed * dt_5;
 		}
 
-		// Boss performs an actual attack hit check
-		const float hitW = m_hitBox.x * 0.75f;
-		const float hitH = m_hitBox.y;
-		const float forwardOffset = hitW;
+		// Create attack hitbox during dash for early collision
+		const float hitW = attackRange;
+		const float hitH = m_hitBox.y * 1.2f;
+		const float forwardOffset = hitW * 0.4f; // Slightly closer to boss
 
 		Vec2 hitboxCenter = m_boss_pos;
 		hitboxCenter.x += dir.x * forwardOffset;
 		hitboxCenter.y += m_hitOffsetY;
 
-		RectF attackHitbox(Arg::center = hitboxCenter - cam_pos, SizeF{ hitW, hitH });
-		attackHitbox.drawFrame(3, Palette::Red); // Red = active attack phase
+		RectF attackHitbox(Arg::center = hitboxCenter, SizeF{ hitW, hitH });
 
-		const RectF playerRect = player.getHitRect(cam_pos);
-		if (attackHitbox.intersects(playerRect))
+		// Check collision with player during dash
+		if (attackHitbox.intersects(playerRect) && !m_hasHitPlayer)
 		{
-			Print << U"[Boss] Pattern 5 Attack HIT!";
+			// Smooth stop on hit
+			m_hasHitPlayer = true;
+			m_vel.x = 0;
 			player.takeDamage(1);
-			m_hasHitPlayer = true;  // Set the flag to prevent further damage
+			m_boss_bpm += 15;
+			m_pattern5Phase = 3; // Go directly to attack phase
+			m_pattern5Timer = 0.0;
+		}
+
+		// Calculate remaining distance
+		float remainingDist = (m_pattern5TargetPos.x - m_boss_pos.x) * dir.x - stopDistance;
+
+		// Stop if reached target or time expired
+		if (remainingDist <= 0 || m_pattern5Timer >= dashTime)
+		{
+			m_pattern5Phase = 2;
+			m_pattern5Timer = 0.0;
 		}
 		break;
 	}
-	case 4:
+
+	case 2:  // Brief pause for impact anticipation
 	{
+		setState(AnimState_Boss::Charge_Atk); // Transition to attack pose
+
+		if (m_pattern5Timer >= postDashPause)
+		{
+			m_pattern5Timer = 0.0;
+			m_pattern5Phase = 3;
+		}
+		break;
+	}
+
+	case 3:  // Attack release phase
+	{
+		setState(AnimState_Boss::Charge_Atk);
+
+		// Create final attack hitbox
+		const float hitW = attackRange;
+		const float hitH = m_hitBox.y * 1.2f;
+		const float forwardOffset = hitW * 0.5f;
+
+		Vec2 hitboxCenter = m_boss_pos;
+		hitboxCenter.x += dir.x * forwardOffset;
+		hitboxCenter.y += m_hitOffsetY;
+
+		RectF attackHitbox(Arg::center = hitboxCenter, SizeF{ hitW, hitH });
+
+		// Debug draw
+		if (m_debugDraw) {
+			Vec2 screenCenter = hitboxCenter - cam_pos;
+			RectF screenHitbox(Arg::center = screenCenter, SizeF{ hitW, hitH });
+			screenHitbox.drawFrame(3, Palette::Red);
+		}
+
+		// Final collision check (if not already hit during dash)
+		if (attackHitbox.intersects(playerRect) && !m_hasHitPlayer)
+		{
+			m_vel.x = 0;
+			player.takeDamage(1);
+			m_boss_bpm += 15;
+			m_hasHitPlayer = true;
+		}
+
+		if (m_pattern5Timer >= attackTime)
+		{
+			m_pattern5Phase = 4;
+			m_pattern5Timer = 0.0;
+		}
+		break;
+	}
+
+	case 4:  // Recovery phase
+	{
+		setState(AnimState_Boss::Battle_Idle); // Return to idle
+
+		// Ensure boss is stopped
+		m_vel.x = 0;
+
 		if (m_pattern5Timer >= cooldownTime)
 		{
 			m_hasHitPlayer = false;
 			m_isAttacking = false;
 			m_pattern5Timer = 0.0;
 			m_pattern5Phase = 0;
-			setState(AnimState_Boss::Battle_Idle);
-			//Print << U"[Boss] Cooldown complete → Idle";
 		}
-
 		break;
 	}
 	}
 
-	// Debugging: Print the timer and phase after every cycle
-	//Print << U"[Pattern_5] After Phase " << m_pattern5Phase << U", Timer: " << m_pattern5Timer;
+	// Global movement stop when hit
+	if (m_hasHitPlayer) {
+		m_vel.x = 0;
+	}
 }
 
 void Enemy_Boss::Pattern_6(Player& player, Vec2 cam_pos)
 {
+	// Begin pattern if not already attacking
 	if (!m_isAttacking)
 	{
 		m_isAttacking = true;
-		setState(AnimState_Boss::Meditate);
+		setState(AnimState_Boss::Meditate); // Boss is meditating (vulnerable)
+		rest.play();
 		m_pattern6Timer = 0.0f;
-		//Print << U"[Pattern_6]";
+		m_pattern6Count = 0;
+		//Print << U"[Pattern_6 Start]";
 	}
-	
+
 	m_pattern6Timer += Scene::DeltaTime();
 
-	if (m_pattern6Timer >= 2.0f)
+	const RectF bossRect = BossRect(Vec2{ 0, 0 }); // World coordinates
+	const RectF playerRect = player.getHitRect(Vec2{ 0, 0 }); // World coordinates
+	const RectF attackRect = player.getAttackRect(Vec2{ 0, 0 }); // World coordinates
+
+	// Check if player attack hits the boss
+	if (player.IsPlayerAttacking() && attackRect.intersects(bossRect))
 	{
-		m_boss_bpm += 20;
+		// Optional: small hit cooldown to prevent multi-hit in one frame
+		if (!m_recentlyHit)
+		{
+			m_pattern6Count++;
+			m_recentlyHit = true;
+			m_hitTimer = 0.0f;
+			Print << U"[Pattern_6] Boss hit " << m_pattern6Count << U" times";
+		}
+	}
+
+	// Reset hit cooldown timer
+	if (m_recentlyHit)
+	{
+		m_hitTimer += Scene::DeltaTime();
+		if (m_hitTimer > 0.3f) // 0.3s hit delay
+			m_recentlyHit = false;
+	}
+
+	// Boss wakes up after 3 hits or 5 seconds of meditation
+	if (m_pattern6Count >= 3 || m_pattern6Timer >= 3.0f)
+	{
+		m_boss_bpm -= 20;               // Optional stat change
+		m_pattern6Count = 0;
 		m_pattern6Timer = 0.0f;
 		m_isAttacking = false;
-
+		setState(AnimState_Boss::Battle_Idle);
+		rest.stop();
+		Print << U"[Pattern_6 End] Boss woke up!";
 	}
 }
 
@@ -978,98 +1196,75 @@ void Enemy_Boss::UpdateSmoke(Vec2 cam_pos, Player& player)
 	if (m_smoke.lifetime <= 0.0)
 	{
 		m_smoke.active = false;
-		// Print << U"[Smoke] Disappeared.";
+		m_smoke.timeInSmoke = 0.0;
 		return;
 	}
 
-	// Smoke visual area
-	const float smokeW = m_hitBox.x * 6.0f;
-	const float smokeH = m_hitBox.y * 2.0f;
+	// Smoke visual area for collision - use world coordinates
+	const float smokeW = m_hitBox.x * 10.0f;
+	const float smokeH = m_hitBox.y * 8.0f;
+	RectF smokeArea(Arg::center = m_smoke.position, SizeF{ smokeW, smokeH }); // World coordinates
 
-	RectF smokeArea(Arg::center = m_smoke.position - cam_pos, SizeF{ smokeW, smokeH });
-
-	// --- Draw smoke texture instead of solid color ---
-	const Texture& smokeTex = TextureAsset(U"Smoke");
-
-	// Fade out as time passes
-	double alpha = 0.4 * (m_smoke.lifetime / 3.0);
-
-	smokeTex.scaled(smokeW / smokeTex.width(), smokeH / smokeTex.height())
-		.draw(smokeArea.center() - Vec2(smokeW / 2.0, smokeH / 2.0), ColorF(1.0, alpha));
-
-	// smokeArea.draw(ColorF(0.5, 0.5, 0.5, alpha)); // gray smoke area
-	smokeArea.drawFrame(2, Palette::Gray);
-
-	// Collision check
-	const RectF playerRect = player.getHitRect(cam_pos);
+	// Collision check - get player rect in world space
+	const RectF playerRect = player.getHitRect(Vec2{ 0, 0 }); // World coordinates
 	if (smokeArea.intersects(playerRect))
 	{
-		Print << U"[Smoke] Player inside smoke!";
-
-		// Apply damage over time if the player is inside the smoke
+		Print << U"*** PLAYER IN SMOKE! ***";
 		if (m_smoke.timeInSmoke <= 0.0)
 		{
-			// Start the timer when the player first enters the smoke
 			m_smoke.timeInSmoke = Scene::DeltaTime();
 		}
 		else
 		{
-			// Increment the time inside the smoke
 			m_smoke.timeInSmoke += Scene::DeltaTime();
-
-			// Damage the player every 1 second inside the smoke
-			if (m_smoke.timeInSmoke >= 0.5f) // Apply damage every 1 second
+			if (m_smoke.timeInSmoke >= 0.5f)
 			{
-				const int damageAmount = 5; // Set the amount of damage to apply
-				player.SetPlayerBPM(player.GetPlayerBPM() - damageAmount);  // This can still be here if you want to affect BPM.
-				m_smoke.timeInSmoke = 0.0f; // Reset the timer after applying damage
+				const int damageAmount = 5;
+				player.SetPlayerBPM(player.GetPlayerBPM() - damageAmount);
+				m_smoke.timeInSmoke = 0.0f;
 			}
 		}
 	}
 	else
 	{
-		// If player leaves the smoke, reset the timer
 		m_smoke.timeInSmoke = 0.0f;
 	}
 }
 
 void Enemy_Boss::executeCounterAttack(Player& player, Vec2 cam_pos)
 {
-	//setState(AnimState_Boss::CounterAttack); // new counter attack animation
-
-	// Create a hitbox in front of the boss
+	// Create a hitbox in front of the boss - world coordinates
 	Vec2 attackDir = (m_FaceRight ? Vec2{ 1.0, 0.0 } : Vec2{ -1.0, 0.0 });
 	const float hitW = m_hitBox.x * 1.5f;
 	const float hitH = m_hitBox.y;
-	Vec2 attackCenter = m_boss_pos + attackDir * (hitW * 0.5);
+	Vec2 attackCenter = m_boss_pos + attackDir * (hitW * 0.5); // World coordinates
 	attackCenter.y += m_hitOffsetY;
 
-	RectF counterHitbox(Arg::center = attackCenter - cam_pos, SizeF{ hitW, hitH });
+	RectF counterHitbox(Arg::center = attackCenter, SizeF{ hitW, hitH }); // World coordinates
 
-	const RectF playerRect = player.getHitRect(cam_pos);
+	const RectF playerRect = player.getHitRect(Vec2{ 0, 0 }); // World coordinates
 	if (counterHitbox.intersects(playerRect))
 	{
+		parry.play();
 		player.takeDamage(1);
-		m_hasHitPlayer = true;  // Set the flag to prevent further damage
+		m_boss_bpm += 15;
+		m_hasHitPlayer = true;
 	}
 }
 
 void Enemy_Boss::updateSpeedByBPM()
 {
-	float bpmRatio = m_boss_bpm / m_base_bpm;
-	m_boss_speed = m_base_speed + (m_base_speed * (bpmRatio - 1.0f) * 3.0f); // 2.0 = multiplier
+	float bpmRatio = m_boss_bpm / 100;
+	m_boss_speed = m_base_speed + (m_base_speed * (bpmRatio - 1.0f) * 2.0f); // 2.0 = multiplier
+	// Optional: clamp to prevent crazy speeds
+	m_boss_speed = Clamp(m_boss_speed, 300.0f, 1200.0f);
 
 	if (m_boss_bpm >= 180)
 	{
 		m_OverBPM = true;
 		m_OverBPMTimer = 0.0;
 		Print << U"[Boss] BPM too high! Boss overheats!";
-		return;
 	}
-
-	// Optional: clamp to prevent crazy speeds
-	m_boss_speed = Clamp(m_boss_speed, 300.0f, 1200.0f);
-
 	//Print << U"[Boss_speed] : " << m_boss_speed;
 	//Print << U"[BPM] : " << m_boss_bpm;
 }

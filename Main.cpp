@@ -61,6 +61,11 @@ void Main()
 		TextureAsset::Register(U"Smoke_bomb", U"example/spritesheet/smoke_bomb.png");
 		TextureAsset::Register(U"Smoke", U"example/spritesheet/smoke.png");
 		TextureAsset::Register(U"shuriken", U"example/spritesheet/shuriken.png");
+		AudioAsset::Register(U"boss_bgm", U"example/Audio/boss_bgm.MP3", Loop::Yes);
+		AudioAsset::Register(U"pattern_1_throw", U"example/Audio/pattern_1_throw.MP3");
+		AudioAsset::Register(U"pattern_3", U"example/Audio/pattern_3.MP3");
+		AudioAsset::Register(U"pattern_4", U"example/Audio/pattern_4.MP3");
+		AudioAsset::Register(U"pattern_6", U"example/Audio/pattern_6.MP3", Loop::Yes);
 	}
 	
 
