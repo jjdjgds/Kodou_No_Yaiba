@@ -138,6 +138,7 @@ private:
 	void Pattern_5(Player& player, Vec2 cam_pos, double dt_enemy);
 	int m_pattern5Phase = 0;
 	double m_pattern5Timer = 0.0;
+	Vec2 m_pattern5TargetPos = { 0, 0 }; // ADD THIS LINE - stores player position at pattern start
 
 	void Pattern_6(Player& player, Vec2 cam_pos);
 	double m_pattern6Timer = 0.0;
@@ -192,6 +193,10 @@ private:
 	const Audio& s3 = AudioAsset(U"Sowrd3");
 	const Audio& s4 = AudioAsset(U"Sowrd4");
 
+	void drawPatternElements(const Game_Map& map) const;
+
+
+
 public:
 	Enemy_Boss() = default;
 	Enemy_Boss(Vec2 pos)
@@ -231,6 +236,15 @@ public:
 	RectF BossRectAt(const Vec2& pos) const;
 	RectF attackRect(const Vec2& cam) const;
 	RectF chaseRect(const Vec2& cam) const;
+
+	// Add these public methods for drawing pattern-specific elements
+	bool IsProjectileActive() const { return m_projectileActive; }
+	const Vec2& GetProjectilePos() const { return m_projectilePos; }
+	const Vec2& GetProjectileDir() const { return m_projectileDir; }
+	bool IsProjectileReflected() const { return m_projectileReflected; }
+
+	const SmokeData& GetSmokeData() const { return m_smoke; }
+	bool IsSmokeActive() const { return m_smoke.active; }
 };
 
 
