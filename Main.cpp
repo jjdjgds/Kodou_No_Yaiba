@@ -19,22 +19,61 @@ void Main()
 
 	
 	{
-		TextureAsset::Register(U"Player", U"example/spritesheet/samurai.png");
+		//TextureAsset::Register(U"Player", U"example/spritesheet/samurai.png");
 		TextureAsset::Register(U"HeatBeat", U"example/spritesheet/HEARTBEAT.png");
-	}
+		TextureAsset::Register(U"AttackEffect", U"example/spritesheet/AttackEffect.png");
+		TextureAsset::Register(U"Player", U"example/spritesheet/PLAYER.png");
+		TextureAsset::Register(U"PlayerHP", U"example/spritesheet/hp.png");
+		TextureAsset::Register(U"Medicine", U"example/spritesheet/medicine.png");
+		TextureAsset::Register(U"RedAout", U"example/spritesheet/warning.png");
 
+	}
+	{
+
+
+		AudioAsset::Register(U"FastBeat", U"example/Audio/Heartbeat-Fast-Loop.MP3", Loop::Yes);
+		AudioAsset::Register(U"SlowBeat", U"example/Audio/Heartbeat-Slow-Loop.MP3", Loop::Yes);
+		AudioAsset::Register(U"Sowrd1", U"example/Audio/Sword1.WAV");
+		AudioAsset::Register(U"Sowrd2", U"example/Audio/Sword2.MP3");
+		AudioAsset::Register(U"Sowrd3", U"example/Audio/Sword3.WAV");
+		AudioAsset::Register(U"Sowrd4", U"example/Audio/Sword4.WAV");
+		AudioAsset::Register(U"BCunter", U"example/Audio/BullerCunter.MP3");
+		AudioAsset::Register(U"Medicle", U"example/Audio/Medicle.MP3");
+		//Medicle
+
+		AudioAsset::Register(U"BossBgm", U"example/Audio/boss_bgm.MP3", Loop::Yes);
+		AudioAsset::Register(U"TitleBgm", U"example/Audio/title.MP3", Loop::Yes);
+		AudioAsset::Register(U"BattleBgm", U"example/Audio/combat.MP3", Loop::Yes);
+
+	}
 
 	{
-		TextureAsset::Register(U"EnemyIdle", U"example/spritesheet/Enemy_IDLE.png");
-		TextureAsset::Register(U"EnemyRun", U"example/spritesheet/Enemy_RUN.png");
-		TextureAsset::Register(U"EnemyHurt", U"example/spritesheet/HURT.png");
-		TextureAsset::Register(U"EnemyAttack", U"example/spritesheet/ATTACK_1.png");
+		TextureAsset::Register(U"Enemy1", U"example/spritesheet/Enemy1.png");
+		TextureAsset::Register(U"Enemy2", U"example/spritesheet/Enemy2.png");
+		TextureAsset::Register(U"Enemy2Bullet", U"example/spritesheet/BULLET.png");
 	}
 
+	TextureAsset::Register(U"TitleBg", U"example/bg/title_bg.png");
+	TextureAsset::Register(U"DeathBg", U"example/bg/death_bg.png");
+	TextureAsset::Register(U"ClearBg", U"example/bg/clear_bg.png");
 	TextureAsset::Register(U"Wall", U"example/Wall.jpg");
+	TextureAsset::Register(U"Block", U"example/MAp/Block.png");
+	TextureAsset::Register(U"Map3", U"example/MAp/map3.png");
+	TextureAsset::Register(U"Map4", U"example/MAp/map4.png");
+	TextureAsset::Register(U"Map5", U"example/MAp/map5.png");
 	//ATTACK_1.png
 	//TextureAsset::Register(U"Player", U"example/texture/samurai_sheet.png");
-
+	{
+		TextureAsset::Register(U"Boss", U"example/spritesheet/boss_1.png");
+		TextureAsset::Register(U"Smoke_bomb", U"example/spritesheet/smoke_bomb.png");
+		TextureAsset::Register(U"Smoke", U"example/spritesheet/smoke.png");
+		TextureAsset::Register(U"shuriken", U"example/spritesheet/shuriken.png");
+		AudioAsset::Register(U"boss_bgm", U"example/Audio/boss_bgm.MP3", Loop::Yes);
+		AudioAsset::Register(U"pattern_1_throw", U"example/Audio/pattern_1_throw.MP3");
+		AudioAsset::Register(U"pattern_3", U"example/Audio/pattern_3.MP3");
+		AudioAsset::Register(U"pattern_4", U"example/Audio/pattern_4.MP3");
+		AudioAsset::Register(U"pattern_6", U"example/Audio/pattern_6.MP3", Loop::Yes);
+	}
 	
 
 	//玉ねぎ楷書_激_無料版v7
@@ -52,8 +91,8 @@ void Main()
 	// シーンマネージャの作成
 	//ここに追加していく
 	App manager;
-	manager.add<Game>(State::Game);
 	manager.add<Title>(State::Title);
+	manager.add<Game>(State::Game);
 
 	
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え

@@ -2,20 +2,19 @@
 
 #include "Game_Map.hpp"
 #include "MapLoader.hpp"
-#include "Enemy_Boss.hpp"
+#include "Game_BG.hpp"
+Game_BG Map_bg;
 
 Game_Map::Game_Map()
 {
 	Block::LoadTextures(); // load all textures once
-	m_boss = new Enemy_Boss(Vec2(500, 300), 0, true, Vec2(1, 1));
 }
 
 Game_Map::~Game_Map()
 {
-	delete m_boss;
 }
 
-bool Game_Map::loadStageFromFile(const FilePath& path)
+bool Game_Map::loadStageFromFile(const FilePath& path,const int stage)
 {
 	Array<int> mapData;
 	int width, height;
@@ -30,10 +29,10 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 	//m_chipWidth = static_cast<double>(screenSize.x) / m_width;
 	//m_chipHeight = static_cast<double>(screenSize.y) / m_height;
 
-
+	setCurrentStage(stage);
 	//map height to screen and let width scroll
-	m_chipHeight = 75.0f;
-	m_chipWidth  = 75.0f;
+	m_chipHeight = 100.0f;
+	m_chipWidth  = 100.0f;
 
 
 	m_blocks.clear();
@@ -52,33 +51,55 @@ bool Game_Map::loadStageFromFile(const FilePath& path)
 			m_blocks << block;
 		}
 	}
+
+	/*const Size worldPx{
+		static_cast<int>(m_width * m_chipWidth),
+		static_cast<int>(m_height * m_chipHeight)
+	};*/
+	const Size worldPx{
+		static_cast<int>(m_width * m_chipWidth),
+		static_cast<int>(m_height * m_chipHeight)
+	};
+
+	Map_bg.setSize(Scene::Size());
+	Map_bg.setScrollSpeed(Vec2{ 2, 0 }); // 需要滚动就 >0；纯静态背景可设 (0,0)
+	Map_bg.setLoop(false);               // 需要滚动改为 true
+	Map_bg.resetOffset();
+
+	const FilePath bgPath = U"example/Map/map" + Format(m_currentStage) + U".png";
+	Map_bg.setAsset(bgPath, Color{ 24, 40, 56 });
+	Map_bg.setMode(BgMode::WorldLocked);   // ✅ 跟方块一起动
+	Map_bg.setWorldSize(worldPx);
+	Map_bg.setLoop(false);
+
 	return true;
 }
 
 void Game_Map::loadNextStage()
 {
-	int currentStage = 2;
-	currentStage++;
+	m_currentStage++;
 
-	FilePath nextPath = U"example/Map/stage" + Format(currentStage) + U".txt";
+	FilePath nextPath = U"example/Map/stage" + Format(m_currentStage) + U".txt";
 
 	if (!FileSystem::Exists(nextPath))
 	{
-		Print << U"🎉 All stages cleared!";
+		//Print << U"🎉 All stages cleared!";
 		return;
 	}
 
 	// Reset camera and load the next stage
 	m_cameraPos = Vec2{ 0, 0 };
 
-	if (loadStageFromFile(nextPath))
+	if (loadStageFromFile(nextPath, m_currentStage))
 	{
-		Print << U"✅ Loaded next stage: " << nextPath;
+		//Print << U"✅ Loaded next stage: " << nextPath;
 	}
 	else
 	{
-		Print << U"❌ Failed to load next stage: " << nextPath;
+		//Print << U"❌ Failed to load next stage: " << nextPath;
 	}
+
+
 }
 
 void Game_Map::update()
@@ -86,13 +107,16 @@ void Game_Map::update()
 	for (auto& block : m_blocks)
 	{
 		block.UpdateBlock();
-	}
 
+	}
+	Map_bg.syncWithCamera(m_cameraPos);
+	Map_bg.update();
+	
 }
 
 void Game_Map::draw() const
 {
-	
+	Map_bg.draw();
 	for (const auto& block : m_blocks)
 	{
 		if (!block.IsUsed()) continue;
@@ -107,18 +131,12 @@ void Game_Map::draw() const
 			break;
 
 		case BLOCK_SOLID:
-			TextureAsset(U"Wall").resized(size).draw(drawPos);
+			TextureAsset(U"Block").resized(size).draw(drawPos);
 			break;
 
 		case BLOCK_GOAL:
 			RectF(drawPos, size).draw(ColorF(0.8, 0.2, 0.2));
 			break;
-
-		case BLOCK_BOSS:
-			if (m_boss)
-				m_boss->draw(drawPos, size); // example position and size
-			break;
-
 		default:
 			break;
 		}
@@ -142,8 +160,22 @@ void Game_Map::updateCamera(const Vec2& playerPos)
 	m_cameraPos = desiredCameraPos;
 }
 
+
+RectF Game_Map::worldBounds() const {
+	const double W = m_width * m_chipWidth;
+	const double H = m_height * m_chipHeight;
+	return RectF{ 0, 0, W, H };
+}
+
 bool Game_Map::CheckCollision(const RectF& rect)
 {
+	const RectF bounds = worldBounds();
+
+	if (!bounds.contains(rect)) {
+		return true;
+	}
+
+
 	for (const auto& block : m_blocks)
 	{
 		switch (block.getType())
@@ -157,13 +189,6 @@ bool Game_Map::CheckCollision(const RectF& rect)
 				return true;
 			}
 		break; 
-		case BLOCK_GOAL:
-			if (rect.intersects(block.GetRect()))
-			{
-				loadNextStage();
-				return true;
-			}
-		break;
 		default:
 		break;
 		}
@@ -172,7 +197,39 @@ bool Game_Map::CheckCollision(const RectF& rect)
 	return false;
 }
 
-bool Game_Map::CheckCollision_Line(const Line& line)
+
+
+bool Game_Map::intersectsGoal(const RectF& rect) const
+{
+	const RectF bounds = worldBounds();
+
+	if (!bounds.contains(rect)) {
+		return true;
+	}
+
+
+	for (const auto& block : m_blocks)
+	{
+		if (block.getType() == BLOCK_GOAL && rect.intersects(block.GetRect()))
+			return true;
+	}
+	return false;
+}
+
+std::optional<Vec2> Game_Map::findPlayerSpawn() const
+{
+	for (const auto& block : m_blocks)
+	{
+		if (block.getType() == BLOCK_PLAYER)
+		{
+			return block.GetRect().center();
+		}
+	}
+	return std::nullopt;
+}
+
+
+bool Game_Map::CheckCollision_Line(const Line& line) const
 {
 	for (const auto& block : m_blocks)
 	{
@@ -187,8 +244,16 @@ bool Game_Map::CheckCollision_Line(const Line& line)
 	return false;
 }
 
-bool Game_Map::CheckCollision_RecF(const RectF& rect)
+bool Game_Map::CheckCollision_RecF(const RectF& rect) const
 {
+
+	const RectF bounds = worldBounds();
+
+	// A. 出界：直接当作碰撞
+	if (!bounds.contains(rect)) {
+		return true;
+	}
+
 	for (const auto& block : m_blocks)
 	{
 		if (block.getType() == BLOCK_SOLID)

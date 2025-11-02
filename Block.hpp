@@ -7,6 +7,9 @@ enum BLOCK_TYPE
 	BLOCK_SOLID = 1,
 	BLOCK_GOAL = 2,
 	BLOCK_BOSS = 3,
+	BLOCK_ENEMY_1 = 4,
+	BLOCK_ENEMY_2 = 5,
+	BLOCK_PLAYER = 6
 };
 
 class Block
@@ -16,6 +19,7 @@ private:
 	Vec2 m_size;
 	int	 m_type = BLOCK_EMPTY;
 	bool m_use = false;
+
 	
 public:
 	Block() = default;
@@ -28,6 +32,7 @@ public:
 	int  getType() const;
 
 	RectF GetRect() const { return RectF(m_pos, m_size); }
+	SizeF GetSize() const { return SizeF(m_size); }
 	// Load all textures once at the start of the game
 	static void LoadTextures();
 };

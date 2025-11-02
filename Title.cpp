@@ -11,53 +11,77 @@ Title::Title(const InitData& init)
 
 void Title::update()
 {
-	// ボタンの更新
+	const Audio& audio = AudioAsset(U"TitleBgm");
+	if(!audio.isPlaying())
 	{
-		m_startTransition.update(m_startButton.mouseOver());
-		m_rankingTransition.update(m_rankingButton.mouseOver());
-		m_exitTransition.update(m_exitButton.mouseOver());
-
-		if (m_startButton.mouseOver() || m_rankingButton.mouseOver() || m_exitButton.mouseOver())
-		{
-			Cursor::RequestStyle(CursorStyle::Hand);
-		}
+		audio.setVolume(0.7);
+		audio.play();
 	}
 
-	// ボタンのクリック処理
-	if (m_startButton.leftClicked()) // ゲームへ
-	{
+	const Vec2  center = Scene::CenterF();
+	const SizeF btnSize{ 240, 60 };
+	const double offsetY = 160;
+	const double gapY = 200;
+
+	RectF startBtn(Arg::center = center.movedBy(0, offsetY), btnSize);
+	RectF exitBtn(Arg::center = center.movedBy(0, offsetY + gapY), btnSize);
+
+	if (startBtn.mouseOver()) m_selected = 0;
+	if (exitBtn.mouseOver())  m_selected = 1;
+
+	if (startBtn.leftClicked()) {
 		changeScene(State::Game);
+		return;
 	}
-	
-	else if (m_exitButton.leftClicked()) // 終了
-	{
+	if (exitBtn.leftClicked()) {
 		System::Exit();
+		return;
+	}
+
+	if (KeyUp.down() || KeyW.down()) { m_selected = (m_selected + 2 - 1) % 2; }
+	if (KeyDown.down() || KeyS.down()) { m_selected = (m_selected + 1) % 2; }
+
+	if (KeyEnter.down() || KeySpace.down())
+	{
+		if (m_selected == 0) {
+			changeScene(State::Game);
+			audio.stop();
+		}
+		else {
+			System::Exit();
+		}
+		return;
 	}
 }
 
 void Title::draw() const
 {
-	Scene::SetBackground(ColorF{ 0.2, 0.8, 0.4 });
-
-
-
-	// タイトル描画
-	FontAsset(U"TitleFont")(U"鼓動ノ刃")
-		.drawAt(TextStyle::OutlineShadow(0.2, ColorF{ 0.2, 0.6, 0.2 }, Vec2{ 3, 3 }, ColorF{ 0.0, 0.5 }), 100, Vec2{ 400, 100 });
-
-
-
-	// ボタン描画
-	{
-		m_startButton.draw(ColorF{ 1.0, m_startTransition.value() }).drawFrame(2);
-		m_rankingButton.draw(ColorF{ 1.0, m_rankingTransition.value() }).drawFrame(2);
-		m_exitButton.draw(ColorF{ 1.0, m_exitTransition.value() }).drawFrame(2);
-
-		const Font& boldFont = FontAsset(U"Bold");
-		boldFont(U"PLAY").drawAt(36, m_startButton.center(), ColorF{ 0.1 });
-		//boldFont(U"RANKING").drawAt(36, m_rankingButton.center(), ColorF{ 0.1 });
-		boldFont(U"EXIT").drawAt(36, m_exitButton.center(), ColorF{ 0.1 });
+	if (TextureAsset::IsRegistered(U"TitleBg")) {
+		TextureAsset(U"TitleBg").resized(Scene::Size()).draw();
+	}
+	else {
+		Scene::SetBackground(Color{ 20, 20, 20 });
 	}
 
+	const Vec2  center = Scene::CenterF();
+	const SizeF btnSize{ 240, 60 };
+	const double offsetY = 140;
+	const double gapY = 90;
 
+	const RectF startBtn(Arg::center = center.movedBy(0, offsetY), btnSize);
+	const RectF exitBtn(Arg::center = center.movedBy(0, offsetY + gapY), btnSize);
+
+	auto drawButton = [](const RectF& r, StringView text, bool selected)
+		{
+			const ColorF fill = selected ? ColorF{ 1.0, 1.0, 1.0, 0.25 }
+			: ColorF{ 1.0, 1.0, 1.0, 0.12 };
+			const ColorF frame = selected ? ColorF{ 1.0 } : ColorF{ 0.7 };
+			r.rounded(12).draw(fill).drawFrame(2, 0, frame);
+
+			String label = selected ? U"▶ " + String{ text } : String{ text };
+			FontAsset(U"Bold")(label).drawAt(28, r.center(), Palette::White);
+		};
+
+	drawButton(startBtn, U"START", m_selected == 0);
+	drawButton(exitBtn, U"EXIT", m_selected == 1);
 }
