@@ -100,6 +100,7 @@ void Player::UpdateHeartState()
 		return;
 	}
 
+	// Player::UpdateHeartState() の中
 	if (bpm <= 60 || bpm >= 140)
 	{
 		if (m_HeartCoolFlg)
@@ -109,6 +110,8 @@ void Player::UpdateHeartState()
 		{
 			m_IsStunned = true;
 			m_StunTimer = 0.0;
+			m_frameIndex = 0; // ★ ここを追加/修正: スタン開始時にアニメーションインデックスをリセット
+			animTime = 0.0;   // ★ ここを追加/修正: アニメーション時間をリセット
 			SetPlayerState(StateMode::Stun);
 		}
 		return; // 解除は update() に任せる
@@ -821,12 +824,14 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerHeartState(HeartRateState::Normal);
 			SetPlayerState(StateMode::Idle);
 			SetPlayerBPM(80);
+
 		}
 
-		if (m_IsStunned)
+		/*if (m_IsStunned)
 		{
+
 			return;
-		}
+		}*/
 	}
 
 
@@ -1127,7 +1132,16 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		else
 		{
 			// 通常移動
-			if (m_BersarkFlg)
+			if (m_IsStunned) // ★ スタン中の場合は横速度を0にする
+			{
+				velocity.x = 0;
+
+				SetPlayerState(StateMode::Stun);
+				PlayerStun();
+			
+
+			}
+			else if (m_BersarkFlg)
 			{
 				velocity.x = input.x * (GetPlayerSpeed() + BERSARKEMOVESPEED) * TimeStopManager::GetPlayerScale();
 			}
@@ -1529,6 +1543,9 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	case StateMode::Medecine:
 
 		PlayerMedecine();
+		break;
+	case StateMode::Stun:
+		PlayerStun();
 		break;
 
 	case StateMode::Dead:

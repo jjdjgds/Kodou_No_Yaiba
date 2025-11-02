@@ -409,7 +409,11 @@ void Enemy_1::update(Player& player, Game_Map& map,AllEffect& alleffe)
 	}
 
 	// --- プレイヤーの攻撃が敵に当たったか ---
-	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
+	const bool playerAttackingThisFrame =
+		((player.GetPlayerState() == StateMode::Attack) ||
+		(player.GetPlayerState() == StateMode::IdleToAttack) ||
+		(player.GetPlayerState() == StateMode::JumpAttack) ||
+		player.IsPlayerAttacking());
 	// ---  ---
 	bool parryOccurred =
 		(m_state == AnimState_Enemy1::Attack) &&                 // 敵が攻撃中
