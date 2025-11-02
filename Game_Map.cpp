@@ -60,6 +60,14 @@ bool Game_Map::loadStageFromFile(const FilePath& path,const int stage)
 		static_cast<int>(m_width * m_chipWidth),
 		static_cast<int>(m_height * m_chipHeight)
 	};
+
+	Map_bg.setSize(Scene::Size());
+	Map_bg.setScrollSpeed(Vec2{ 2, 0 }); // 需要滚动就 >0；纯静态背景可设 (0,0)
+	Map_bg.setLoop(false);               // 需要滚动改为 true
+	Map_bg.resetOffset();
+
+	const FilePath bgPath = U"example/Map/map" + Format(m_currentStage) + U".png";
+	Map_bg.setAsset(bgPath, Color{ 24, 40, 56 });
 	Map_bg.setMode(BgMode::WorldLocked);   // ✅ 跟方块一起动
 	Map_bg.setWorldSize(worldPx);
 	Map_bg.setLoop(false);
@@ -70,14 +78,6 @@ bool Game_Map::loadStageFromFile(const FilePath& path,const int stage)
 void Game_Map::loadNextStage()
 {
 	m_currentStage++;
-
-	Map_bg.setSize(Scene::Size());
-	Map_bg.setScrollSpeed(Vec2{ 2, 0 }); // 需要滚动就 >0；纯静态背景可设 (0,0)
-	Map_bg.setLoop(false);               // 需要滚动改为 true
-	Map_bg.resetOffset();
-
-	const FilePath bgPath = U"example/Map/map" + Format(m_currentStage) + U".png";
-	Map_bg.setAsset(bgPath, Color{ 24, 40, 56 });
 
 	FilePath nextPath = U"example/Map/stage" + Format(m_currentStage) + U".txt";
 
