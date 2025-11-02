@@ -35,7 +35,7 @@ RectF Player::getAttackRect(const Vec2& camera) const
 {
 	// === プレイヤーの当たり判定サイズを基準にする ===
 	const SizeF hitSize = GetPlayerHitBox();
-	const double attackWidth = hitSize.x * 12; // 攻撃範囲を少し広げる
+	const double attackWidth = hitSize.x * 20; // 攻撃範囲を少し広げる
 	const double attackHeight = hitSize.y * 10; // 高さはプレイヤーと同じ
 	const SizeF attackSize{ attackWidth, attackHeight };
 
@@ -490,7 +490,7 @@ void Player::PlayerMedecine()
 		SetPlayerState(StateMode::Run);
 	}
 
-	if (KeySpace.down())
+	if (MouseL.down())
 	{
 		SetPlayerState(StateMode::Attack);
 	}
@@ -516,7 +516,7 @@ void Player::PlayerMedecine()
 				// 押されていない → Idleへ
 				SetPlayerState(StateMode::Idle);
 			}
-			if (KeySpace.down())
+			if (MouseL.down())
 			{
 				SetPlayerState(StateMode::Attack);
 			}
@@ -1372,7 +1372,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	// 攻撃処理（優先度を高く）
 	//-----------------------------------
 	// --- update() 内の末尾付近 ---
-	if (KeySpace.down()
+	if (MouseL.down()
 		&& !IsPlayerAttacking()
 		&& GetPlayerState() != StateMode::Hurt
 		&& GetPlayerState() != StateMode::Dead
@@ -1436,22 +1436,22 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	//デバック用
 	//-----------------------------
 	{
-		if (KeyP.down())
+		/*if (KeyP.down())
 		{
 
 			SetPlayerState(StateMode::Dead);
 
-		}
-		if (KeyL.down() && GetMedecine() > 0)
+		}*/
+		if (KeyLShift.down() && GetMedecine() > 0)
 		{
 			SetPlayerState(StateMode::Medecine);
 		}
-		if (KeyT.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl)
+		if (MouseR.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl)
 		{
 			TimeStopManager::Start(); // ザ・ワールド発動
 			SetTimeStoped(true);
 		}
-		if (KeyT.up())
+		if (MouseR.up())
 		{
 			TimeStopManager::Stop(); // ザ・ワールド発動
 			SetTimeStoped(false);

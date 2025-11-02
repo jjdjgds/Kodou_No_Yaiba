@@ -432,7 +432,7 @@ void Enemy_1::update(Player& player, Game_Map& map,AllEffect& alleffe)
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame ) || m_takeDamage;
 	if (gotHit) {//
-		alleffe.SetEffect(getPosition()-cam, Vec2{1.0,0.3},0.4,player.IsPlayerFacingRight());
+		alleffe.SetEffect(getPosition(), Vec2{1.0,0.3},0.4,player.IsPlayerFacingRight());
 		const Audio& AS1 = AudioAsset(U"Sowrd1");
 		const Audio& AS2 = AudioAsset(U"Sowrd2");
 		const Audio& AS3 = AudioAsset(U"Sowrd3");
