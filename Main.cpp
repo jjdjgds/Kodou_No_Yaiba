@@ -38,7 +38,8 @@ void Main()
 		AudioAsset::Register(U"Sowrd3", U"example/Audio/Sword3.WAV");
 		AudioAsset::Register(U"Sowrd4", U"example/Audio/Sword4.WAV");
 		AudioAsset::Register(U"BCunter", U"example/Audio/BullerCunter.MP3");
-
+		AudioAsset::Register(U"Medicle", U"example/Audio/Medicle.MP3");
+		//Medicle
 	}
 
 	{

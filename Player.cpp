@@ -166,7 +166,7 @@ void Player::takeDamage(int dmg)
 		m_StunTimer = 0.0;
 
 		// 🔸スタン再発を防ぐクールタイムをリセット
-		m_HeartCoolTimer = 2.0;  // 例: 2秒間は再スタンしない
+		m_HeartCoolTimer = 2.0; // 例: 2秒間は再スタンしない
 		m_HeartCoolFlg = true;
 		SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
 		Print << U"⚡ スタン中に被弾！一時的にスタン解除";
@@ -209,7 +209,7 @@ RectF Player::getAttackRectWorld() const
 	const double attackHeight = hitSize.y * 10;
 	const SizeF attackSize{ attackWidth, attackHeight };
 
-	//  カメラ補正なし 
+	// カメラ補正なし
 	Vec2 center = GetPlayerPosition();
 
 	const double offsetX = (IsPlayerFacingRight() ? +hitSize.x * 0.6 + 50 : -hitSize.x * 0.6 - 50);
@@ -311,12 +311,14 @@ void Player::PlayerIdle()
 		m_frameIndex = (m_frameIndex + 1) % m_idlePatterns.size();
 	}
 }
+
+
 void Player::PlayerDoge()
 {
-	// Dodge中の速度変更
+	// Dodge中の速度変更 (SetPlayerSpeed) は update() の入力受付時に行うため削除
 	if (m_DogeTimer == 0.0)
 	{
-		SetPlayerSpeed(DogePlayerSpeed);
+		// SetPlayerSpeed(DogePlayerSpeed*10); // 削除
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
@@ -337,7 +339,7 @@ void Player::PlayerDoge()
 	if (m_DogeTimer >= dogeDuration)
 	{
 		// Dodge終了
-		SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y));
+		// SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y)); // 削除: update() の減速で速度が落ちるのを待つ
 		SetPlayerSpeed(NormalPlayerSpeed);
 
 		if (KeyA.pressed() || KeyD.pressed())
@@ -481,7 +483,7 @@ void Player::PlayerMedecine()
 	}
 
 	const double medicineFrameDuration = 0.15;
-	//  ここが重要！ 攻撃後の状態を決める
+	// ここが重要！ 攻撃後の状態を決める
 	if (KeyA.pressed() || KeyA.down() || KeyD.down() || KeyD.pressed())
 	{
 		// まだ移動キーが押されている → Runへ
@@ -498,10 +500,12 @@ void Player::PlayerMedecine()
 		m_frameIndex++;
 		if (m_frameIndex >= m_medecinePatterns.size())
 		{
+			const Audio& me = AudioAsset(U"Medicle");
+			me.play();
 			m_frameIndex = 0;
 			SetPlayerBPM(GetPlayerBPM() - 10);
 			SetMedecine(GetMedecine() - 1);
-			//  ここが重要！ 攻撃後の状態を決める
+			// ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				// まだ移動キーが押されている → Runへ
@@ -538,7 +542,7 @@ void Player::PlayerDead()
 		return;
 
 	const double DeadFrameDuration = 0.45;
-	animTime += Scene::DeltaTime();  // 時間を加算（忘れていないか確認）
+	animTime += Scene::DeltaTime(); // 時間を加算（忘れていないか確認）
 
 	if (animTime >= DeadFrameDuration)
 	{
@@ -776,7 +780,7 @@ void Player::takeDamage(int damage, bool fromRight)
 	// --- HP減少 ---
 	m_HP -= damage;
 
-	
+
 
 	// --- クールタイム系 ---
 	m_HeartTimer = 0.0;
@@ -886,13 +890,13 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerHeartState(HeartRateState::Dead);
 		}
 
-		PlayerDead();  // 死亡アニメ更新
-		return;        // 他の処理をスキップ
+		PlayerDead(); // 死亡アニメ更新
+		return;    // 他の処理をスキップ
 	}
 
 	animTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
 	m_DogelstTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
-	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); // 
+	m_HeartTimer += Scene::DeltaTime() * TimeStopManager::GetEnemyScale(); //
 
 	if (m_StunTimer > 0.0)
 	{
@@ -936,9 +940,9 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	if (GetPlayerBPM() >= 120 && !m_BersarkFlg)
 	{
 		m_BersarkFlg = true;
-		m_BersarkTimer = 8.0;             // バーサーク継続秒数
-		m_IsInvincible = true;            // ★無敵ON
-		m_AttackSpeedBoost = 1.5;         // ★攻撃速度倍率（1.5倍）
+		m_BersarkTimer = 8.0;  // バーサーク継続秒数
+		m_IsInvincible = true;  // ★無敵ON
+		m_AttackSpeedBoost = 1.5;// ★攻撃速度倍率（1.5倍）
 		m_Speed *= 1.5;
 		Print << U"🔥バーサークモード突入！🔥";
 	}
@@ -955,8 +959,8 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		{
 			// 時間切れ → 通常状態に戻す
 			m_BersarkFlg = false;
-			m_IsInvincible = false;        // ★無敵解除
-			m_AttackSpeedBoost = 1.0;      // ★攻撃速度戻す
+			m_IsInvincible = false;// ★無敵解除
+			m_AttackSpeedBoost = 1.0;// ★攻撃速度戻す
 			m_Speed /= 1.5;
 			Print << U"バーサーク解除";
 		}
@@ -970,25 +974,33 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	// ---------------------------------- -
 		// 入力処理 & 状態遷移
 		//-----------------------------------
-		Vec2 input{
-			(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
-			0.0
-	    };
+	Vec2 input{
+		(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
+		0.0
+	};
 
-	
 
-		// Dodge入力受付
-		if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
-		{
-			SetPlayerAttackFlag(false);
-			SetPlayerState(StateMode::Doge);
-			SetPlayerBPM(GetPlayerBPM() + 5);
-			m_isDodging = true;
-			m_DogeTimer = 0.0;
-			m_DogeCoolTimer = m_DogeCooldown; // ← クールタイム発動
-			m_frameIndex = 0;
-			animTime = 0.0;
-		}
+	if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
+	{
+		SetPlayerAttackFlag(false);
+		SetPlayerState(StateMode::Doge);
+		SetPlayerBPM(GetPlayerBPM() + 5);
+		m_isDodging = true;
+		m_DogeTimer = 0.0;
+		m_DogeCoolTimer = m_DogeCooldown; // ← クールタイム発動
+		m_frameIndex = 0;
+		animTime = 0.0;
+
+		// 回避前の横速度を保存（復帰用）
+		m_PreDogeVelocityX = velocity.x;
+
+		// 回避方向の速度を直接 velocity に設定 (加速)
+		const double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
+		constexpr double DodgeForce = DogePlayerSpeed; // 必要に応じて調整
+		velocity.x = dir * DodgeForce;
+
+		// もし SetPlayerVelocity をも通したいなら最後に行う（末尾で一括してるなら不要）
+	}
 
 
 
@@ -1038,8 +1050,8 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		  m_HitBox.y * m_Scale.y / 13
 	};
 
-		// === 重要：描画との整合性を取るためのオフセット ===
-		const Vec2 collisionOffset = Vec2{ 0, -30 };
+	// === 重要：描画との整合性を取るためのオフセット ===
+	const Vec2 collisionOffset = Vec2{ 0, -30 };
 
 	bool isTouchingWallLeft = false;
 	bool isTouchingWallRight = false;
@@ -1050,13 +1062,50 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 // 横移動処理
 //-----------------------------------
 	{
-		// ★ 回避中は壁キック処理をスキップ
 		if (GetPlayerState() == StateMode::Doge)
 		{
 			m_WallKickTimer = 0.0; // 念のため無効化
-			// 回避中の移動は PlayerDoge() で管理
-			// 速度はすでに SetPlayerVelocity で設定済み
+
+			// velocity.x は回避開始時にセット済み → 減速させない（ユーザの要望）
+			// ただし移動先の衝突はチェックする
+			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
+			RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
+
+			if (!map.CheckCollision(rectX))
+			{
+				pos.x = nextPosX.x;
+			}
+			else
+			{
+				// 壁に当たったら即停止（あるいは反発させるなどの処理を追加）
+				velocity.x = 0;
+			}
+
+			// 回避タイマー増分と終了判定をここで行う（update 側で時間管理したいなら移動）
+			m_DogeTimer += Scene::DeltaTime();
+			const double dogeDuration = 0.2; // 回避継続時間（必要ならメンバで設定）
+			if (m_DogeTimer >= dogeDuration)
+			{
+				// 回避終了 → 元の横速度に復帰
+				velocity.x = m_PreDogeVelocityX;
+				m_PreDogeVelocityX = 0.0;
+
+				SetPlayerSpeed(NormalPlayerSpeed);
+
+				if (KeyA.pressed() || KeyD.pressed())
+				{
+					SetPlayerState(StateMode::Run);
+				}
+				else
+				{
+					SetPlayerState(StateMode::Idle);
+				}
+
+				m_isDodging = false;
+				m_DogeTimer = 0.0;
+			}
 		}
+
 		else if (m_WallKickTimer > 0.0)
 		{
 			// 壁キック中は強制移動（最優先）
@@ -1176,21 +1225,21 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_frameIndex = 0;
 			animTime = 0.0;
 		}
-		//  壁ジャンプ（修正版） 
+		// 壁ジャンプ（修正版）
 		else if (tryJump && canWallJump && (isTouchingWallLeft || isTouchingWallRight))
 		{
 			constexpr double JumpPowerScale = 200.0;
-			constexpr double WallKickForce = 500.0;  // 壁キックの横方向の力
+			constexpr double WallKickForce = 500.0; // 壁キックの横方向の力
 
 			canWallJump = true;
 
 			// 縦方向の速度
 			velocity.y = -GetPlayerJumpSpeed() * (JumpPowerScale * 1.1);
 
-			//  横方向の速度：壁の反対方向に固定 
+			// 横方向の速度：壁の反対方向に固定
 			if (isTouchingWallLeft)
 			{
-				velocity.x = WallKickForce;  // 右方向へ
+				velocity.x = WallKickForce; // 右方向へ
 			}
 			else // isTouchingWallRight
 			{
@@ -1203,7 +1252,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_frameIndex = 0;
 			animTime = 0.0;
 
-			//  壁キックタイマー開始（0.2-0.3秒程度） 
+			// 壁キックタイマー開始（0.2-0.3秒程度）
 			m_WallKickTimer = 0.25;
 		}
 		// 壁に張り付き
@@ -1283,7 +1332,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	m_onGround = map.CheckCollision(groundCheckRect) || hitGround;
 
 	//-----------------------------------
-	//  Fall状態への自動遷移（ジャンプ以外で空中にいる場合）
+	// Fall状態への自動遷移（ジャンプ以外で空中にいる場合）
 	//-----------------------------------
 	if (!m_onGround &&
 		GetPlayerState() != StateMode::Jump &&
@@ -1295,16 +1344,16 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		GetPlayerState() != StateMode::IdleToRun &&
 		GetPlayerState() != StateMode::JumpAttack &&
 		GetPlayerState() != StateMode::Dead
-		)  // ← 追加
+		) // ← 追加
 	{
-		//  攻撃フラグをリセット
+		// 攻撃フラグをリセット
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Fall);
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
 
-	//  接地時の状態遷移（Fall状態から復帰）
+	// 接地時の状態遷移（Fall状態から復帰）
 	if (m_onGround && GetPlayerState() == StateMode::Fall)
 	{
 		if (KeyA.pressed() || KeyD.pressed())
@@ -1511,6 +1560,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	SetPlayerVelocity(velocity);
 	SetPlayerPosition(pos);
 }
+
 
 // ============================
 // 描画処理

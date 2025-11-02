@@ -103,6 +103,8 @@ private:
 	Vec2  m_DogeVelocity ;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
+	// Player.hpp に追加
+	double m_PreDogeVelocityX = 0.0; // 回避前の横速度を保存
 
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
