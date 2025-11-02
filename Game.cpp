@@ -112,7 +112,7 @@ void Game::draw() const
 
 	Ui.draw(player,map);
 	ScopedRenderStates2D blend{ BlendState::Additive };
-	effects.DrawEffect();
+	effects.DrawEffect(map.getCameraPos());
 
 	if (m_showDeath) {
 		drawDeathOverlay();
