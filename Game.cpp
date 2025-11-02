@@ -15,7 +15,7 @@ Game::Game(const InitData& init)
 	Vec2(100, 100), // スプライトスケール(px)
 	Vec2(0.0, 0.0),
 	Vec2(8.0, 10.0),  // ← 当たり判定（体の中心付近を覆うサイズ）
-		5,
+		3,
 		3,
 		90,
 		3,
@@ -30,7 +30,7 @@ Game::Game(const InitData& init)
 {
 
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage2.txt",2))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -42,6 +42,18 @@ Game::Game(const InitData& init)
 	}
 	else {
 		player.SetPlayerPosition(Vec2{ 800, 750 });
+	}
+
+
+
+
+	const Vec2 c = Scene::CenterF();
+	const SizeF btnSize{ 200, 56 };
+	m_btnRetry = RectF{ Arg::center = c.movedBy(0, +230), btnSize };
+	m_btnTitle = RectF{ Arg::center = c.movedBy(0, +320), btnSize };
+
+	if (!FontAsset::IsRegistered(U"Menu")) {
+		FontAsset::Register(U"Menu", 36, Typeface::Bold);
 	}
 
 }
@@ -60,11 +72,21 @@ void Game::update()
 	effects.UpdateEffect();
 
 
-	if (map.intersectsGoal(pBoxWorld)) {
+	if (player.GetPlayerState() == StateMode::Dead && player.IsDead()) {
+		m_showDeath = true;
+	}
+	if (m_showDeath) {
+		updateDeathOverlay();
+		return;
+	}
+
+
+	if (Boss_spawner.areAllCleared()&& map.intersectsGoal(pBoxWorld)) {
 		map.loadNextStage();
 		map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 		map.update();
 		if (auto spawn = map.findPlayerSpawn()) {
+			player.SetPlayerHP(player.GetPlayerMaxHP());
 			player.SetPlayerPosition(*spawn);
 		}
 		else {
@@ -88,20 +110,77 @@ void Game::draw() const
 	}
 	player.draw(map);             // ← プレイヤーを描画
 
-
-
-
-	
-
 	Ui.draw(player,map);
 	ScopedRenderStates2D blend{ BlendState::Additive };
-	effects.DrawEffect(map.getCameraPos());
+	effects.DrawEffect();
 
-
+	if (m_showDeath) {
+		drawDeathOverlay();
+	}
 }
 
 
+void Game::restartCurrentStage() {
+	const int stage = map.getCurrentStage();              // 若没有这个 getter，可在 Game_Map 暴露
+	const FilePath path = U"example/Map/stage{}"_fmt(stage);
+	map.loadStageFromFile(path, stage);
+	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
+	map.update();
 
+	if (auto spawn = map.findPlayerSpawn()) {
+		player.SetPlayerPosition(*spawn);
+	}
+	else {
+		player.SetPlayerPosition(Vec2{ 800, 750 });
+	}
+	player.SetPlayerHP(player.GetPlayerMaxHP());
+	player.SetPlayerBPM(80);
+	player.Revive();
+
+	Boss_spawner.loadFromMap(map.getBlocks(), map.getChipWidth(), map.getChipHeight());
+
+	resetDeathOverlay();
+}
+
+void Game::updateDeathOverlay() {
+	if (KeyW.down()||KeyUp.down())   m_deathSel = DeathChoice::Retry;
+	if (KeyS.down()||KeyDown.down()) m_deathSel = DeathChoice::Title;
+
+	const Point mpos = Cursor::Pos();
+	if (m_btnRetry.intersects(mpos)) m_deathSel = DeathChoice::Retry;
+	if (m_btnTitle.intersects(mpos)) m_deathSel = DeathChoice::Title;
+
+	const bool trigger = KeyEnter.down() || MouseL.down()|| KeySpace.down();
+	if (!trigger) return;
+
+	if (m_deathSel == DeathChoice::Retry) {
+		restartCurrentStage();
+	}
+	else {
+		resetDeathOverlay();
+		changeScene(State::Title);
+	}
+}
+
+void Game::drawDeathOverlay() const {
+	if (TextureAsset::IsRegistered(U"DeathBg")) {
+		TextureAsset(U"DeathBg").resized(Scene::Size()).draw();
+	}
+	else {
+		FontAsset(U"TitleFont")(U"DEATH").drawAt(Scene::CenterF().movedBy(0, -40), Palette::Red);
+	}
+
+
+	const auto drawBtn = [&](const RectF& r, StringView label, bool focused) {
+		r.draw(focused ? ColorF(1, 1, 1, 0.15) : ColorF(1, 1, 1, 0.05));
+		r.drawFrame(2, focused ? Palette::Orange : Palette::Gray);
+		r.rounded(12);
+		FontAsset(U"Menu")(label).drawAt(r.center(), focused ? Palette::Orange : Palette::White);
+		};
+
+	drawBtn(m_btnRetry, U"Retry", m_deathSel == DeathChoice::Retry);
+	drawBtn(m_btnTitle, U"Title", m_deathSel == DeathChoice::Title);
+}
 
 
 

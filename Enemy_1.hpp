@@ -42,7 +42,7 @@ private:
 	double m_hitOffsetY = 0.0;// 当たり判定Y
 
 	Vec2 m_Scale = { 140.0 ,125.0 };// 大きさ
-	Vec2 m_hitBox = { 90.0 ,120.0 };// 当たり判定サイズ
+	Vec2 m_hitBox = { 90.0 ,100.0 };// 当たり判定サイズ
 
 
 	float m_gravity = 1800.0;// 重力
@@ -171,5 +171,34 @@ public:
 	RectF chaseRect(const Game_Map& map) const;// 追跡判定矩形を取得
 
 	Line makeGroundProbeLine(const Vec2& cam, bool debug) const;// 地面探査用の線分を作成
+
+	static bool hasLineOfSight(const Enemy_1& self, Game_Map& map, const RectF& playerBox)
+	{
+		const Vec2 from = self.m_Position;
+		const Vec2 to = playerBox.center();
+		Vec2 dir = to - from;
+		const double dist = dir.length();
+		if (dist <= 0.0001) {
+			return true;
+		}
+		dir /= dist;
+
+
+		const double step = 6.0;// 探査ステップ
+		const SizeF  probeSize{ 8, 8 };// 视线探测用矩形サイズ
+		for (double t = 0.0; t <= dist; t += step) {
+			const Vec2 p = from + dir * t;// 探査点
+
+			if (playerBox.intersects(Circle{ p, 3.0 })) {// プレイヤーに到達
+				return true;
+			}
+
+			if (map.CheckCollision_RecF(RectF{ Arg::center = p, probeSize })) {// 障害物に当たった
+				return false;
+			}
+		}
+
+		return true;
+	}
 };
 

@@ -20,6 +20,19 @@ void  EnemySpawner::spawnBoss(const Vec2& pos)
 	}
 }
 
+bool EnemySpawner::areAllCleared() const {
+	auto noneAlive1 = std::none_of(m_enemy1.begin(), m_enemy1.end(),
+		[](auto const& p) { return p && !p->pendingRemoval(); });
+	auto noneAlive2 = std::none_of(m_enemy2.begin(), m_enemy2.end(),
+		[](auto const& p) { return p && !p->pendingRemoval(); });
+	return noneAlive1 && noneAlive2;
+}
+
+void EnemySpawner::sweep() {
+	m_enemy1.remove_if([](auto const& p) { return !p || p->pendingRemoval(); });
+	m_enemy2.remove_if([](auto const& p) { return !p || p->pendingRemoval(); });
+
+}
 
 
 // Load all spawns from the map's blocks

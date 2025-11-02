@@ -71,8 +71,6 @@ void Game_Map::loadNextStage()
 {
 	m_currentStage++;
 
-
-
 	Map_bg.setSize(Scene::Size());
 	Map_bg.setScrollSpeed(Vec2{ 2, 0 }); // 需要滚动就 >0；纯静态背景可设 (0,0)
 	Map_bg.setLoop(false);               // 需要滚动改为 true
@@ -162,8 +160,22 @@ void Game_Map::updateCamera(const Vec2& playerPos)
 	m_cameraPos = desiredCameraPos;
 }
 
+
+RectF Game_Map::worldBounds() const {
+	const double W = m_width * m_chipWidth;
+	const double H = m_height * m_chipHeight;
+	return RectF{ 0, 0, W, H };
+}
+
 bool Game_Map::CheckCollision(const RectF& rect)
 {
+	const RectF bounds = worldBounds();
+
+	if (!bounds.contains(rect)) {
+		return true;
+	}
+
+
 	for (const auto& block : m_blocks)
 	{
 		switch (block.getType())
@@ -186,8 +198,16 @@ bool Game_Map::CheckCollision(const RectF& rect)
 }
 
 
+
 bool Game_Map::intersectsGoal(const RectF& rect) const
 {
+	const RectF bounds = worldBounds();
+
+	if (!bounds.contains(rect)) {
+		return true;
+	}
+
+
 	for (const auto& block : m_blocks)
 	{
 		if (block.getType() == BLOCK_GOAL && rect.intersects(block.GetRect()))
@@ -226,6 +246,14 @@ bool Game_Map::CheckCollision_Line(const Line& line) const
 
 bool Game_Map::CheckCollision_RecF(const RectF& rect) const
 {
+
+	const RectF bounds = worldBounds();
+
+	// A. 出界：直接当作碰撞
+	if (!bounds.contains(rect)) {
+		return true;
+	}
+
 	for (const auto& block : m_blocks)
 	{
 		if (block.getType() == BLOCK_SOLID)

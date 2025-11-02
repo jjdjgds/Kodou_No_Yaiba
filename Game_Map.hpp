@@ -23,6 +23,7 @@ public:
 	void draw() const;
 
 	void setCurrentStage(int stage) { m_currentStage = stage; }
+	int getCurrentStage() const { return m_currentStage; }
 
 	void updateCamera(const Vec2& playerPos);
 	Vec2 getCameraPos() const { return m_cameraPos; }
@@ -38,5 +39,6 @@ public:
 	const Array<Block>& getBlocks() const { return m_blocks; }
 	double getChipWidth() const { return m_chipWidth; }
 	double getChipHeight() const { return m_chipHeight; }
+	RectF worldBounds() const;
 };
 

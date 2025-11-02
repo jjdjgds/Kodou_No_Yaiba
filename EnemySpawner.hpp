@@ -34,13 +34,15 @@ public:
 		 }
 
 	void spawnBoss(const Vec2& pos);
-	void  spawnEnemy_1(const Vec2& pos, double stride, bool faceRight, Vec2 scale);
-	void  spawnEnemy_2(const Vec2& pos, double stride, bool faceRight, Vec2 scale);
+
 	void loadFromMap(const Array<Block>& blocks, double chipWidth, double chipHeight);
 	void update(Player& player, Game_Map& map, AllEffect& ae);
 	void draw(const Game_Map& map) const;
 
 	void clear();
+
+	bool areAllCleared() const;
+	void sweep();
 
 	Enemy_Boss* getBoss() const { return m_boss; }
 };

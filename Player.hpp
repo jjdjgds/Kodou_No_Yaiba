@@ -45,7 +45,7 @@ private:
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	Vec2 m_HitBox;          //当たり判定矩形
 	int m_HP;				  //体力
-	int m_MaxHP = 5;
+	int m_MaxHP = 3;
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
 	int m_Medicle = 5;
@@ -100,6 +100,9 @@ private:
 	double m_InvincibleTimer = 0.0;
 	bool m_IsKnockback = false;
 	bool m_TimeAutoFlag = false;
+
+	bool m_isDead = false;
+
 	Vec2  m_DogeVelocity ;
 	StateMode m_PlayerState; //プレイヤーの状態管理用
 	StateMode m_PlayerLastState;
@@ -109,21 +112,21 @@ private:
 	// 各アニメーションのフレーム番号
 	Array<int32> m_idlePatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	// 立ち状態から走る状態への遷移アニメーション（横8枚のうち、0〜2枚目を使う）
-	Array<int32> m_idleToRunPatterns{ 0, 1, 2  };
+	Array<int32> m_idleToRunPatterns{ 0, 1, 2 };
 
-	
+
 
 	//走る状態のアニメーション
-	Array<int32> m_runPatterns{ 0,1,2,3,4,5};
+	Array<int32> m_runPatterns{ 0,1,2,3,4,5 };
 
 	// 攻撃アニメーション（横8枚のうち、0〜6枚目を使う）
-	Array<int32> m_attackPatterns{ 0, 1, 2, 3,4};
+	Array<int32> m_attackPatterns{ 0, 1, 2, 3,4 };
 
 	// ダメージアニメーション（横8枚のうち、4〜7枚目を使う）
-	Array<int32> m_hurtPatterns{  0,1,2 };
+	Array<int32> m_hurtPatterns{ 0,1,2 };
 
 	//Jumpアニメーション
-	Array<int32> m_jumpPatterns{1,1,1,1,1 };
+	Array<int32> m_jumpPatterns{ 1,1,1,1,1 };
 
 	Array<int32>m_jumpAttackPatterns{ 0,1,2,3,4 };
 
@@ -134,24 +137,24 @@ private:
 	Array<int32> m_dogePatterns{ 0,0,0,0,0 };
 
 	//壁ズリアニメーション
-	Array<int32> m_onTheWallPatterns{3};
+	Array<int32> m_onTheWallPatterns{ 3 };
 
 	//死亡アニメーション
-	Array<int32>m_deadPatterns{0,1,2,3,4,5};
+	Array<int32>m_deadPatterns{ 0,1,2,3,4,5 };
 
 	//落下アニメーション
-	Array<int32> m_FallPatterns{2,2,2,2};
+	Array<int32> m_FallPatterns{ 2,2,2,2 };
 
 	//薬ブッキメアニメーション
-	Array<int32> m_medecinePatterns{0,1,2,3};
-	Array<int32> m_stunPatterns{0,1,2,3};
+	Array<int32> m_medecinePatterns{ 0,1,2,3 };
+	Array<int32> m_stunPatterns{ 0,1,2,3 };
 
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
 	HeartRateState m_HeartRateState = HeartRateState::Berserk;
 public:
-	
+
 	//Player();
 	
 
@@ -198,46 +201,47 @@ public:
 		, m_IsKnockback(false)
 		, m_KnockbackTimer(0.0)
 		, m_KnockbackVelocity(Vec2{ 0, 0 })
-	
-		{
+
+	{
 		//m_srcRect.setPos(m_Position.x + 150, m_Position.y).setSize(150, 131);
-		}
+	}
 
 	~Player();
 
 	//getter 
 	//
-	 Vec2 GetPlayerPosition() const { return m_Position; }
-	 Vec2 GetPlayerScale() const { return m_Scale; }
-	 Vec2 GetPlayerVelocity() const { return m_Velocity; }
-	 Vec2 GetPlayerAcceleration() const { return m_Acceleration; }
-	 Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
-	 Vec2 GetPlayerHitBox() const { return m_HitBox; }
-	 int   GetPlayerHP() const { return m_HP; }
-	 int   GetPlayerMaxHP() const { return m_MaxHP; }
-	 int   GetPlayerBPM() const { return m_BPM; }
-	 int   GetPlayerAttack() const { return m_Attack; }
-	 float GetPlayerAttackRange() const { return m_AttackRange; }
-	 float GetPlayerAttackSpeed() const { return m_AttackSpeed; }
-	 float GetPlayerSpeed() const { return m_Speed; }
-	 float GetPlayerDamageTimeOut() const { return m_DamageTimeOut; }
-	 float GetPlayerGravity() const { return m_gravity; }
-	 bool  IsPlayerJumping() const { return m_Jump; }
-	 float GetPlayerJumpSpeed() const { return m_JumpSpeed; }
-	 bool  IsPlayerFacingRight() const { return m_FaceRight; }
-	 bool  IsPlayerInvincible() const { return m_Invincible; }
-	 bool  IsPlayerAttacking() const { return m_AttackFlag; }
-	 float GetPlayerDefoSpeed() const { return NormalPlayerSpeed; }
-	 StateMode GetPlayerState() const { return m_PlayerState; }
-	 StateMode GetPlayerLastState()const { return m_PlayerLastState; }
-	 HeartRateState GetPlayerHeartState()const { return m_HeartRateState; }
-	 HeartRateState GetHeartRateState(int bpm);
-	 bool GetIsInvincible() const { return m_IsInvincible; }
-	 bool IsDogeging() const { return m_isDodging; }
-	 int GetMedecine()const { return m_Medicle; }
-	 bool IsTimeStoped() const { return m_TimeAutoFlag; }
+	Vec2 GetPlayerPosition() const { return m_Position; }
+	Vec2 GetPlayerScale() const { return m_Scale; }
+	Vec2 GetPlayerVelocity() const { return m_Velocity; }
+	Vec2 GetPlayerAcceleration() const { return m_Acceleration; }
+	Vec2 GetPlayerAttackRengeBox() const { return m_AttackRengeBox; }
+	Vec2 GetPlayerHitBox() const { return m_HitBox; }
+	int   GetPlayerHP() const { return m_HP; }
+	int   GetPlayerMaxHP() const { return m_MaxHP; }
+	int   GetPlayerBPM() const { return m_BPM; }
+	int   GetPlayerAttack() const { return m_Attack; }
+	float GetPlayerAttackRange() const { return m_AttackRange; }
+	float GetPlayerAttackSpeed() const { return m_AttackSpeed; }
+	float GetPlayerSpeed() const { return m_Speed; }
+	float GetPlayerDamageTimeOut() const { return m_DamageTimeOut; }
+	float GetPlayerGravity() const { return m_gravity; }
+	bool  IsPlayerJumping() const { return m_Jump; }
+	float GetPlayerJumpSpeed() const { return m_JumpSpeed; }
+	bool  IsPlayerFacingRight() const { return m_FaceRight; }
+	bool  IsPlayerInvincible() const { return m_Invincible; }
+	bool  IsPlayerAttacking() const { return m_AttackFlag; }
+	float GetPlayerDefoSpeed() const { return NormalPlayerSpeed; }
+	StateMode GetPlayerState() const { return m_PlayerState; }
+	StateMode GetPlayerLastState()const { return m_PlayerLastState; }
+	HeartRateState GetPlayerHeartState()const { return m_HeartRateState; }
+	HeartRateState GetHeartRateState(int bpm);
+	bool GetIsInvincible() const { return m_IsInvincible; }
+	bool IsDogeging() const { return m_isDodging; }
+	int GetMedecine()const { return m_Medicle; }
+	bool IsTimeStoped() const { return m_TimeAutoFlag; }
+	bool IsDead() const { return m_isDead; }
 	//setter
-	 //float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
+	//float SetPlayerDefoSpeed( float defospe)  { return NormalPlayerSpeed = defospe; }
 	Vec2 SetPlayerPosition(const Vec2 pos) { return m_Position = pos; }
 	Vec2 SetPlayerScale(const Vec2 scale) { return m_Scale = scale; }
 	Vec2 SetPlayerVelocity(const Vec2 vel) { return m_Velocity = vel; }
@@ -263,9 +267,12 @@ public:
 	void UpdateHeartState();
 	bool SetIsInvincible(bool invincible) { return m_IsInvincible = invincible; }
 	bool SetIsDodging(bool dodging) { return m_isDodging = dodging; }
-	void SetMedecine(int med) { m_Medicle = med ; }
+	void SetMedecine(int med) { m_Medicle = med; }
 	void SetMaxMedecine() { m_Medicle = m_MaxMedicle; }
 	bool SetTimeStoped(bool st) { return  m_TimeAutoFlag = st; }
+
+	void Revive();
+
 	// 状態設定
 	void SetPlayerState(const StateMode state) {
 		m_PlayerState = state;
@@ -287,7 +294,7 @@ public:
 	RectF getAttackRectWorld()const;
 	RectF getAttackRect(const Vec2& camera) const;
 	RectF getHitRect(const Vec2& camera)const;
-	
+
 	RectF getHitRectWorld() const;
 	//RectF getTheWorld(const Vec2& camera)const;
 	///*
