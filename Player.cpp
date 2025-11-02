@@ -326,6 +326,11 @@ void Player::PlayerDoge()
 		animTime = 0.0;
 	}
 
+	// ★ここを追加！(速度に基づいて移動する)
+	Vec2 pos = GetPlayerPosition();
+	pos += GetPlayerVelocity() * Scene::DeltaTime();
+	SetPlayerPosition(pos);
+
 	animTime += Scene::DeltaTime();
 	m_DogeTimer += Scene::DeltaTime();
 
@@ -333,7 +338,7 @@ void Player::PlayerDoge()
 	{
 		// 終了時に速度をリセット
 		Vec2 v = GetPlayerVelocity();
-		v.x = 0;
+		v.x = 0; // ← X速度だけ止める
 		SetPlayerVelocity(v);
 		SetPlayerSpeed(NormalPlayerSpeed);
 
@@ -347,7 +352,6 @@ void Player::PlayerDoge()
 			SetPlayerState(StateMode::Idle);
 	}
 }
-
 
 void Player::PlayerHurt()
 {
@@ -962,13 +966,13 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 	UpdateHeartState();
 	ApplyHeartEffects();
-	//-----------------------------------
-	// 入力処理 & 状態遷移
-	//-----------------------------------
-	Vec2 input{
-		(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
-		0.0
-	};
+	// ---------------------------------- -
+		// 入力処理 & 状態遷移
+		//-----------------------------------
+		Vec2 input{
+			(KeyD.pressed() ? 1.0 : 0.0) - (KeyA.pressed() ? 1.0 : 0.0),
+			0.0
+	    };
 
 	// Dodge入力受付
 	if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
@@ -985,10 +989,13 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		m_frameIndex = 0;
 		animTime = 0.0;
 
-		// ★ Y軸速度を保持してX軸のみ設定
+		// ★ Y軸速度を保持してX軸のみ設定（グローバルへ）
 		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
 		double currentVelocityY = GetPlayerVelocity().y;
 		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, currentVelocityY));
+
+		// 🔥 ここでローカルvelocityも即同期しておくのがポイント
+		velocity = GetPlayerVelocity();
 	}
 
 	// Idle → IdleToRun（最初の走り出し）
