@@ -31,8 +31,13 @@ class Player
 
 
 private:
-	static constexpr float NormalPlayerSpeed = 800.0f;
-	static constexpr float DogePlayerSpeed = 1600.0f;
+	// 定数定義（Player.hpp 内など）
+	static constexpr double NormalPlayerSpeed = 830.0;
+	static constexpr double DogePlayerSpeed = 1600.0;
+	static constexpr double WallJumpSpeedX = 500.0;
+	static constexpr double WallJumpSpeedY = -800.0;
+
+	
 	Vec2 m_Position;	  //位置
 	Vec2 m_Scale;			  //大きさ
 	Vec2 m_Velocity;		  //速度
@@ -145,6 +150,7 @@ private:
 public:
 	
 	//Player();
+	
 
 
 	Player(

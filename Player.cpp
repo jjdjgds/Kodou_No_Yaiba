@@ -311,54 +311,40 @@ void Player::PlayerIdle()
 		m_frameIndex = (m_frameIndex + 1) % m_idlePatterns.size();
 	}
 }
-
 void Player::PlayerDoge()
 {
-	// Dodge中の速度変更
+	// 1回目のみ初速設定
 	if (m_DogeTimer == 0.0)
 	{
-		// ★ 修正ポイント：他の状態（壁ジャンプなど）から来たときの速度をリセット
-		SetPlayerVelocity(Vec2::Zero());
+		const double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
+		const double velY = GetPlayerVelocity().y; // 落下速度維持
 
-		// ★ プレイヤーの向きに応じて回避方向へ初速を与える
-		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
-		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, 0));
+		// 定数でX軸加速（Yはそのまま）
+		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, velY));
 
-		// アニメ・タイマー初期化
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
 
-	// アニメ更新
 	animTime += Scene::DeltaTime();
-	const double dogeFrameDuration = 0.08;
-	if (animTime >= dogeFrameDuration)
-	{
-		animTime -= dogeFrameDuration;
-		m_frameIndex = (m_frameIndex + 1) % m_dogePatterns.size();
-	}
-
-	// 経過時間
 	m_DogeTimer += Scene::DeltaTime();
-	const double dogeDuration = 0.2; // Dodge継続時間
 
-	if (m_DogeTimer >= dogeDuration)
+	if (m_DogeTimer >= 0.25) // 終了時間
 	{
-		// ★ 修正ポイント：速度を確実にリセット
-		SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y));
+		// 終了時に速度をリセット
+		Vec2 v = GetPlayerVelocity();
+		v.x = 0;
+		SetPlayerVelocity(v);
 		SetPlayerSpeed(NormalPlayerSpeed);
 
-		if (KeyA.pressed() || KeyD.pressed())
-		{
-			SetPlayerState(StateMode::Run);
-		}
-		else
-		{
-			SetPlayerState(StateMode::Idle);
-		}
-
-		m_isDodging = false;
 		m_DogeTimer = 0.0;
+		m_isDodging = false;
+
+		// 状態復帰
+		if (KeyA.pressed() || KeyD.pressed())
+			SetPlayerState(StateMode::Run);
+		else
+			SetPlayerState(StateMode::Idle);
 	}
 }
 
@@ -987,14 +973,22 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	// Dodge入力受付
 	if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
 	{
+		// ★ 壁キックタイマーを強制終了
+		m_WallKickTimer = 0.0;
+
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
 		SetPlayerBPM(GetPlayerBPM() + 5);
 		m_isDodging = true;
 		m_DogeTimer = 0.0;
-		m_DogeCoolTimer = m_DogeCooldown; // ← クールタイム発動
+		m_DogeCoolTimer = m_DogeCooldown;
 		m_frameIndex = 0;
 		animTime = 0.0;
+
+		// ★ Y軸速度を保持してX軸のみ設定
+		double dir = IsPlayerFacingRight() ? 1.0 : -1.0;
+		double currentVelocityY = GetPlayerVelocity().y;
+		SetPlayerVelocity(Vec2(dir * DogePlayerSpeed, currentVelocityY));
 	}
 
 	// Idle → IdleToRun（最初の走り出し）
@@ -1052,16 +1046,20 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 
 	//-----------------------------------
-	// 横移動処理
-	//-----------------------------------
+// 横移動処理
+//-----------------------------------
 	{
-		//  壁キック中は強制移動（最優先） 
-		if (m_WallKickTimer > 0.0)
+		// ★ 回避中は壁キック処理をスキップ
+		if (GetPlayerState() == StateMode::Doge)
 		{
+			m_WallKickTimer = 0.0; // 念のため無効化
+			// 回避中の移動は PlayerDoge() で管理
+			// 速度はすでに SetPlayerVelocity で設定済み
+		}
+		else if (m_WallKickTimer > 0.0)
+		{
+			// 壁キック中は強制移動（最優先）
 			m_WallKickTimer -= Scene::DeltaTime();
-
-			// 壁キック方向の速度を維持（入力を無視）
-			// velocity.x はすでに壁ジャンプ時に設定済み
 
 			// 位置更新
 			Vec2 nextPosX = pos + Vec2(velocity.x * Scene::DeltaTime(), 0);
@@ -1085,6 +1083,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		}
 		else
 		{
+			// 通常移動
 			if (m_BersarkFlg)
 			{
 				velocity.x = input.x * (GetPlayerSpeed() + BERSARKEMOVESPEED) * TimeStopManager::GetPlayerScale();
@@ -1093,17 +1092,12 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			{
 				velocity.x = input.x * GetPlayerSpeed() * TimeStopManager::GetPlayerScale();
 			}
-			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
 
+			Vec2 nextPosX = pos + Vec2(velocity.x * dt, 0);
 			RectF rectX(Arg::center = nextPosX + collisionOffset, collisionSize);
 
 			bool mapColli = map.CheckCollision(rectX);
 			bool enemyColli = false;
-			if (GetPlayerState() != StateMode::Doge)
-			{
-				//enemyColli = RectToRect(rectX, enemyRect);
-
-			}
 
 			if ((!mapColli) && (!enemyColli))
 			{
@@ -1117,8 +1111,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 				// めり込みを戻す
 				int maxIterations = 100;
 				int iterations = 0;
-				while ((map.CheckCollision(rectX) ||
-					(GetPlayerState() != StateMode::Doge)) && iterations < maxIterations)
+				while (map.CheckCollision(rectX) && iterations < maxIterations)
 				{
 					if (input.x > 0)
 					{
@@ -1145,6 +1138,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			}
 		}
 	}
+
 
 	//-----------------------------------
 	// 重力処理
