@@ -57,8 +57,6 @@ Game::Game(const InitData& init)
 void Game::update()
 {
 	const int stage = map.getCurrentStage();
-	const Audio& audio_battle = AudioAsset(U"BattleBgm");
-	const Audio& audio_boss = AudioAsset(U"BossBgm");
 
 	if (!audio_battle.isPlaying() && stage !=4)
 	{
@@ -183,6 +181,8 @@ void Game::updateDeathOverlay() {
 	}
 	else {
 		resetDeathOverlay();
+		audio_battle.stop();
+		audio_boss.stop();
 		changeScene(State::Title);
 	}
 }
@@ -213,6 +213,8 @@ void Game::updateClearOverlay() {
 	if (m_selected)
 	{
 		changeScene(State::Title);
+		audio_battle.stop();
+		audio_boss.stop();
 	}
 }
 

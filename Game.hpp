@@ -21,6 +21,9 @@ public:
 	void update() override;
 	void draw() const override;
 
+	const Audio& audio_battle = AudioAsset(U"BattleBgm");
+	const Audio& audio_boss = AudioAsset(U"BossBgm");
+
 private:
 	Player player;  // ← これがないと Game.cpp 内で player が使えない！
 	Array<Enemy_1> m_enemies1;//敵キャラクターの配列
