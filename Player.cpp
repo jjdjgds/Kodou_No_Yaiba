@@ -531,8 +531,6 @@ void Player::PlayerBerserk()
 
 
 
-
-
 }
 
 void Player::PlayerDead()
@@ -557,6 +555,60 @@ void Player::PlayerDead()
 
 		m_isDead = true; // 死亡フラグを立てる
 	}
+}
+
+void Player::PlayerKaifuku()
+{
+
+	if (GetPlayerState() != StateMode::kaifuku)
+	{
+		m_frameIndex = 0;
+		return;
+	}
+
+	const double kaifukuFrameDuration = 0.15;
+	// ここが重要！ 攻撃後の状態を決める
+	if (KeyA.pressed() || KeyA.down() || KeyD.down() || KeyD.pressed())
+	{
+		// まだ移動キーが押されている → Runへ
+		SetPlayerState(StateMode::Run);
+	}
+
+	if (MouseL.down())
+	{
+		SetPlayerState(StateMode::Attack);
+	}
+	if (animTime >= kaifukuFrameDuration)
+	{
+		animTime -= kaifukuFrameDuration;
+		m_frameIndex++;
+
+		SetPlayerBPM(GetPlayerBPM() - 1);
+		if (m_frameIndex >= m_kaifukuPatterns.size())
+		{
+
+			m_frameIndex = 0;
+
+
+			// ここが重要！ 攻撃後の状態を決める
+			if (KeyA.pressed() || KeyD.pressed())
+			{
+				// まだ移動キーが押されている → Runへ
+				SetPlayerState(StateMode::Run);
+			}
+			else
+			{
+				// 押されていない → Idleへ
+				SetPlayerState(StateMode::Idle);
+			}
+			if (MouseL.down())
+			{
+				SetPlayerState(StateMode::Attack);
+			}
+		}
+	}
+
+
 }
 
 
@@ -1463,6 +1515,14 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			TimeStopManager::Stop(); // ザ・ワールド発動
 			SetTimeStoped(false);
 		}
+		if (KeyS.pressed())
+		{
+			SetPlayerState(StateMode::kaifuku);
+		}
+		if (KeyS.down())
+		{
+			SetPlayerState(StateMode::Idle);
+		}
 
 
 	}
@@ -1547,7 +1607,10 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	case StateMode::Stun:
 		PlayerStun();
 		break;
+	case StateMode::kaifuku:
+		PlayerKaifuku();
 
+		break;
 	case StateMode::Dead:
 		PlayerDead();
 		break;
@@ -1585,7 +1648,7 @@ void Player::draw(const Game_Map& CameraPos) const
 	const int32 idleToRunY = frameHeight * 1;
 	const int32 IdleAttack = frameHeight * 3;
 	const int32 attackY = frameHeight * 5;
-
+	const int32 kaifukuY = frameHeight * 4;
 	const int32 runY = frameHeight * 2;
 
 	const int32 Jump = frameHeight * 6;
@@ -1677,6 +1740,11 @@ void Player::draw(const Game_Map& CameraPos) const
 	case StateMode::Stun:
 		n = m_stunPatterns[m_frameIndex];
 		y = Stun - 18;
+		break;
+
+	case StateMode::kaifuku:
+		n = m_kaifukuPatterns[m_frameIndex];
+		y = kaifukuY-5;
 		break;
 
 	default:

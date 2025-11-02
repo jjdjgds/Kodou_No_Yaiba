@@ -19,6 +19,7 @@ enum class StateMode {
 	TheWorld,       // 14: 時止め状態
 	Berserk,        // 15: バーサーカーモード
 	Stun,           // 16:sutann
+	kaifuku,        // 17
 	Dead			// 17: 死亡状態
 };
 /*

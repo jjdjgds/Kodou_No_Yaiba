@@ -149,6 +149,7 @@ private:
 	Array<int32> m_medecinePatterns{ 0,1,2,3 };
 	Array<int32> m_stunPatterns{ 0,1,2,3 };
 
+	Array<int32> m_kaifukuPatterns{ 0, 1, 2, 3, 4, 5, 6, 7 };
 	double m_scale = 4.0;     //描画スケール
 	size_t m_frameIndex = 0;  //アニメーションフレームインデックス
 	size_t m_frameIndexY = 0;
@@ -319,6 +320,7 @@ public:
 	void PlayerBerserk();
 	void PlayerStun();
 	void PlayerDead();
+	void PlayerKaifuku();
 	void update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2);
 	void draw(const Game_Map& CameraPos) const;
 };
