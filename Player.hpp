@@ -45,7 +45,7 @@ private:
 	Vec2 m_AttackRengeBox;  //攻撃範囲矩形
 	Vec2 m_HitBox;          //当たり判定矩形
 	int m_HP;				  //体力
-	int m_MaxHP = 3;
+	int m_MaxHP = 5;
 	int m_BPM;				  //心拍数
 	int m_Attack;			  //攻撃力
 	int m_Medicle = 5;
@@ -181,7 +181,7 @@ public:
 		, m_Scale(scale)
 		, m_Velocity(velocity)
 		, m_HitBox(HitBox)
-		, m_HP(hp)
+		, m_HP(maxHP)
 		, m_MaxHP(maxHP)
 		, m_BPM(bpm)
 		, m_Attack(attack)
