@@ -881,14 +881,14 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerHeartState(HeartRateState::Normal);
 			SetPlayerState(StateMode::Idle);
 			SetPlayerBPM(80);
-
+			
 		}
 
-		/*if (m_IsStunned)
+		if (m_IsStunned)
 		{
 
 			return;
-		}*/
+		}
 	}
 
 

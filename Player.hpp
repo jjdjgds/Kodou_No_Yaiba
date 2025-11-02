@@ -74,7 +74,7 @@ private:
 
 	bool m_IsStunned = false;     // スタン中かどうか
 	double m_StunTimer = 0.0;     // スタン経過時間
-	const double m_StunDuration = 2.0; // 2秒スタン
+	const double m_StunDuration = 0.5; // 2秒スタン
 
 	bool   m_isDodging = false;     // 現在ドッジ中か
 
