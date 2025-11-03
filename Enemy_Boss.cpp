@@ -100,7 +100,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		m_behavior = Boss_Behavior::Attack;
 		m_attackTimer = m_attackCooldown;
 		m_deathPatternCounter = 0;
-		m_bossDead = true;
+		
 		//Print << U"[Boss] dead";
 
 	}
@@ -158,7 +158,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 			// Play sound
 			AudioAsset(U"Sowrd4").play();
-			//Print << U"[hp] : " << m_boss_hp;
+			Print << U"[hp] : " << m_boss_hp;
 		}
 		else
 		{
@@ -342,6 +342,8 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 		{
 			m_deathanimation = true;
 			setState(AnimState_Boss::Dead);
+			m_bossDead = true;
+			//Print << U"isdead";
 		}
 		break;
 	case Boss_Behavior::Chase:
@@ -532,7 +534,6 @@ void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map , double dt)
 		{
 			m_behavior = Boss_Behavior::idle;
 			//Print << U"Boss is dead!";
-			m_bossDead = true;
 		
 		}
 	}
@@ -923,7 +924,7 @@ void Enemy_Boss::Pattern_4(Player& player, Vec2 cam_pos)
 		m_isAttacking = true;
 		m_counterReady = true;   // flag to indicate counter stance
 		setState(AnimState_Boss::Parry); // new animation for counter
-		Print << U"[Pattern_4] Boss is in counter stance!";
+		//Print << U"[Pattern_4] Boss is in counter stance!";
 	}
 	// --- Check if player is attacking ---
 	const RectF playerAttackBox = player.getAttackRect(Vec2{ 0, 0 }); // World coordinates

@@ -8,7 +8,6 @@
 #include "Game_BG.hpp"
 #include "TimeStopManager.h"
 #include "EnemySpawner.hpp"
-#include "Enemy_Boss.hpp"
 #include "AllEffect.h"
 
 enum class DeathChoice { Retry = 0, Title = 1 };
