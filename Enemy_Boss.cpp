@@ -158,7 +158,7 @@ void Enemy_Boss::update(Player& player, Game_Map& map)
 
 			// Play sound
 			AudioAsset(U"Sowrd4").play();
-			Print << U"[hp] : " << m_boss_hp;
+			//Print << U"[hp] : " << m_boss_hp;
 		}
 		else
 		{

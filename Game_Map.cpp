@@ -135,7 +135,7 @@ void Game_Map::draw() const
 			break;
 
 		case BLOCK_GOAL:
-			RectF(drawPos, size).draw();
+			RectF(drawPos, size);
 			break;
 		default:
 			break;
