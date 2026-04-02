@@ -1677,8 +1677,8 @@ void Player::draw(const Game_Map& CameraPos) const
 	switch (GetPlayerState())
 	{
 	case StateMode::Idle:
-		n = m_idlePatterns[m_frameIndex];
-		break;
+	n = m_idlePatterns[m_frameIndex];
+	break;
 
 	case StateMode::IdleToRun:
 		n = m_idleToRunPatterns[m_frameIndex];
@@ -1777,13 +1777,13 @@ void Player::draw(const Game_Map& CameraPos) const
 	Vec2 dogeOffset = Vec2::Zero();
 	if (GetPlayerState() == StateMode::Doge)
 	{
-		dogeOffset = IsPlayerFacingRight() ? Vec2{ -15, 0 } : Vec2{ 15, 0 };
+         dogeOffset = IsPlayerFacingRight() ? Vec2{ -15, 0 } : Vec2{ 15, 0 };
 	}
-	if (GetPlayerState() == StateMode::IdleToRun)
-	{
-		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 7 } : Vec2{ 0, 7 };
+    if (GetPlayerState() == StateMode::IdleToRun)
+    {
+	    dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 7 } : Vec2{ 0, 7 };
 
-	}
+     }
 	if (GetPlayerState() == StateMode::Run)
 	{
 		dogeOffset = IsPlayerFacingRight() ? Vec2{ 0, 7 } : Vec2{ 0, 7 };

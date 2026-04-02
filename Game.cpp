@@ -133,9 +133,12 @@ void Game::draw() const
 	player.draw(map);             // ← プレイヤーを描画
 
 	Ui.draw(player,map);
-	ScopedRenderStates2D blend{ BlendState::Additive };
-	effects.DrawEffect(map.getCameraPos());
 
+	{
+		ScopedRenderStates2D blend{ BlendState::Additive };
+		effects.DrawEffect(map.getCameraPos());
+	}
+	
 	if (m_showDeath) {
 		drawDeathOverlay();
 	}
