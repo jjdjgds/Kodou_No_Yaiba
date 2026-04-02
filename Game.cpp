@@ -43,10 +43,10 @@ Game::Game(const InitData& init)
 		player.SetPlayerPosition(Vec2{ 800, 750 });
 	}
 
-	const Vec2 c = Scene::CenterF();
+	const Vec2 center = Scene::CenterF();
 	const SizeF btnSize{ 200, 56 };
-	m_btnRetry = RectF{ Arg::center = c.movedBy(0, +230), btnSize };
-	m_btnTitle = RectF{ Arg::center = c.movedBy(0, +320), btnSize };
+	m_btnRetry = RectF{ Arg::center = center.movedBy(0, +230), btnSize };
+	m_btnTitle = RectF{ Arg::center = center.movedBy(0, +320), btnSize };
 
 	if (!FontAsset::IsRegistered(U"Menu")) {
 		FontAsset::Register(U"Menu", 36, Typeface::Bold);
@@ -57,8 +57,6 @@ Game::Game(const InitData& init)
 void Game::update()
 {
 	const int stage = map.getCurrentStage();
-	const Audio& audio_battle = AudioAsset(U"BattleBgm");
-	const Audio& audio_boss = AudioAsset(U"BossBgm");
 
 	if (!audio_battle.isPlaying() && stage !=4)
 	{
@@ -87,21 +85,25 @@ void Game::update()
 	if (player.GetPlayerState() == StateMode::Dead && player.IsDead()) {
 		m_showDeath = true;
 	}
-	if (boss.IsBossDead() && player.IsDead())
+
+	//Print << U"dead" << Boss_spawner.isBossDead();
+	if (Boss_spawner.isBossDead() && !player.IsDead())
 	{
 		m_bossDeath = true;
 	}
 
-	if (m_bossDeath) {
-		updateClearOverlay();
-		return;
-	}
+	
+
+
 	if (m_showDeath) {
 		updateDeathOverlay();
 		return;
 	}
-
-
+	if (m_bossDeath) {
+		updateClearOverlay();
+		return;
+	}
+	
 	if (Boss_spawner.areAllCleared()&& map.intersectsGoal(pBoxWorld)) {
 		map.loadNextStage();
 
@@ -138,7 +140,7 @@ void Game::draw() const
 		ScopedRenderStates2D blend{ BlendState::Additive };
 		effects.DrawEffect(map.getCameraPos());
 	}
-	
+
 	if (m_showDeath) {
 		drawDeathOverlay();
 	}
@@ -149,7 +151,7 @@ void Game::draw() const
 
 
 void Game::restartCurrentStage() {
-	const int stage = map.getCurrentStage();              // 若没有这个 getter，可在 Game_Map 暴露
+	const int stage = map.getCurrentStage();
 	const FilePath path = U"example/Map/stage{}"_fmt(stage);
 	map.loadStageFromFile(path, stage);
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
@@ -171,6 +173,7 @@ void Game::restartCurrentStage() {
 }
 
 void Game::updateDeathOverlay() {
+	Ui.hBgmStop();
 	if (KeyW.down()||KeyUp.down())   m_deathSel = DeathChoice::Retry;
 	if (KeyS.down()||KeyDown.down()) m_deathSel = DeathChoice::Title;
 
@@ -186,6 +189,8 @@ void Game::updateDeathOverlay() {
 	}
 	else {
 		resetDeathOverlay();
+		audio_battle.stop();
+		audio_boss.stop();
 		changeScene(State::Title);
 	}
 }
@@ -209,14 +214,37 @@ void Game::drawDeathOverlay() const {
 }
 
 void Game::updateClearOverlay() {
-	
-	const bool trigger = KeyEnter.down() || MouseL.down() || KeySpace.down();
+
+	static bool s_audioStopped = false;
+	if (!s_audioStopped) {
+		audio_battle.stop();
+		audio_boss.stop();
+		Ui.hBgmStop();
+		s_audioStopped = true;
+	}
+
+	const Vec2  center = Scene::CenterF();
+	const SizeF btnSize{ 240, 60 };
+	const RectF startBtn(Arg::center = center.movedBy(0, +390), btnSize);
+
+	const Point mpos = Cursor::Pos();
+	if (m_btnRetry.intersects(startBtn)) m_selected = true;
+
+	m_selected = m_btnTitle.intersects(Cursor::PosF());
+
+	m_selected = startBtn.intersects(Cursor::PosF());
+	if (KeySpace.down()) m_selected = true;
+
+	const bool trigger = KeyEnter.down() || KeySpace.down() || MouseL.down();
 	if (!trigger) return;
 
-	if (m_selected)
+	if(m_selected)
 	{
 		changeScene(State::Title);
+		s_audioStopped = false;
+		m_bossDeath = false;
 	}
+
 }
 
 void Game::drawClearOverlay() const {
@@ -229,8 +257,7 @@ void Game::drawClearOverlay() const {
 
 	const Vec2  center = Scene::CenterF();
 	const SizeF btnSize{ 240, 60 };
-
-	const RectF startBtn(Arg::center = center, btnSize);
+	const RectF startBtn(Arg::center = center.movedBy(0, +390), btnSize);
 
 	auto drawButton = [](const RectF& r, StringView text, bool selected)
 		{
@@ -243,7 +270,7 @@ void Game::drawClearOverlay() const {
 			FontAsset(U"Bold")(label).drawAt(28, r.center(), Palette::White);
 		};
 
-	drawButton(startBtn, U"START", m_selected == true);
+	drawButton(startBtn, U"TITLE", m_selected == true);
 }
 
 

@@ -65,7 +65,7 @@ private:
 	float m_gravity = 1000.0f;
 	bool   m_onGround = false;
 
-	int m_boss_hp = 1;
+	int m_boss_hp = 50;
 	float m_boss_bpm = 100;
 	bool m_isAttacking = false;
 	int m_boss_atk = 1;

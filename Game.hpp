@@ -8,7 +8,6 @@
 #include "Game_BG.hpp"
 #include "TimeStopManager.h"
 #include "EnemySpawner.hpp"
-#include "Enemy_Boss.hpp"
 #include "AllEffect.h"
 
 enum class DeathChoice { Retry = 0, Title = 1 };
@@ -20,6 +19,9 @@ public:
 
 	void update() override;
 	void draw() const override;
+
+	const Audio& audio_battle = AudioAsset(U"BattleBgm");
+	const Audio& audio_boss = AudioAsset(U"BossBgm");
 
 private:
 	Player player;  // ← これがないと Game.cpp 内で player が使えない！

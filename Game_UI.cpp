@@ -133,6 +133,14 @@ void Game_UI::UIBerserk()
 	}
 }
 
+void Game_UI::hBgmStop()
+{
+	const Audio& pHbSound = AudioAsset(U"FastBeat");
+	const Audio& pLbSound = AudioAsset(U"SlowBeat");
+	pHbSound.stop();
+	pLbSound.stop();
+}
+
 void Game_UI::update(Player& player, const Game_Map& CameraPos)
 {
 	HeatanimTime += Scene::DeltaTime() * TimeStopManager::GetEnemyScale();
@@ -187,7 +195,6 @@ void Game_UI::update(Player& player, const Game_Map& CameraPos)
 
 
 }
-
 
 void Game_UI::draw(const Player& player, const Game_Map& CameraPos) const
 {

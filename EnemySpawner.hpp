@@ -45,5 +45,6 @@ public:
 	void sweep();
 
 	Enemy_Boss* getBoss() const { return m_boss; }
+	bool isBossDead() const { return m_boss && m_boss->IsBossDead(); }
 };
 

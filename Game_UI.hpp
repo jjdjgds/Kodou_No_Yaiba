@@ -41,6 +41,8 @@ public:
 	void UITimeControl();
 	void UIBerserk();
 
+	void hBgmStop();
+
 	void UINormal();
 	void UIDead();
 	void update(Player& player, const Game_Map& CameraPos);
