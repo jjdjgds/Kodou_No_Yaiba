@@ -820,7 +820,7 @@ void Player::takeDamage(int damage, bool fromRight)
 	if (GetPlayerState() == StateMode::Doge) return;
 	if (GetPlayerState() == StateMode::Hurt) return;
 
-	// ★ スタン中に被弾した場合、スタンを強制解除
+	//スタン中に被弾した場合、スタンを強制解除
 	if (m_IsStunned)
 	{
 		m_IsStunned = false;
