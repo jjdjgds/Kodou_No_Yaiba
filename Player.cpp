@@ -86,66 +86,45 @@ void Player::UpdateHeartState()
 {
 	int bpm = GetPlayerBPM();
 
-	// ★ BPMが負になっていたら強制的に0に修正
 	if (bpm < 0)
 	{
 		bpm = 0;
 		SetPlayerBPM(0);
 	}
 
-	// 死亡判定（最優先）
 	if (bpm == 0)
 	{
 		SetPlayerHeartState(HeartRateState::Dead);
 		return;
 	}
 
-	// Player::UpdateHeartState() の中
-	if (bpm <= 60 || bpm >= 140)
+	// m_HeartCoolFlg を無視して強制スタン判定
+	// （クールタイム中でも上限・下限超えはスタンさせる）
+	if ((bpm <= 60 || bpm >= 140) && !m_IsStunned)
 	{
-		if (m_HeartCoolFlg)
-			return;
+		m_IsStunned = true;
+		m_StunTimer = 0.0;
+		m_HeartCoolFlg = false; // クールタイムをリセット
 
-		if (!m_IsStunned)
-		{
-			m_IsStunned = true;
-			m_StunTimer = 0.0;
-			m_frameIndex = 0; // ★ ここを追加/修正: スタン開始時にアニメーションインデックスをリセット
-			animTime = 0.0;   // ★ ここを追加/修正: アニメーション時間をリセット
-			SetPlayerState(StateMode::Stun);
-		}
-		return; // 解除は update() に任せる
+		m_frameIndex = 0;
+		animTime = 0.0;
+
+		SetPlayerState(StateMode::Stun);
+		SetPlayerHeartState(HeartRateState::Stun);
+		return;
 	}
-
-
 
 	if (m_IsStunned)
-	{
-		m_StunTimer += Scene::DeltaTime();
+		return;
 
-		if (m_StunTimer >= m_StunDuration)
-		{
-			m_IsStunned = false;
-			m_StunTimer = 0.0;
-			SetPlayerHeartState(HeartRateState::Normal);
-			SetPlayerState(StateMode::Idle);
-		}
-		else
-		{
-			PlayerStun();
-			return;
-		}
-	}
-
-
-	// 通常の心拍状態判定
-	if (bpm >= 120 && bpm <= 139)
+	if (bpm >= 120)
 		SetPlayerHeartState(HeartRateState::Berserk);
-	else if (bpm >= 60 && bpm <= 80)
+	else if (bpm <= 80)
 		SetPlayerHeartState(HeartRateState::TimeControl);
 	else
 		SetPlayerHeartState(HeartRateState::Normal);
 }
+
 void Player::takeDamage(int dmg)
 {
 	// 無敵中は被弾しない
@@ -806,7 +785,7 @@ void Player::PlayerStun()
 
 void Player::takeDamage(int damage, bool fromRight)
 {
-	// ★ スタン中チェックを削除（被弾を許可）
+	//スタン中チェックを削除（被弾を許可）
 	// if (m_IsStunned) return; ← これを削除
 
 	// 無敵中は被弾しない
@@ -820,7 +799,7 @@ void Player::takeDamage(int damage, bool fromRight)
 	if (GetPlayerState() == StateMode::Doge) return;
 	if (GetPlayerState() == StateMode::Hurt) return;
 
-	// ★ スタン中に被弾した場合、スタンを強制解除
+	//スタン中に被弾した場合、スタンを強制解除
 	if (m_IsStunned)
 	{
 		m_IsStunned = false;
@@ -878,17 +857,83 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		{
 			m_IsStunned = false;
 			m_StunTimer = 0.0;
+
 			SetPlayerHeartState(HeartRateState::Normal);
 			SetPlayerState(StateMode::Idle);
 			SetPlayerBPM(80);
-			
+
+			m_HeartCoolFlg = true;
+			m_HeartCoolTimer = 2.0;
 		}
 
-		if (m_IsStunned)
+		// ★ スタン中も重力・縦移動処理を行う
+		Vec2 stunPos = GetPlayerPosition();
+		Vec2 stunVel = GetPlayerVelocity();
+
+		const SizeF collisionSize = {
+			m_HitBox.x * m_Scale.x / 10,
+			m_HitBox.y * m_Scale.y / 13
+		};
+		const Vec2 collisionOffset = Vec2{ 0, -30 };
+		double dt = Scene::DeltaTime();
+
+		// 横速度は0固定
+		stunVel.x = 0;
+
+		// 重力加算
+		if (!m_onGround)
 		{
-
-			return;
+			stunVel.y += m_gravity * dt * 400;
 		}
+
+		// 縦方向移動・衝突
+		Vec2 nextPosY = stunPos + Vec2(0, stunVel.y * dt);
+		RectF rectY(Arg::center = nextPosY + collisionOffset, collisionSize);
+
+		bool hitGround = false;
+		if (!map.CheckCollision(rectY))
+		{
+			stunPos.y = nextPosY.y;
+		}
+		else
+		{
+			if (stunVel.y > 0)
+			{
+				stunVel.y = 0;
+				int iter = 0;
+				while (map.CheckCollision(rectY) && iter < 100)
+				{
+					nextPosY.y -= 0.5;
+					rectY.setCenter(nextPosY + collisionOffset);
+					iter++;
+				}
+				stunPos.y = nextPosY.y;
+				hitGround = true;
+			}
+			else if (stunVel.y < 0)
+			{
+				stunVel.y = 0;
+				int iter = 0;
+				while (map.CheckCollision(rectY) && iter < 100)
+				{
+					nextPosY.y += 0.5;
+					rectY.setCenter(nextPosY + collisionOffset);
+					iter++;
+				}
+				stunPos.y = nextPosY.y;
+			}
+		}
+
+		// 接地判定
+		RectF groundCheck(
+			Arg::center = (stunPos + collisionOffset).movedBy(0, collisionSize.y / 2 + 1),
+			SizeF{ collisionSize.x * 0.9, 4 }
+		);
+		m_onGround = map.CheckCollision(groundCheck) || hitGround;
+
+		SetPlayerVelocity(stunVel);
+		SetPlayerPosition(stunPos);
+		return;
 	}
 
 
@@ -1026,6 +1071,10 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 	UpdateHeartState();
 	ApplyHeartEffects();
+	bool canControl = !m_IsStunned
+		&& GetPlayerState() != StateMode::Dead
+		&& GetPlayerState() != StateMode::Hurt
+		&& !m_IsKnockback;
 	// ---------------------------------- -
 		// 入力処理 & 状態遷移
 		//-----------------------------------
@@ -1035,7 +1084,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	};
 
 
-	if (KeyEnter.down() && m_DogeCoolTimer <= 0.0)
+	if (canControl && KeyEnter.down() && m_DogeCoolTimer <= 0.0)
 	{
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
@@ -1060,20 +1109,21 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 
 	// Idle → IdleToRun（最初の走り出し）
-	if ((KeyD.down() || KeyA.down()) && GetPlayerState() == StateMode::Idle)
-	{
+	if (canControl && (KeyD.down() || KeyA.down()) && GetPlayerState() == StateMode::Idle) {
 		SetPlayerState(StateMode::IdleToRun);
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
 
 	// Run 維持処理（キー押しっぱなし）
-	if ((KeyD.pressed() || KeyA.pressed()) && GetPlayerState() == StateMode::Run)
-	{
+	if (canControl && (KeyD.pressed() || KeyA.pressed()) && GetPlayerState() == StateMode::Run) {
 		// 何もしない（Runを維持）
-		m_HeartTimer = 0.0;
-		m_HeartCoolTimer = m_HeartCooldown;
-		m_HeartCoolFlg = true; // ★ クールタイム中は減少を止める
+		if (GetPlayerBPM() > 65 && GetPlayerBPM() < 135)
+		{
+			m_HeartTimer = 0.0;
+			m_HeartCoolTimer = m_HeartCooldown;
+			m_HeartCoolFlg = true;
+		}
 	}
 	else if (!KeyA.pressed() && !KeyD.pressed())
 	{
@@ -1087,7 +1137,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	}
 
 	// 向きの反転
-	if (input.x != 0)
+	if (canControl && input.x != 0)
 	{
 		SetPlayerFaceRight(input.x > 0);
 	}
@@ -1271,7 +1321,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	//-----------------------------------
 	{
 		static bool canWallJump = true;
-		bool tryJump = (KeyW.down() || KeyUp.down());
+		bool tryJump = canControl && (KeyW.down() || KeyUp.down());
 
 		if (m_onGround)
 		{
@@ -1399,15 +1449,16 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	// Fall状態への自動遷移（ジャンプ以外で空中にいる場合）
 	//-----------------------------------
 	if (!m_onGround &&
-		GetPlayerState() != StateMode::Jump &&
-		GetPlayerState() != StateMode::Fall &&
-		GetPlayerState() != StateMode::OnTheWall &&
-		GetPlayerState() != StateMode::Doge &&
-		GetPlayerState() != StateMode::Attack &&
-		GetPlayerState() != StateMode::IdleToAttack &&
-		GetPlayerState() != StateMode::IdleToRun &&
-		GetPlayerState() != StateMode::JumpAttack &&
-		GetPlayerState() != StateMode::Dead
+			GetPlayerState() != StateMode::Jump &&
+			GetPlayerState() != StateMode::Fall &&
+			GetPlayerState() != StateMode::OnTheWall &&
+			GetPlayerState() != StateMode::Doge &&
+			GetPlayerState() != StateMode::Attack &&
+			GetPlayerState() != StateMode::IdleToAttack &&
+			GetPlayerState() != StateMode::IdleToRun &&
+			GetPlayerState() != StateMode::JumpAttack &&
+			GetPlayerState() != StateMode::Dead &&
+			GetPlayerState() != StateMode::Stun
 		) // ← 追加
 	{
 		// 攻撃フラグをリセット
@@ -1436,11 +1487,12 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	// 攻撃処理（優先度を高く）
 	//-----------------------------------
 	// --- update() 内の末尾付近 ---
-	if (MouseL.down()
-		&& !IsPlayerAttacking()
-		&& GetPlayerState() != StateMode::Hurt
-		&& GetPlayerState() != StateMode::Dead
-		&& GetPlayerState() != StateMode::Doge)
+	if (canControl &&
+	MouseL.down()
+			&& !IsPlayerAttacking()
+			&& GetPlayerState() != StateMode::Hurt
+			&& GetPlayerState() != StateMode::Dead
+			&& GetPlayerState() != StateMode::Doge)
 	{
 		SetPlayerLastState(GetPlayerState());
 		SetPlayerAttackFlag(true);
@@ -1506,12 +1558,11 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			SetPlayerState(StateMode::Dead);
 
 		}*/
-		if (KeyLShift.down() && GetMedecine() > 0)
+		if (canControl && (KeyLShift.down() && GetMedecine() > 0))
 		{
 			SetPlayerState(StateMode::Medecine);
 		}
-		if (MouseR.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl)
-		{
+		if (canControl && MouseR.pressed() && GetPlayerHeartState() == HeartRateState::TimeControl) {
 			TimeStopManager::Start(); // ザ・ワールド発動
 			SetTimeStoped(true);
 		}

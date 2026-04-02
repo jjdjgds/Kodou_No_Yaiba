@@ -151,15 +151,16 @@ void Enemy_Boss::update(Player& player, Game_Map& map, AllEffect& ae)
 
 		if (!m_hasTakenHit && bossRect.intersects(pAttackBox))
 		{
-			//Print << U"=== BOSS HIT! ===";
+			Print << U"=== BOSS HIT! ===";
 			// Boss takes damage once per attack
 			m_hasTakenHit = true;
 			m_boss_hp -= 1;
 			ae.SetEffect(m_boss_pos, Vec2{ 1.0,0.3 }, 0.4, player.IsPlayerFacingRight());
 
 			// Play sound
+			AudioAsset(U"Sowrd4").stop();
 			AudioAsset(U"Sowrd4").play();
-			//Print << U"[hp] : " << m_boss_hp;
+			
 		}
 		else
 		{
