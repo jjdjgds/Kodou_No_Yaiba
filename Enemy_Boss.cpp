@@ -1,4 +1,5 @@
 ﻿#include "stdafx.h"
+
 #include "Enemy_Boss.hpp"
 #include "Player.hpp"
 #include "Game.hpp"
@@ -78,7 +79,12 @@ void Enemy_Boss::update(Player& player, Game_Map& map, AllEffect& ae)
 
 	const bool playerInChase = RectToRect(eChaseBox, pHitBox); // World coordinates
 	const bool playerInAttack = RectToRect(eAttackBox, pHitBox); // World coordinates
-
+	if (m_bossDead)
+	{
+		setState(AnimState_Boss::Dead);
+		m_vel = Vec2{ 0,0 };
+		return;
+	}
 	if (!m_isAttacking && !m_deathanimation)
 	{
 		m_FaceRight = (playerPos.x >= m_boss_pos.x);
@@ -94,15 +100,17 @@ void Enemy_Boss::update(Player& player, Game_Map& map, AllEffect& ae)
 		dist = std::sqrt(distSq);
 
 	// --- Check for death sequence ---
-	if (m_boss_hp <= 0 && !m_isDying)
+	if (m_boss_hp <= 0 && !m_isDying && !m_bossDead)
 	{
 		m_isDying = true;
+		m_bossDead = true;
 		m_behavior = Boss_Behavior::Attack;
-		m_attackTimer = m_attackCooldown;
+		m_attackTimer = m_attackCooldown; // 即座にパターン開始
 		m_deathPatternCounter = 0;
-		
-		//Print << U"[Boss] dead";
-
+		m_isAttacking = false;
+		m_vel = Vec2{ 0, 0 };
+		Print << U"Boss HP depleted. Starting death sequence.";
+		//changeScene(State::Title);
 	}
 
 	// --- X Collision ---
@@ -151,8 +159,9 @@ void Enemy_Boss::update(Player& player, Game_Map& map, AllEffect& ae)
 
 		if (!m_hasTakenHit && bossRect.intersects(pAttackBox))
 		{
-			Print << U"=== BOSS HIT! ===";
+			//Print << U"=== BOSS HIT! ===";
 			// Boss takes damage once per attack
+			Print << m_boss_hp;
 			m_hasTakenHit = true;
 			m_boss_hp -= 1;
 			ae.SetEffect(m_boss_pos, Vec2{ 1.0,0.3 }, 0.4, player.IsPlayerFacingRight());
@@ -487,59 +496,57 @@ void Enemy_Boss::drawPatternElements(const Game_Map& map) const
 	}
 }
 
-void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map , double dt)
+void Enemy_Boss::handleAttackPattern(Player& player, Game_Map& map, double dt)
 {
 	if (!m_isDying)
 	{
-		// ─────────────
-		// NORMAL PATTERNS (1–6)
-		// ─────────────
 		if (m_isAttacking)
 		{
-			// Still performing the current pattern
-			executePattern(player, map, m_pattern , dt);
+			executePattern(player, map, m_pattern, dt);
 			return;
 		}
 		else
 		{
-			// Current pattern finished → move to next one
 			int next = static_cast<int>(m_pattern) + 1;
 			if (next > static_cast<int>(Boss_Pattern::PATTERN_6))
 				next = static_cast<int>(Boss_Pattern::PATTERN_0);
 
 			m_pattern = static_cast<Boss_Pattern>(next);
-			// reset pattern flags
-			executePattern(player, map, m_pattern , dt);
-			m_isAttacking = true; // Start new pattern
+			executePattern(player, map, m_pattern, dt);
+			m_isAttacking = true;
 			m_pattern3Done = false;
-
-			//Print << U"[Boss] → Switched to new pattern: " << static_cast<int>(m_pattern);
 			return;
 		}
 	}
 	else
 	{
-		// ─────────────
-		// DEATH SEQUENCE
-		// ─────────────
 		const Boss_Pattern deathSequence[3] = {
 			Boss_Pattern::PATTERN_1,
 			Boss_Pattern::PATTERN_2,
 			Boss_Pattern::PATTERN_5
 		};
 
-		m_pattern = deathSequence[m_deathPatternCounter % 3];
-		executePattern(player, map, m_pattern , dt);
-		m_deathPatternCounter++;
+		// まだパターン実行中なら続ける
+		if (m_isAttacking)
+		{
+			executePattern(player, map, m_pattern, dt);
+			return;
+		}
 
+		// 死亡シーケンス完了
 		if (m_deathPatternCounter >= 9)
 		{
 			m_behavior = Boss_Behavior::idle;
-			//Print << U"Boss is dead!";
-		
+			return;
 		}
+
+		// 次のパターンを開始
+		m_pattern = deathSequence[m_deathPatternCounter % 3];
+		m_deathPatternCounter++;
+		executePattern(player, map, m_pattern, dt);
 	}
 }
+
 
 void Enemy_Boss::executePattern(Player& player, Game_Map& map, Boss_Pattern pattern, double dt)
 {
