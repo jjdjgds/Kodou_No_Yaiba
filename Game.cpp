@@ -29,7 +29,7 @@ Game::Game(const InitData& init)
 
 {
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage4.txt",1))
 	{
 		Print << U"Failed to load stage1";
 		return;
@@ -143,6 +143,9 @@ void Game::draw() const
 	player.draw(map);             // ← プレイヤーを描画
 
 	Ui.draw(player,map);
+
+	if (Boss_spawner.getBoss())
+		Ui.drawBossHP(*Boss_spawner.getBoss());
 
 	{
 		ScopedRenderStates2D blend{ BlendState::Additive };

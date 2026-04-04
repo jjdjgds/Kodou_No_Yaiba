@@ -2,6 +2,8 @@
 #include <Siv3D.hpp>
 #include "AllEffect.h"
 
+#define BOSS_MAX_HP 15
+
 class Player;
 class Game_Map;
 
@@ -65,7 +67,9 @@ private:
 	float m_gravity = 1000.0f;
 	bool   m_onGround = false;
 
-	int m_boss_hp = 10;
+	int m_boss_hp = BOSS_MAX_HP;
+
+
 	float m_boss_bpm = 100;
 	bool m_isAttacking = false;
 	int m_boss_atk = 1;
@@ -215,6 +219,9 @@ public:
 	const Vec2& GetPosition() const { return m_boss_pos; }
 	const Vec2& GetScale() const { return m_boss_scale; }
 	int GetHP() const { return m_boss_hp; }
+
+	int GetMaxHP() const { return BOSS_MAX_HP; }
+
 	int GetBPM() const { return m_boss_bpm; }
 	int GetAttack() const { return m_boss_atk; }
 	int GetRange() const { return m_boss_range; }
@@ -225,6 +232,7 @@ public:
 		// If m_boss_speed > base_speed → faster attacks (shorter time)
 	}
 	AnimState_Boss GetPlayerState() const { return m_state; }
+
 
 	void SetPosition(const Vec2& pos) { m_boss_pos = pos; }
 	void SetScale(const Vec2& scale) { m_boss_scale = scale; }
@@ -248,6 +256,8 @@ public:
 
 	const SmokeData& GetSmokeData() const { return m_smoke; }
 	bool IsSmokeActive() const { return m_smoke.active; }
+
+
 	bool IsBossDead() const { return m_bossDead; }
 };
 

@@ -8,6 +8,8 @@
 #define  NORMAL (0.12)
 #define  DEAD (0.1)
 
+class Enemy_Boss;
+
 /*
 
 
@@ -41,12 +43,16 @@ public:
 	void UITimeControl();
 	void UIBerserk();
 
+
 	void hBgmStop();
 
 	void UINormal();
 	void UIDead();
 	void update(Player& player, const Game_Map& CameraPos);
 	void draw(const Player& player, const Game_Map& CameraPos)const;
+
+	void drawBossHP(const Enemy_Boss& boss) const;
+
 };
 
 //case HeartRateState::Stun:
