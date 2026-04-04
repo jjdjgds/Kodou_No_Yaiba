@@ -1886,5 +1886,6 @@ void Player::Revive() {
 	m_InvincibleTimer = 0.6;
 
 	m_onGround = true;
+	SetMaxMedecine();
 	SetPlayerVelocity(Vec2{ 0,0 });
 }
