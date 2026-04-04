@@ -29,7 +29,7 @@ Game::Game(const InitData& init)
 
 {
 	// マップ読み込み
-	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage4.txt",1))
+	if (!map.loadStageFromFile(FileSystem::CurrentDirectory()+U"example/Map/stage1.txt",1))
 	{
 		Print << U"Failed to load stage1";
 		return;
