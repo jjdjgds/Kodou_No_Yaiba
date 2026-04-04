@@ -60,6 +60,8 @@ void Game::update()
 
 	if (!audio_battle.isPlaying() && stage !=4)
 	{
+		audio_battle.stop();
+
 		audio_battle.play();
 		audio_battle.setVolume(0.7);
 	}
@@ -70,6 +72,7 @@ void Game::update()
 		audio_boss.setVolume(0.7);
 	}
 
+	
 	const RectF pBoxWorld(Arg::center = player.GetPlayerPosition(),
 					  player.GetPlayerHitBox());
 
@@ -90,6 +93,9 @@ void Game::update()
 	if (Boss_spawner.isBossDead() && !player.IsDead())
 	{
 		m_bossDeath = true;
+		//Print << U"boss dead";
+		//changeScene(State::Title);
+
 	}
 
 	
@@ -101,6 +107,8 @@ void Game::update()
 	}
 	if (m_bossDeath) {
 		updateClearOverlay();
+		changeScene(State::Title);
+
 		return;
 	}
 	
