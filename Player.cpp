@@ -747,7 +747,7 @@ void Player::PlayerFall()
 		animTime -= onTheWallFrameDuration;
 		m_frameIndex++;
 
-		// ★ 修正箇所：m_onTheWallPatterns.size() -> m_FallPatterns.size() に変更
+		//修正箇所：m_onTheWallPatterns.size() -> m_FallPatterns.size() に変更
 		if (m_frameIndex >= m_FallPatterns.size())
 		{
 			m_frameIndex = 0;
@@ -866,7 +866,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_HeartCoolTimer = 2.0;
 		}
 
-		// ★ スタン中も重力・縦移動処理を行う
+		//スタン中も重力・縦移動処理を行う
 		Vec2 stunPos = GetPlayerPosition();
 		Vec2 stunVel = GetPlayerVelocity();
 
@@ -1854,11 +1854,11 @@ void Player::draw(const Game_Map& CameraPos) const
 		.drawAt(drawPos + offset + dogeOffset);
 
 	// === デバッグ表示 ===
-	//RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	RectF hitBox = getHitRect(CameraPos.getCameraPos());
+	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
-	//RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
+	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 
