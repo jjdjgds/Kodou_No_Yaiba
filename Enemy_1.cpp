@@ -589,7 +589,8 @@ void Enemy_1::draw(const Game_Map& map) const
 	// ----------------------------
 	// --- デバッグ描画
 	// ----------------------------
-	if (m_debugDraw) {
+	if (m_debugDraw)
+	{
 		hurtRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
 		attackRect(map).drawFrame(2.0, Palette::Blue);
 		chaseRect(map).drawFrame(2.0, Palette::White);

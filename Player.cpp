@@ -1854,11 +1854,11 @@ void Player::draw(const Game_Map& CameraPos) const
 		.drawAt(drawPos + offset + dogeOffset);
 
 	// === デバッグ表示 ===
-	RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
+	//RectF hitBox = getHitRect(CameraPos.getCameraPos());
+	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
 
-	RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
+	//RectF attackBox = getAttackRect(CameraPos.getCameraPos());
+	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
 
 	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
 

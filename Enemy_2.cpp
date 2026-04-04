@@ -496,15 +496,22 @@ void Enemy_2::update(Player& player, Game_Map& map, AllEffect& alleffe)
 
 
 	// デバッグ：クリックで敵にダメージ
-	if (eHurtBox.leftClicked()) {
+	/*if (eHurtBox.leftClicked()) {
 		die();
-	}
+	}*/
 
 	// --- プレイヤーの攻撃が敵に当たったか ---
-	const bool playerAttackingThisFrame = (player.GetPlayerState() == StateMode::Attack) && player.IsPlayerAttacking();
+	const bool playerAttackingThisFrame =
+		((player.GetPlayerState() == StateMode::Attack) ||
+		(player.GetPlayerState() == StateMode::IdleToAttack) ||
+		(player.GetPlayerState() == StateMode::JumpAttack) ||
+		player.IsPlayerAttacking());
+
 	// --- 行動決定（被弾 / 攻撃 / 通常） ---
 	const bool gotHit = (RectToRect(pAttackBox, eHurtBox) && playerAttackingThisFrame) || m_takeDamage;
-	if (gotHit) {//
+	if (gotHit)
+	{
+		Print << U"Hit!\n";
 		alleffe.SetEffect(getPosition() - cam, Vec2{ 1.5,0.3 }, 0.3, player.IsPlayerFacingRight());
 		const Audio& AS1 = AudioAsset(U"Sowrd1");
 		const Audio& AS2 = AudioAsset(U"Sowrd2");
@@ -574,7 +581,7 @@ void Enemy_2::update(Player& player, Game_Map& map, AllEffect& alleffe)
 				if (m_state == AnimState_Enemy2::Attack
 			   && !m_firedThisAttack
 			   && (m_frameIndex >= m_fireFrame)) {
-					fireBullet();
+					//fireBullet();
 					m_firedThisAttack = true;
 				}
 			}
@@ -585,7 +592,7 @@ void Enemy_2::update(Player& player, Game_Map& map, AllEffect& alleffe)
 				}
 				else if (m_state == AnimState_Enemy2::Attack) {// 攻撃アニメーション終了
 					if (!m_firedThisAttack) {
-						fireBullet();
+						//fireBullet();
 						m_firedThisAttack = true;
 					}
 
@@ -661,11 +668,12 @@ void Enemy_2::draw(const Game_Map& map) const
 	}
 
 	text.draw(m_Position ,m_FaceRight,map.getCameraPos(), ColorF{1.0},32,Vec2(17,90));
-
+	//eHurtBox
 	// ----------------------------
 	// --- デバッグ描画
 	// ----------------------------
-	if (m_debugDraw) {
+	if (m_debugDraw)
+	{
 		hurtRect(map.getCameraPos()).drawFrame(2.0, Palette::Red);
 		attackRect(map).drawFrame(2.0, Palette::Blue);
 		eludeRect(map).drawFrame(2.0, Palette::Green);
