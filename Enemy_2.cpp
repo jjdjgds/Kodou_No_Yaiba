@@ -581,7 +581,7 @@ void Enemy_2::update(Player& player, Game_Map& map, AllEffect& alleffe)
 				if (m_state == AnimState_Enemy2::Attack
 			   && !m_firedThisAttack
 			   && (m_frameIndex >= m_fireFrame)) {
-					//fireBullet();
+					fireBullet();
 					m_firedThisAttack = true;
 				}
 			}
@@ -592,7 +592,7 @@ void Enemy_2::update(Player& player, Game_Map& map, AllEffect& alleffe)
 				}
 				else if (m_state == AnimState_Enemy2::Attack) {// 攻撃アニメーション終了
 					if (!m_firedThisAttack) {
-						//fireBullet();
+						fireBullet();
 						m_firedThisAttack = true;
 					}
 
