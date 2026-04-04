@@ -31,6 +31,7 @@ void Title::update()
 
 	if (startBtn.leftClicked()) {
 		changeScene(State::Game);
+		audio.stop();
 		return;
 	}
 	if (exitBtn.leftClicked()) {
