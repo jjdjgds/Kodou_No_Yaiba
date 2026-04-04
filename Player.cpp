@@ -1084,7 +1084,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	};
 
 
-	if (canControl && KeySpace.down() && m_DogeCoolTimer <= 0.0)
+	if (canControl && KeyEnter.down() && m_DogeCoolTimer <= 0.0)
 	{
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
