@@ -165,9 +165,6 @@
     <ClCompile Include="Game_UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="jokeClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MapLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -184,6 +181,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Bullet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AllEffect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeStopManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -878,9 +881,6 @@
     <ClInclude Include="Game_UI.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jokeClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MapLoader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -903,6 +903,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TextShot.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AllEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeStopManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
