@@ -44,7 +44,10 @@ public:
 	bool areAllCleared() const;
 	void sweep();
 
-	Enemy_Boss* getBoss() const { return m_boss; }
+
+	Enemy_Boss* getBoss() { return m_boss; }
+	const Enemy_Boss* getBoss() const { return m_boss; }
+
 	bool isBossDead() const { return m_boss && m_boss->IsBossDead(); }
 };
 
