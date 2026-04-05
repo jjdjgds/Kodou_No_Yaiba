@@ -98,7 +98,7 @@ void Main()
 	//現在のシーンを更新・描画し、必要に応じてシーンを切り替え
 	while (System::Update())
 	{
-		
+		System::SetTerminationTriggers(UserAction::CloseButtonClicked);
 		if (not manager.update())
 		{
 			break;

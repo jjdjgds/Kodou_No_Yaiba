@@ -1,5 +1,6 @@
 ﻿# pragma once
 # include <Siv3D.hpp>
+# include "Option.hpp"
 
 // シーンのステート
 //ここにシーンを追加していく
@@ -19,6 +20,8 @@ struct GameData
 
 	// ハイスコア
 	Array<int32> highScores = { 10, 8, 6, 4, 2 };
+
+	Option option;
 };
 
 using App = SceneManager<State, GameData>;
