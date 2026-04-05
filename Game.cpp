@@ -144,6 +144,9 @@ void Game::draw() const
 
 	Ui.draw(player,map);
 
+	if (Boss_spawner.getBoss())
+		Ui.drawBossHP(*Boss_spawner.getBoss());
+
 	{
 		ScopedRenderStates2D blend{ BlendState::Additive };
 		effects.DrawEffect(map.getCameraPos());

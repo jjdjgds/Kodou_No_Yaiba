@@ -138,7 +138,7 @@ void Player::takeDamage(int dmg)
 	if (GetPlayerState() == StateMode::Doge) return;
 	if (GetPlayerState() == StateMode::Hurt) return; // 既にHurtなら無効（好みに応じて変える）
 
-	// ★ スタン中に被弾した場合、スタンを強制解除して被弾処理へ移行
+	//スタン中に被弾した場合、スタンを強制解除して被弾処理へ移行
 	if (m_IsStunned)
 	{
 		m_IsStunned = false;
@@ -160,7 +160,7 @@ void Player::takeDamage(int dmg)
 	SetPlayerBPM(newBPM);
 
 	// --- 状態変更 ---
-	SetPlayerState(StateMode::Hurt);
+	//SetPlayerState(StateMode::Hurt);
 
 	// --- クールタイム系（被弾直後はスタン再発を防ぐためのクール） ---
 	m_HeartTimer = 0.0;
@@ -178,6 +178,10 @@ void Player::takeDamage(int dmg)
 	m_KnockbackVelocity = Vec2{ -knockbackPower, knockbackUp }; // 仮：左方向に飛ぶ
 	m_KnockbackTimer = 0.5;
 	m_onGround = false;
+	m_IsInvincible = true;
+	m_InvincibleTimer = m_KnockbackTimer; // 点滅＆無敵の秒数
+
+	SetPlayerState(StateMode::Hurt);
 }
 
 // ワールド座標での当たり判定取得（カメラ補正なし）
@@ -372,11 +376,11 @@ void Player::PlayerHurt()
 			}
 
 			animTime = 0.0;
-			return; // ★ 範囲外アクセスを避けるため、アニメーションが終了したら即座にリターン
+			return; //範囲外アクセスを避けるため、アニメーションが終了したら即座にリターン
 		}
 	}
 
-	// ★ 追加の防御策: 攻撃判定がある場合、ここでインデックスが範囲内であることを保証
+	//追加の防御策: 攻撃判定がある場合、ここでインデックスが範囲内であることを保証
 	if (m_frameIndex >= m_hurtPatterns.size())
 	{
 		// 念のため、この行に到達しないことを保証
@@ -747,7 +751,7 @@ void Player::PlayerFall()
 		animTime -= onTheWallFrameDuration;
 		m_frameIndex++;
 
-		// ★ 修正箇所：m_onTheWallPatterns.size() -> m_FallPatterns.size() に変更
+		//修正箇所：m_onTheWallPatterns.size() -> m_FallPatterns.size() に変更
 		if (m_frameIndex >= m_FallPatterns.size())
 		{
 			m_frameIndex = 0;
@@ -841,7 +845,8 @@ void Player::takeDamage(int damage, bool fromRight)
 	m_IsKnockback = true;
 	m_KnockbackTimer = 0.5;
 	m_onGround = false;
-
+	m_IsInvincible = true;
+	m_InvincibleTimer = m_KnockbackTimer;
 	SetPlayerState(StateMode::Hurt);
 }
 void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m_enemies2)
@@ -866,7 +871,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_HeartCoolTimer = 2.0;
 		}
 
-		// ★ スタン中も重力・縦移動処理を行う
+		//スタン中も重力・縦移動処理を行う
 		Vec2 stunPos = GetPlayerPosition();
 		Vec2 stunVel = GetPlayerVelocity();
 
@@ -1084,7 +1089,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	};
 
 
-	if (canControl && KeyEnter.down() && m_DogeCoolTimer <= 0.0)
+	if (canControl && KeySpace.down() && m_DogeCoolTimer <= 0.0)
 	{
 		SetPlayerAttackFlag(false);
 		SetPlayerState(StateMode::Doge);
@@ -1848,10 +1853,21 @@ void Player::draw(const Game_Map& CameraPos) const
 
 
 
+	// === 点滅処理 ===
+	bool shouldDraw = true;
+	if (m_IsInvincible && !m_BersarkFlg) // 被弾無敵中のみ点滅（バーサーク無敵は除外）
+	{
+		double blinkCycle = fmod(m_InvincibleTimer, 0.1);
+		shouldDraw = (blinkCycle >= 0.05);
+	}
+
 	// === スプライト描画 ===
-	PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
-		.scaled(scaleX, scaleY)
-		.drawAt(drawPos + offset + dogeOffset);
+	if (shouldDraw)
+	{
+		PlayerTex(n * frameWidth, y, frameWidth, frameHeight)
+			.scaled(scaleX, scaleY)
+			.drawAt(drawPos + offset + dogeOffset);
+	}
 
 	// === デバッグ表示 ===
 	//RectF hitBox = getHitRect(CameraPos.getCameraPos());
@@ -1886,5 +1902,6 @@ void Player::Revive() {
 	m_InvincibleTimer = 0.6;
 
 	m_onGround = true;
+	SetMaxMedecine();
 	SetPlayerVelocity(Vec2{ 0,0 });
 }

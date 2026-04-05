@@ -112,6 +112,8 @@ void Game_UI::UIDead()
 
 }
 
+
+
 void Game_UI::UIBerserk()
 {
 	// バーサーカー用のアニメーション処理
@@ -327,3 +329,24 @@ void Game_UI::draw(const Player& player, const Game_Map& CameraPos) const
 	//		state == HeartRateState::Dead ? U"Dead" : U"Unknown");
 }
 
+void Game_UI::drawBossHP(const Enemy_Boss& boss) const
+{
+	constexpr double BAR_WIDTH = 1200.0;   
+	constexpr double BAR_HEIGHT = 25.0;   
+	constexpr double BAR_X_OFFSET = 100.0;
+
+	int maxHP = boss.GetMaxHP();
+	if (maxHP <= 0) return;
+
+	const double ratio = Clamp(boss.GetHP() / static_cast<double>(maxHP), 0.0, 1.0);
+	const Vec2 pos{ Scene::Width() / 2 - BAR_WIDTH / 2, Scene::Height() - 55 };
+
+	// グレーの背景バー
+	RectF{ pos, BAR_WIDTH, BAR_HEIGHT }.draw(ColorF{ 0.2, 0.2, 0.2, 0.7 }).drawFrame(3, Palette::White);
+	// 赤いHPバー
+	RectF{ pos, BAR_WIDTH * ratio, BAR_HEIGHT }.draw(ColorF{ 1, 0.2, 0.2, 0.95 });
+
+	FontAsset(U"Menu")(U"カンパニーの社長")
+		.drawAt(pos.x + BAR_WIDTH / 2, pos.y + BAR_HEIGHT / 2 - 35, Palette::Black);
+
+}
