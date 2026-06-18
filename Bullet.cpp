@@ -74,7 +74,7 @@ bool Bullet::updateAndHit(double dt, const Game_Map& map,
 			m_vel.x = -m_vel.x; // X反射
 			m_pos.x += (m_vel.x > 0 ? 1 : -1); // 少しずらす
 			m_faceRight = !m_faceRight; // 反転
-			m_RemoveFlag = true; // 　 ここを追加
+			m_RemoveFlag = true; 
 			//U"BCunter"
 			const Audio& Cunter1 = AudioAsset(U"BCunter");
 			Cunter1.stop();

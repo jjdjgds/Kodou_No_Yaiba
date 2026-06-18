@@ -1,4 +1,17 @@
-﻿#pragma once
+﻿/*==========================================================================
+HPや心拍数といったゲームUIクラス[Game_UI.hpp]
+
+
+
+													Author : hidetoshi muramatu
+
+---------------------------------------------------------------------------
+
+
+
+==========================================================================*/
+
+#pragma once
 # include <Siv3D.hpp>
 #include "Player.hpp"
 #define  STUN (0.9)
@@ -10,19 +23,7 @@
 
 class Enemy_Boss;
 
-/*
 
-
-
-Stun,
-Warning,
-Berserk,
-TimeControl,
-Normal,
-Dead
-
-
-*/
 
 class Game_UI
 {
@@ -55,22 +56,4 @@ public:
 
 };
 
-//case HeartRateState::Stun:
-//
-//
-//	break;
-//case HeartRateState::Warning:
-//
-//
-//	break;
-//case HeartRateState::Berserk:
-//
-//
-//	break;
-//case HeartRateState::TimeControl:
-//
-//
-//	break;
-//
-//case HeartRateState::Normal:
-//break;
+

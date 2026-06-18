@@ -254,7 +254,7 @@ void Player::PlayerAttack(const Vec2& camera)
 		m_frameIndex++;
 
 		// 2. インクリメントの結果、範囲外になったかチェック
-		if (m_frameIndex >= static_cast<int>(m_attackPatterns.size())) // static_cast<int> を追加
+		if (m_frameIndex >= static_cast<int>(m_attackPatterns.size())) 
 		{
 			m_frameIndex = 0; // リセット
 
@@ -396,7 +396,7 @@ void Player::PlayerJumpAttack()
 		animTime -= JumpattackFrameDuration;
 		m_frameIndex++;
 
-		//修正箇所：インデックスの範囲チェック
+		//インデックスの範囲チェック
 		if (m_frameIndex >= static_cast<int>(m_jumpAttackPatterns.size()))
 		{
 			m_frameIndex = 0; // リセット
@@ -589,11 +589,7 @@ void Player::PlayerKaifuku()
 				SetPlayerState(StateMode::Idle);
 			}
 
-			// 終了後、再度攻撃入力があった場合の対応（通常はIdle/Runに戻るので不要なことが多い）
-			// if (MouseL.down())
-			// {
-			// 	SetPlayerState(StateMode::Attack);
-			// }
+			
 		}
 	}
 }
@@ -627,7 +623,7 @@ void Player::PlayerIdleToAttack(const Vec2& camera)
 		animTime -= attackToIdleFrameDuration;
 		m_frameIndex++;
 
-		// === 修正箇所：インデックスの範囲チェック ===
+		// === インデックスの範囲チェック ===
 		if (m_frameIndex >= static_cast<int>(m_IdleAttackPatterns.size()))
 		{
 			m_frameIndex = 0;
@@ -749,7 +745,7 @@ void Player::PlayerFall()
 		animTime -= onTheWallFrameDuration;
 		m_frameIndex++;
 
-		//修正箇所：m_onTheWallPatterns.size() -> m_FallPatterns.size() に変更
+		
 		if (m_frameIndex >= m_FallPatterns.size())
 		{
 			m_frameIndex = 0;
@@ -1340,7 +1336,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			m_frameIndex = 0;
 			animTime = 0.0;
 		}
-		// 壁ジャンプ（修正版）
+		// 壁ジャンプ
 		else if (tryJump && canWallJump && (isTouchingWallLeft || isTouchingWallRight))
 		{
 			constexpr double JumpPowerScale = 200.0;
@@ -1460,7 +1456,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 			GetPlayerState() != StateMode::JumpAttack &&
 			GetPlayerState() != StateMode::Dead &&
 			GetPlayerState() != StateMode::Stun
-		) // ← 追加
+		) 
 	{
 		// 攻撃フラグをリセット
 		SetPlayerAttackFlag(false);

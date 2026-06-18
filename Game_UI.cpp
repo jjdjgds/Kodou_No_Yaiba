@@ -1,4 +1,18 @@
-﻿#include "stdafx.h"
+﻿/*==========================================================================
+HPや心拍数といったゲームUI[Game_UI.cpp]
+	
+
+
+													Author : hidetoshi muramatu
+													
+---------------------------------------------------------------------------
+
+
+
+==========================================================================*/
+
+
+#include "stdafx.h"
 #include "Game_UI.hpp"
 #include "Game.hpp"
 
@@ -94,11 +108,7 @@ void Game_UI::UIDead()
 	{
 		HeatanimTime -= NomalFrameDuration;
 
-		//// まだ最後のフレームに到達していない場合のみ進める
-		//if (m_frameIndex < static_cast<int>(m_deadBeatPatterns.size()) - 1)
-		//{
-		//	m_frameIndex++;
-		//}
+		
 		// m_BeatPatterns の総フレーム数で循環させる
 		if (!m_deadBeatPatterns.empty())
 		{
