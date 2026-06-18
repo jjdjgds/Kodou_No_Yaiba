@@ -1,4 +1,6 @@
-﻿#include <Siv3D.hpp>
+﻿
+
+#include <Siv3D.hpp>
 #include "Player.hpp"
 #include "Game.hpp"
 #include "Collision.hpp"
@@ -148,7 +150,6 @@ void Player::takeDamage(int dmg)
 		m_HeartCoolTimer = 2.0; // 例: 2秒間は再スタンしない
 		m_HeartCoolFlg = true;
 		SetPlayerBPM(Max(80, GetPlayerBPM())); // 安全な値に
-		//Print << U"⚡ スタン中に被弾！一時的にスタン解除";
 	}
 
 	// --- HP減少 ---
@@ -226,8 +227,7 @@ void Player::OnParrySuccess()
 	m_AttackFlag = false;
 	m_ParrySuccess = true;
 	m_ParryTimer = 0.25; // 例：0.25秒間無敵や硬直
-	//m_AnimState = PlayerAnim::Parry; // パリィ用アニメーションに切り替え
-	//Print << U"Parry Success!";
+
 
 }
 
@@ -301,7 +301,6 @@ void Player::PlayerDoge()
 	// Dodge中の速度変更 (SetPlayerSpeed) は update() の入力受付時に行うため削除
 	if (m_DogeTimer == 0.0)
 	{
-		// SetPlayerSpeed(DogePlayerSpeed*10); // 削除
 		m_frameIndex = 0;
 		animTime = 0.0;
 	}
@@ -322,7 +321,6 @@ void Player::PlayerDoge()
 	if (m_DogeTimer >= dogeDuration)
 	{
 		// Dodge終了
-		// SetPlayerVelocity(Vec2(0, GetPlayerVelocity().y)); // 削除: update() の減速で速度が落ちるのを待つ
 		SetPlayerSpeed(NormalPlayerSpeed);
 
 		if (KeyA.pressed() || KeyD.pressed())
@@ -347,7 +345,7 @@ void Player::PlayerHurt()
 		animTime -= hurtFrameDuration;
 		m_frameIndex++;
 
-		// === 修正箇所：size_t同士で比較する (安全性の向上) ===
+		// size_t同士で比較する
 		// m_hurtPatterns のサイズは 3 なので、インデックス 3 になったらループ終了
 		if (m_frameIndex >= m_hurtPatterns.size())
 		{
@@ -360,7 +358,7 @@ void Player::PlayerHurt()
 			}
 			else
 			{
-				// === 修正箇所：アニメーション終了後、ノックバックを終了させて通常状態に戻る ===
+				//アニメーション終了後、ノックバックを終了させて通常状態に戻る
 				// ノックバック移動は update() 内で m_IsKnockback == true の間に処理されているはず
 				m_IsKnockback = false; // ノックバック状態を終了
 
@@ -380,7 +378,7 @@ void Player::PlayerHurt()
 		}
 	}
 
-	//追加の防御策: 攻撃判定がある場合、ここでインデックスが範囲内であることを保証
+	//攻撃判定がある場合、ここでインデックスが範囲内であることを保証
 	if (m_frameIndex >= m_hurtPatterns.size())
 	{
 		// 念のため、この行に到達しないことを保証
@@ -398,12 +396,12 @@ void Player::PlayerJumpAttack()
 		animTime -= JumpattackFrameDuration;
 		m_frameIndex++;
 
-		// === 修正箇所：インデックスの範囲チェック ===
+		//修正箇所：インデックスの範囲チェック
 		if (m_frameIndex >= static_cast<int>(m_jumpAttackPatterns.size()))
 		{
 			m_frameIndex = 0; // リセット
 			SetPlayerAttackFlag(false);
-			m_AttackStart = false; // ★追加: m_AttackStart もリセット
+			m_AttackStart = false; // m_AttackStart もリセット
 
 			// 攻撃後の状態遷移
 			if (KeyA.pressed() || KeyD.pressed())
@@ -724,7 +722,7 @@ void Player::PlayerOnTheWall()
 		{
 			m_frameIndex = 0;
 
-			// ★ ここが重要！ 攻撃後の状態を決める
+			// 　 ここが重要！ 攻撃後の状態を決める
 			if (KeyA.pressed() || KeyD.pressed())
 			{
 				// まだ移動キーが押されている → Runへ
@@ -815,7 +813,7 @@ void Player::takeDamage(int damage, bool fromRight)
 	{
 		// --- BPM減少（下限チェック）---
 		int newBPM = GetPlayerBPM() - 8;
-		newBPM = Max(newBPM, 0); // ★ 0未満にならないようにクランプ
+		newBPM = Max(newBPM, 0); // 　 0未満にならないようにクランプ
 		SetPlayerBPM(newBPM);
 	}
 
@@ -1039,17 +1037,16 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 
 
 
-	// ===== Player::update の中から抜粋 =====
+	
 
 	// バーサークモード突入条件
 	if (GetPlayerBPM() >= 120 && !m_BersarkFlg)
 	{
 		m_BersarkFlg = true;
 		m_BersarkTimer = 8.0;  // バーサーク継続秒数
-		m_IsInvincible = true;  // ★無敵ON
-		m_AttackSpeedBoost = 1.5;// ★攻撃速度倍率（1.5倍）
+		m_IsInvincible = true;  // 無敵ON
+		m_AttackSpeedBoost = 1.5;// 攻撃速度倍率（1.5倍）
 		m_Speed *= 1.5;
-		//Print << U"🔥バーサークモード突入！🔥";
 	}
 
 	// バーサーク継続処理
@@ -1064,8 +1061,8 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		{
 			// 時間切れ → 通常状態に戻す
 			m_BersarkFlg = false;
-			m_IsInvincible = false;// ★無敵解除
-			m_AttackSpeedBoost = 1.0;// ★攻撃速度戻す
+			m_IsInvincible = false;// 　無敵解除
+			m_AttackSpeedBoost = 1.0;// 　攻撃速度戻す
 			m_Speed /= 1.5;
 			//Print << U"バーサーク解除";
 		}
@@ -1108,7 +1105,6 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		constexpr double DodgeForce = DogePlayerSpeed; // 必要に応じて調整
 		velocity.x = dir * DodgeForce;
 
-		// もし SetPlayerVelocity をも通したいなら最後に行う（末尾で一括してるなら不要）
 	}
 
 
@@ -1244,7 +1240,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 		else
 		{
 			// 通常移動
-			if (m_IsStunned) // ★ スタン中の場合は横速度を0にする
+			if (m_IsStunned) // 　 スタン中の場合は横速度を0にする
 			{
 				velocity.x = 0;
 
@@ -1557,12 +1553,7 @@ void Player::update(Game_Map& map, Array<Enemy_1>& m_enemies1, Array<Enemy_2>& m
 	//デバック用
 	//-----------------------------
 	{
-		/*if (KeyP.down())
-		{
-
-			SetPlayerState(StateMode::Dead);
-
-		}*/
+		
 		if (canControl && (KeyLShift.down() && GetMedecine() > 0))
 		{
 			SetPlayerState(StateMode::Medecine);
@@ -1869,17 +1860,6 @@ void Player::draw(const Game_Map& CameraPos) const
 			.drawAt(drawPos + offset + dogeOffset);
 	}
 
-	// === デバッグ表示 ===
-	//RectF hitBox = getHitRect(CameraPos.getCameraPos());
-	//hitBox.drawFrame(3, ColorF{ 1, 0, 0, 1.0 }); // 赤
-
-	//RectF attackBox = getAttackRect(CameraPos.getCameraPos());
-	//attackBox.drawFrame(3, ColorF{ 0, 1, 1, 0.5 }); // シアン
-
-	//enemyRect.movedBy(-CameraPos.getCameraPos()).drawFrame(2, ColorF{ 0, 1, 1, 0.5 });
-
-	//Print << U"velo" << GetPlayerVelocity();
-	//Print << U"" << GetPlayerBPM();
 
 }
 

@@ -126,9 +126,9 @@
     <ClCompile Include="Game_BG.cpp" />
     <ClCompile Include="Game_Map.cpp" />
     <ClCompile Include="Game_UI.cpp" />
-    <ClCompile Include="jokeClass.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MapLoader.cpp" />
+    <ClCompile Include="Option.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -322,6 +322,7 @@
     <None Include="App\example\toml\config.toml" />
     <None Include="App\example\toml\test.toml" />
     <None Include="App\example\zip\zip_test.zip" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="App\example\shot.mp3" />
@@ -354,8 +355,8 @@
     <ClInclude Include="Game_BG.hpp" />
     <ClInclude Include="Game_Map.hpp" />
     <ClInclude Include="Game_UI.hpp" />
-    <ClInclude Include="jokeClass.h" />
     <ClInclude Include="MapLoader.hpp" />
+    <ClInclude Include="Option.hpp" />
     <ClInclude Include="Player.hpp" />
     <ClInclude Include="StateMode.hpp" />
     <ClInclude Include="stdafx.h" />

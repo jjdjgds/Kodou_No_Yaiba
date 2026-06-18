@@ -11,27 +11,39 @@ Title::Title(const InitData& init)
 
 void Title::update()
 {
+	auto& option = getData().option;
+
 	const Audio& audio = AudioAsset(U"TitleBgm");
 	if(!audio.isPlaying())
 	{
-		audio.setVolume(0.7);
+		audio.setLoop(true);
 		audio.play();
 	}
+
+	audio.setVolume(option.volume());
 
 	const Vec2  center = Scene::CenterF();
 	const SizeF btnSize{ 240, 60 };
 	const double offsetY = 160;
-	const double gapY = 200;
+	const double gapY = 90;
 
 	RectF startBtn(Arg::center = center.movedBy(0, offsetY), btnSize);
-	RectF exitBtn(Arg::center = center.movedBy(0, offsetY + gapY), btnSize);
+	RectF optionBtn(Arg::center = center.movedBy(0, offsetY + gapY), btnSize);
+	RectF exitBtn(Arg::center = center.movedBy(0, offsetY + (gapY * 2)), btnSize);
 
 	if (startBtn.mouseOver()) m_selected = 0;
-	if (exitBtn.mouseOver())  m_selected = 1;
+	if (optionBtn.mouseOver()) m_selected = 1;
+	if (exitBtn.mouseOver())  m_selected = 2;
 
 	if (startBtn.leftClicked()) {
-		changeScene(State::Game);
 		audio.stop();
+		changeScene(State::Game);
+		return;
+	}
+	if (optionBtn.leftClicked())
+	{
+		option.setMode(Option::Mode::Title);
+		option.toggle();
 		return;
 	}
 	if (exitBtn.leftClicked()) {
@@ -39,17 +51,37 @@ void Title::update()
 		return;
 	}
 
-	if (KeyUp.down() || KeyW.down()) { m_selected = (m_selected + 2 - 1) % 2; }
-	if (KeyDown.down() || KeyS.down()) { m_selected = (m_selected + 1) % 2; }
+	if (KeyUp.down() || KeyW.down()) { m_selected = (m_selected + 2 ) % 3; }
+	if (KeyDown.down() || KeyS.down()) { m_selected = (m_selected + 1) % 3; }
 
 	if (KeyEnter.down() || KeySpace.down())
 	{
 		if (m_selected == 0) {
-			changeScene(State::Game);
 			audio.stop();
+			changeScene(State::Game);
+		}
+		else if (m_selected == 1)
+		{
+			option.setMode(Option::Mode::Title);
+			option.toggle();
 		}
 		else {
 			System::Exit();
+		}
+		return;
+	}
+
+	if (option.isOpen())
+	{
+		option.update();
+		audio.setVolume(option.volume());
+		if (option.shouldBack())
+		{
+			option.toggle();
+		}
+		if (KeyEscape.down())
+		{
+			option.toggle();
 		}
 		return;
 	}
@@ -57,6 +89,9 @@ void Title::update()
 
 void Title::draw() const
 {
+	auto& option = getData().option;
+
+
 	if (TextureAsset::IsRegistered(U"TitleBg")) {
 		TextureAsset(U"TitleBg").resized(Scene::Size()).draw();
 	}
@@ -70,7 +105,8 @@ void Title::draw() const
 	const double gapY = 90;
 
 	const RectF startBtn(Arg::center = center.movedBy(0, offsetY), btnSize);
-	const RectF exitBtn(Arg::center = center.movedBy(0, offsetY + gapY), btnSize);
+	const RectF optionBtn(Arg::center = center.movedBy(0, offsetY + gapY), btnSize);
+	const RectF exitBtn(Arg::center = center.movedBy(0, offsetY + (gapY * 2)), btnSize);
 
 	auto drawButton = [](const RectF& r, StringView text, bool selected)
 		{
@@ -83,6 +119,11 @@ void Title::draw() const
 			FontAsset(U"Bold")(label).drawAt(28, r.center(), Palette::White);
 		};
 
+
 	drawButton(startBtn, U"START", m_selected == 0);
-	drawButton(exitBtn, U"EXIT", m_selected == 1);
+	drawButton(optionBtn, U"OPTION", m_selected == 1);
+	drawButton(exitBtn, U"EXIT", m_selected == 2);
+
+	option.draw();
+
 }

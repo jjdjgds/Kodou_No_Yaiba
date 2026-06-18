@@ -52,30 +52,64 @@ Game::Game(const InitData& init)
 		FontAsset::Register(U"Menu", 36, Typeface::Bold);
 	}
 
+	auto& option = getData().option;
+	option.setMode(Option::Mode::Game);
+
 }
 
 void Game::update()
 {
+	auto& option = getData().option;
+
+	if (KeyEscape.down())
+	{
+		option.setMode(Option::Mode::Game);
+		option.toggle();
+	}
+
+	if (option.isOpen())
+	{
+		option.update();
+
+		// Apply volume to audio
+		audio_battle.setVolume(option.volume());
+		audio_boss.setVolume(option.volume());
+
+		// Handle title button
+		if (option.shouldGoTitle())
+		{
+			option.toggle();
+			audio_battle.stop();
+			audio_boss.stop();
+			Ui.hBgmStop();
+			changeScene(State::Title);
+		}
+		// Handle Exit button
+		if (option.shouldExit())
+		{
+			System::Exit();
+		}
+
+		return;
+	}
+
 	const int stage = map.getCurrentStage();
 
 	if (!audio_battle.isPlaying() && stage !=4)
 	{
 		audio_battle.stop();
-
+		audio_battle.setVolume(option.volume());
 		audio_battle.play();
-		audio_battle.setVolume(0.7);
 	}
 	else if (!audio_boss.isPlaying() && stage == 4)
 	{
 		audio_battle.stop();
+		audio_boss.setVolume(option.volume());
 		audio_boss.play();
-		audio_boss.setVolume(0.7);
 	}
 
-	
 	const RectF pBoxWorld(Arg::center = player.GetPlayerPosition(),
 					  player.GetPlayerHitBox());
-
 	
 	map.updateCamera(player.GetPlayerPosition() + player.GetPlayerScale() / 2);
 	map.update();
@@ -97,9 +131,6 @@ void Game::update()
 		//changeScene(State::Title);
 
 	}
-
-	
-
 
 	if (m_showDeath) {
 		updateDeathOverlay();
@@ -132,6 +163,7 @@ void Game::update()
 
 void Game::draw() const
 {
+	auto& option = getData().option;
 	Scene::SetBackground(ColorF(0.5, 0.5, 0.5, 1.0));
 	map.draw();                // ← マップを描画
 	Boss_spawner.draw(map);
@@ -158,6 +190,8 @@ void Game::draw() const
 	if (m_bossDeath) {
 		drawClearOverlay();
 	}
+
+	option.draw();
 }
 
 
@@ -202,6 +236,7 @@ void Game::updateDeathOverlay() {
 		resetDeathOverlay();
 		audio_battle.stop();
 		audio_boss.stop();
+		Ui.hBgmStop();
 		changeScene(State::Title);
 	}
 }

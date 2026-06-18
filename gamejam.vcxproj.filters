@@ -165,9 +165,6 @@
     <ClCompile Include="Game_UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="jokeClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MapLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -184,6 +181,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Bullet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AllEffect.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeStopManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Option.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -807,6 +813,7 @@
     <None Include="App\engine\shader\glsl\quad_warp.frag">
       <Filter>Resource Files\engine\shader\glsl</Filter>
     </None>
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="App\example\test.mp3">
@@ -878,9 +885,6 @@
     <ClInclude Include="Game_UI.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="jokeClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MapLoader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -903,6 +907,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TextShot.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AllEffect.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeStopManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Option.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
